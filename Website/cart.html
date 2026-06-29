@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warenkorb — StickFactory</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 40px;
+      align-items: start;
+      padding: 60px 0;
+    }
+    .cart-item-img {
+      width: 64px;
+      height: 64px;
+      object-fit: cover;
+      border-radius: 6px;
+      background: var(--color-border);
+    }
+    .qty-input {
+      width: 60px;
+      text-align: center;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      color: var(--color-text);
+      padding: 6px;
+      font-size: 1rem;
+    }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--color-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px 8px;
+    }
+    .remove-btn:hover { color: var(--color-danger); }
+    .cart-empty {
+      text-align: center;
+      padding: 80px 0;
+    }
+    .cart-empty p { color: var(--color-muted); margin-bottom: 24px; }
+    @media (max-width: 768px) {
+      .cart-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">Stick<span>Factory</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">← Weiter shoppen</a></li>
+        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div id="cart-content"></div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/cart.js"></script>
+  <script>
+    function renderCart() {
+      const cart = getCart();
+      const content = document.getElementById('cart-content');
+
+      if (cart.length === 0) {
+        content.innerHTML = `
+          <div class="cart-empty">
+            <div style="font-size:4rem; margin-bottom:16px;">🛒</div>
+            <h2>Dein Warenkorb ist leer</h2>
+            <p>Schau dich im Shop um und füge Produkte hinzu.</p>
+            <a href="/index.html" class="btn btn--primary" style="width:auto">Zum Shop</a>
+          </div>
+        `;
+        return;
+      }
+
+      const rows = cart.map(item => `
+        <tr>
+          <td>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <img src="${item.image_url || '/assets/images/placeholder.png'}"
+                   alt="${item.name}" class="cart-item-img">
+              <div>
+                <strong>${item.name}</strong><br>
+                <span style="color:var(--color-muted); font-size:0.85rem;">
+                  €${item.price.toFixed(2)} / Stück
+                </span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <input
+              type="number"
+              class="qty-input"
+              value="${item.quantity}"
+              min="1"
+              onchange="handleQtyChange('${item.id}', this.value)"
+            >
+          </td>
+          <td><strong>€${(item.price * item.quantity).toFixed(2)}</strong></td>
+          <td>
+            <button class="remove-btn" onclick="handleRemove('${item.id}')" title="Entfernen">✕</button>
+          </td>
+        </tr>
+      `).join('');
+
+      const total = getCartTotal();
+      const shipping = total >= 50 ? 0 : 3.90;
+      const grandTotal = total + shipping;
+
+      content.innerHTML = `
+        <div class="cart-layout">
+          <div>
+            <h1 style="margin-bottom:32px;">Warenkorb</h1>
+            <table class="cart-table">
+              <thead>
+                <tr>
+                  <th>Produkt</th>
+                  <th>Menge</th>
+                  <th>Preis</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+            <button class="btn btn--ghost" onclick="handleClearCart()" style="margin-top:8px;">
+              Warenkorb leeren
+            </button>
+          </div>
+
+          <div class="cart-summary">
+            <h3 style="margin-bottom:20px;">Zusammenfassung</h3>
+            <div class="cart-summary__row">
+              <span>Zwischensumme</span>
+              <span>€${total.toFixed(2)}</span>
+            </div>
+            <div class="cart-summary__row">
+              <span>Versand</span>
+              <span>${shipping === 0 ? '<span style="color:var(--color-success)">Kostenlos</span>' : '€' + shipping.toFixed(2)}</span>
+            </div>
+            ${shipping > 0 ? `
+              <p style="font-size:0.8rem; color:var(--color-muted); margin-bottom:12px;">
+                Noch €${(50 - total).toFixed(2)} bis zum kostenlosen Versand
+              </p>
+            ` : ''}
+            <div class="cart-summary__row cart-summary__row--total">
+              <span>Gesamt</span>
+              <span>€${grandTotal.toFixed(2)}</span>
+            </div>
+            <a href="/checkout.html" class="btn btn--primary" style="display:block; margin-top:20px; text-align:center;">
+              Zur Kasse →
+            </a>
+            <a href="/index.html" class="btn btn--outline" style="display:block; margin-top:10px; text-align:center;">
+              Weiter shoppen
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleQtyChange(id, value) {
+      const qty = parseInt(value);
+      if (qty > 0) updateQuantity(id, qty);
+      else removeFromCart(id);
+      renderCart();
+    }
+
+    function handleRemove(id) {
+      removeFromCart(id);
+      renderCart();
+    }
+
+    function handleClearCart() {
+      if (confirm('Warenkorb wirklich leeren?')) {
+        clearCart();
+        renderCart();
+      }
+    }
+
+    updateCartBadge();
+    renderCart();
+  </script>
+
+</body>
+</html>

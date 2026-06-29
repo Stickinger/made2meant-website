@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produkt — StickFactory</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .product-detail {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      padding: 60px 0;
+      align-items: start;
+    }
+    .product-detail__image {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: var(--radius);
+      background: var(--color-surface);
+    }
+    .product-detail__info { display: flex; flex-direction: column; gap: 20px; }
+    .product-detail__price { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
+    .product-detail__desc  { color: var(--color-muted); line-height: 1.8; }
+    .product-detail__stock { font-size: 0.85rem; color: var(--color-muted); }
+    .product-detail__stock.low { color: #f59e0b; }
+    .qty-selector { display: flex; align-items: center; gap: 12px; }
+    .qty-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      color: var(--color-text); font-size: 1.2rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .qty-btn:hover { border-color: var(--color-primary); }
+    #qty-display { font-size: 1.1rem; font-weight: 600; min-width: 24px; text-align: center; }
+    @media (max-width: 640px) {
+      .product-detail { grid-template-columns: 1fr; gap: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">Stick<span>Factory</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">← Zurück</a></li>
+        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div id="product-detail" class="product-detail">
+        <p class="loading">Produkt wird geladen...</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 StickFactory.</span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/products.js"></script>
+  <script>
+    updateCartBadge();
+
+    let currentProduct = null;
+    let qty = 1;
+
+    async function init() {
+      const slug = new URLSearchParams(window.location.search).get('slug');
+      if (!slug) { window.location.href = '/index.html'; return; }
+
+      currentProduct = await loadProduct(slug);
+      if (!currentProduct) {
+        document.getElementById('product-detail').innerHTML =
+          '<p class="empty">Produkt nicht gefunden.</p>';
+        return;
+      }
+
+      // Seitentitel setzen
+      document.title = currentProduct.name + ' — StickFactory';
+
+      const stockLabel = currentProduct.stock <= 5
+        ? `<span class="product-detail__stock low">Nur noch ${currentProduct.stock} verfügbar</span>`
+        : `<span class="product-detail__stock">${currentProduct.stock} auf Lager</span>`;
+
+      document.getElementById('product-detail').innerHTML = `
+        <img
+          src="${currentProduct.image_url || '/assets/images/placeholder.png'}"
+          alt="${currentProduct.name}"
+          class="product-detail__image"
+        >
+        <div class="product-detail__info">
+          <h1>${currentProduct.name}</h1>
+          <p class="product-detail__price">€${currentProduct.price.toFixed(2)}</p>
+          <p class="product-detail__desc">${currentProduct.description || ''}</p>
+          ${stockLabel}
+          ${currentProduct.stock > 0 ? `
+            <div class="qty-selector">
+              <button class="qty-btn" onclick="changeQty(-1)">−</button>
+              <span id="qty-display">1</span>
+              <button class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+            <button class="btn btn--primary" onclick="handleAddToCart()" style="width:auto; padding:14px 32px;">
+              In den Warenkorb
+            </button>
+          ` : `<button class="btn btn--disabled" disabled>Ausverkauft</button>`}
+        </div>
+      `;
+    }
+
+    function changeQty(delta) {
+      qty = Math.max(1, Math.min(qty + delta, currentProduct.stock));
+      document.getElementById('qty-display').textContent = qty;
+    }
+
+    function handleAddToCart() {
+      for (let i = 0; i < qty; i++) addToCart(currentProduct);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,537 @@
+/* ============================================================
+   FONTS — Source Sans (lokal + Google Fonts Fallback)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap');
+
+/* ============================================================
+   DESIGN-VARIABLEN
+   ============================================================ */
+:root {
+  /* Hauptfarben */
+  --color-bg:         #F2EDDC;   /* Creme */
+  --color-surface:    #ffffff;
+  --color-border:     #e4dfd2;   /* Stein */
+  --color-text:       #2C2C2A;   /* Schwarz */
+  --color-muted:      #99a497;   /* Ton */
+
+  /* Akzentfarben */
+  --color-primary:       #a85d4f;   /* Terracotta */
+  --color-primary-hover: #8f4d41;
+  --color-accent:        #42553d;   /* Moos */
+  --color-accent-hover:  #334430;
+
+  /* Schattierungen */
+  --color-stein:      #e4dfd2;
+  --color-ton:        #99a497;
+  --color-salbei:     #d6b3ac;
+
+  /* Status */
+  --color-success:    #42553d;   /* Moos */
+  --color-danger:     #a85d4f;   /* Terracotta */
+
+  /* Typographie */
+  --font-main:        'Source Sans 3', 'Source Sans Pro', system-ui, sans-serif;
+  --letter-spacing-nav:  0.2em;
+  --letter-spacing-head: 0.2em;
+
+  --radius:           6px;
+  --max-width:        1200px;
+  --transition:       0.2s ease;
+}
+
+/* ============================================================
+   RESET & BASIS
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main { flex: 1; }
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.5;   /* 150% laut Brand Guide */
+  font-weight: 800;
+}
+
+/* Headline: Extra Bold, Letter-Spacing 200, Uppercase */
+h1 {
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* Subline: Bold */
+h2, h3 {
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Navigation & Produkte: Bold, Letter-Spacing 200, Uppercase */
+.label-style {
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+.container {
+  width: 100%;
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section {
+  padding: 64px 0;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 40px;
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+.navbar {
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+.navbar__logo {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--color-text);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.navbar__logo span { color: var(--color-primary); }
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  list-style: none;
+}
+
+.navbar__links a {
+  color: var(--color-text);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: var(--letter-spacing-nav);
+  text-transform: uppercase;
+  transition: color var(--transition);
+}
+.navbar__links a:hover { color: var(--color-primary); text-decoration: none; }
+
+.cart-icon {
+  position: relative;
+  cursor: pointer;
+  font-size: 1.3rem;
+}
+
+#cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: var(--color-primary);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.65rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.hero {
+  padding: 100px 0;
+  text-align: center;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.hero__title {
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900;
+  margin-bottom: 20px;
+  letter-spacing: var(--letter-spacing-head);
+  text-transform: uppercase;
+  line-height: 1.0;
+  color: var(--color-text);
+}
+
+.hero__title span { color: var(--color-primary); }
+
+.hero__subtitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  max-width: 500px;
+  margin: 0 auto 40px;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: background var(--transition), transform var(--transition);
+  font-family: var(--font-main);
+}
+
+.btn:active { transform: scale(0.98); }
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #F2EDDC;
+  width: 100%;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.btn--primary:hover { background: var(--color-primary-hover); text-decoration: none; }
+
+.btn--secondary {
+  background: var(--color-accent);
+  color: #F2EDDC;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.btn--secondary:hover { background: var(--color-accent-hover); text-decoration: none; }
+
+.btn--outline {
+  background: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-text);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+.btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
+
+.btn--ghost {
+  background: transparent;
+  color: var(--color-primary);
+  padding: 8px 16px;
+  letter-spacing: 0.05em;
+}
+
+.btn--danger {
+  background: var(--color-danger);
+  color: #F2EDDC;
+}
+
+.btn--disabled {
+  background: var(--color-border);
+  color: var(--color-muted);
+  cursor: not-allowed;
+  width: 100%;
+}
+
+/* ============================================================
+   PRODUKT-GRID & KARTEN
+   ============================================================ */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.product-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.product-card:hover {
+  box-shadow: 0 8px 24px rgba(44,44,42,0.12);
+  transform: translateY(-3px);
+}
+
+.product-card__image {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: var(--color-border);
+}
+
+.product-card__body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.product-card__name {
+  font-size: 1rem;
+  font-weight: 600;
+}
+.product-card__name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.product-card__name a { color: var(--color-text); }
+
+.product-card__price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ============================================================
+   WARENKORB-SEITE
+   ============================================================ */
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 32px;
+}
+
+.cart-table th,
+.cart-table td {
+  padding: 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.cart-table th {
+  color: var(--color-muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.cart-summary {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 24px;
+  max-width: 360px;
+  margin-left: auto;
+}
+
+.cart-summary__row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.cart-summary__row--total {
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
+  margin-top: 8px;
+}
+
+/* ============================================================
+   FORMS (Login, Register, Checkout)
+   ============================================================ */
+.form-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 40px;
+  max-width: 420px;
+  margin: 80px auto;
+}
+
+.form-card h2 {
+  font-size: 1.6rem;
+  margin-bottom: 32px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  color: var(--color-text);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  transition: border-color var(--transition);
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  background: #fff;
+}
+
+.form-card {
+  background: #fff;
+}
+
+.form-error {
+  color: var(--color-danger);
+  font-size: 0.85rem;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: var(--radius);
+  display: none;
+}
+.form-error.visible { display: block; }
+
+.form-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+/* ============================================================
+   TOAST (Benachrichtigung)
+   ============================================================ */
+.toast {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  background: var(--color-success);
+  color: white;
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity var(--transition), transform var(--transition);
+  z-index: 1000;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+.footer {
+  background: var(--color-text);
+  border-top: 1px solid var(--color-border);
+  padding: 40px 0;
+  margin-top: auto;
+}
+
+.footer .footer__copy { color: var(--color-muted); }
+.footer .footer__links a { color: #e4dfd2; }
+.footer .footer__links a:hover { color: var(--color-primary); }
+
+.footer__inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.footer__copy {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+
+.footer__links {
+  display: flex;
+  gap: 20px;
+  list-style: none;
+}
+
+.footer__links a {
+  color: var(--color-muted);
+  font-size: 0.85rem;
+}
+.footer__links a:hover { color: var(--color-text); text-decoration: none; }
+
+/* ============================================================
+   HILFKLASSEN
+   ============================================================ */
+.loading { color: var(--color-muted); padding: 40px; text-align: center; }
+.empty   { color: var(--color-muted); padding: 40px; text-align: center; }
+.text-center { text-align: center; }
+.mt-8  { margin-top: 8px; }
+.mt-16 { margin-top: 16px; }
+.mt-32 { margin-top: 32px; }
+
+/* ============================================================
+   RESPONSIVE (Handy)
+   ============================================================ */
+@media (max-width: 640px) {
+  .navbar__links { gap: 12px; }
+  .section { padding: 40px 0; }
+  .form-card { padding: 24px; margin: 40px auto; }
+  .cart-table th:nth-child(2),
+  .cart-table td:nth-child(2) { display: none; }
+  .footer__inner { flex-direction: column; text-align: center; }
+}

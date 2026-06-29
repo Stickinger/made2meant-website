@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kasse — StickFactory</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .checkout-layout {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      gap: 48px;
+      padding: 60px 0;
+      align-items: start;
+    }
+    .checkout-section {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+    .checkout-section h3 {
+      margin-bottom: 20px;
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-muted);
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .order-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.9rem;
+    }
+    .order-item:last-child { border-bottom: none; }
+    @media (max-width: 768px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">Stick<span>Factory</span></a>
+      <ul class="navbar__links">
+        <li><a href="/cart.html">← Warenkorb</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container">
+      <div class="checkout-layout">
+
+        <!-- Linke Seite: Formular -->
+        <div>
+          <h1 style="margin-bottom:32px;">Kasse</h1>
+
+          <form id="checkout-form">
+
+            <!-- Kontakt -->
+            <div class="checkout-section">
+              <h3>Kontakt</h3>
+              <div class="form-group">
+                <label for="email">E-Mail</label>
+                <input type="email" id="email" placeholder="deine@email.com" required>
+              </div>
+            </div>
+
+            <!-- Lieferadresse -->
+            <div class="checkout-section">
+              <h3>Lieferadresse</h3>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="first-name">Vorname</label>
+                  <input type="text" id="first-name" placeholder="Max" required>
+                </div>
+                <div class="form-group">
+                  <label for="last-name">Nachname</label>
+                  <input type="text" id="last-name" placeholder="Mustermann" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="address">Straße & Hausnummer</label>
+                <input type="text" id="address" placeholder="Musterstraße 1" required>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="zip">PLZ</label>
+                  <input type="text" id="zip" placeholder="1010" required>
+                </div>
+                <div class="form-group">
+                  <label for="city">Stadt</label>
+                  <input type="text" id="city" placeholder="Wien" required>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="country">Land</label>
+                <select id="country" required>
+                  <option value="AT">Österreich</option>
+                  <option value="DE">Deutschland</option>
+                  <option value="CH">Schweiz</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Zahlung -->
+            <div class="checkout-section">
+              <h3>Zahlung</h3>
+              <p style="color:var(--color-muted); font-size:0.9rem; text-align:center; padding:20px 0;">
+                🔒 Stripe-Integration kommt hier hin.<br>
+                <small>Kreditkarte, SEPA, PayPal — alles möglich.</small>
+              </p>
+            </div>
+
+            <div class="form-error" id="error-msg"></div>
+
+            <button type="submit" class="btn btn--primary" style="width:100%; padding:16px; font-size:1rem;">
+              Bestellung aufgeben →
+            </button>
+          </form>
+        </div>
+
+        <!-- Rechte Seite: Bestellübersicht -->
+        <div>
+          <div class="cart-summary" style="position:sticky; top:80px;">
+            <h3 style="margin-bottom:20px;">Deine Bestellung</h3>
+            <div id="order-items"></div>
+            <div id="order-totals"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script>
+    const cart = getCart();
+
+    // Leerer Warenkorb → zurück zum Shop
+    if (cart.length === 0) window.location.href = '/cart.html';
+
+    // Bestellübersicht befüllen
+    function renderOrderSummary() {
+      const items = cart.map(item => `
+        <div class="order-item">
+          <span>${item.name} × ${item.quantity}</span>
+          <span>€${(item.price * item.quantity).toFixed(2)}</span>
+        </div>
+      `).join('');
+
+      const total    = getCartTotal();
+      const shipping = total >= 50 ? 0 : 3.90;
+      const grand    = total + shipping;
+
+      document.getElementById('order-items').innerHTML = items;
+      document.getElementById('order-totals').innerHTML = `
+        <div class="cart-summary__row" style="margin-top:16px;">
+          <span>Versand</span>
+          <span>${shipping === 0 ? 'Kostenlos' : '€' + shipping.toFixed(2)}</span>
+        </div>
+        <div class="cart-summary__row cart-summary__row--total">
+          <span>Gesamt</span>
+          <span>€${grand.toFixed(2)}</span>
+        </div>
+      `;
+    }
+
+    // E-Mail vorausfüllen wenn eingeloggt
+    async function prefillUser() {
+      const user = await getUser();
+      if (user) {
+        document.getElementById('email').value = user.email;
+      }
+    }
+
+    // Bestellung in Supabase speichern
+    async function placeOrder(formData) {
+      const user = await getUser();
+      const total    = getCartTotal();
+      const shipping = total >= 50 ? 0 : 3.90;
+
+      // 1. Bestellung anlegen
+      const { data: order, error: orderError } = await db
+        .from('orders')
+        .insert({
+          user_id:          user?.id || null,
+          email:            formData.email,
+          first_name:       formData.firstName,
+          last_name:        formData.lastName,
+          address:          formData.address,
+          zip:              formData.zip,
+          city:             formData.city,
+          country:          formData.country,
+          subtotal:         total,
+          shipping:         shipping,
+          total:            total + shipping,
+          status:           'pending',
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // 2. Bestellpositionen speichern
+      const items = cart.map(item => ({
+        order_id:   order.id,
+        product_id: item.id,
+        name:       item.name,
+        price:      item.price,
+        quantity:   item.quantity,
+      }));
+
+      const { error: itemsError } = await db.from('order_items').insert(items);
+      if (itemsError) throw itemsError;
+
+      return order;
+    }
+
+    document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.classList.remove('visible');
+
+      const btn = e.target.querySelector('button[type="submit"]');
+      btn.textContent = 'Bestellung wird aufgegeben...';
+      btn.disabled = true;
+
+      const formData = {
+        email:     document.getElementById('email').value,
+        firstName: document.getElementById('first-name').value,
+        lastName:  document.getElementById('last-name').value,
+        address:   document.getElementById('address').value,
+        zip:       document.getElementById('zip').value,
+        city:      document.getElementById('city').value,
+        country:   document.getElementById('country').value,
+      };
+
+      try {
+        const order = await placeOrder(formData);
+        clearCart();
+        window.location.href = `/order-success.html?id=${order.id}`;
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = 'Fehler beim Aufgeben der Bestellung. Bitte versuche es erneut.';
+        errorMsg.classList.add('visible');
+        btn.textContent = 'Bestellung aufgeben →';
+        btn.disabled = false;
+      }
+    });
+
+    prefillUser();
+    renderOrderSummary();
+  </script>
+
+</body>
+</html>

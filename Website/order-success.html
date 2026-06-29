@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bestellung erfolgreich — StickFactory</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">Stick<span>Factory</span></a>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container" style="text-align:center; padding: 100px 24px;">
+      <div style="font-size:5rem; margin-bottom:24px;">🎉</div>
+      <h1 style="font-size:2.5rem; margin-bottom:16px;">Danke für deine Bestellung!</h1>
+      <p style="color:var(--color-muted); max-width:480px; margin:0 auto 12px;">
+        Wir haben deine Bestellung erhalten und bearbeiten sie so schnell wie möglich.
+      </p>
+      <p style="color:var(--color-muted); font-size:0.9rem; margin-bottom:40px;">
+        Bestell-Nr.: <strong id="order-id" style="color:var(--color-text);">—</strong>
+      </p>
+      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+        <a href="/account.html" class="btn btn--outline">Meine Bestellungen</a>
+        <a href="/index.html" class="btn btn--primary" style="width:auto;">Weiter shoppen</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const id = new URLSearchParams(window.location.search).get('id');
+    if (id) document.getElementById('order-id').textContent = '#' + id.slice(0, 8).toUpperCase();
+  </script>
+
+</body>
+</html>

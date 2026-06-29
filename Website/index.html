@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MADE2MEANT — Made personal. Meant forever.</title>
+  <meta name="description" content="Personalisierte Stickereien. Made personal. Meant forever.">
+  <link rel="stylesheet" href="/css/style.css">
+  <!-- Google Fonts (optional, kannst du entfernen) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- ===== NAVIGATION ===== -->
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+
+      <ul class="navbar__links">
+        <li><a href="/index.html">Shop</a></li>
+        <li><a href="/admin/index.html">Admin</a></li>
+        <li><a href="#" id="nav-login">Login</a></li>
+        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
+        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
+        <li>
+          <a href="/cart.html" class="cart-icon">
+            🛒 <span id="cart-badge" style="display:none">0</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero__title">
+        Made personal.<br>
+        <span>Meant forever.</span>
+      </h1>
+      <p class="hero__subtitle">
+        Personalisierte Stickereien für Erinnerungen, die bleiben.
+      </p>
+      <a href="#products" class="btn btn--primary" style="width:auto">Shop jetzt</a>
+    </div>
+  </section>
+
+  <!-- ===== PRODUKTGRID ===== -->
+  <main>
+    <section class="section" id="products">
+      <div class="container">
+        <h2 class="section-title">Alle Produkte</h2>
+        <!-- Produkte werden per JS hier reingeladen -->
+        <div class="product-grid" id="product-grid">
+          <p class="loading">Produkte werden geladen...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 StickFactory. Alle Rechte vorbehalten.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <!-- ===== SCRIPTS ===== -->
+  <!-- Supabase CDN — kein npm, kein Build-Tool nötig -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/products.js"></script>
+
+  <script>
+    // Seite initialisieren
+    updateNav();
+    updateCartBadge();
+    renderProductGrid('product-grid');
+  </script>
+
+</body>
+</html>

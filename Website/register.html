@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registrieren — StickFactory</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">Stick<span>Factory</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">← Shop</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="form-card">
+      <h2>Konto erstellen</h2>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="name">Vollständiger Name</label>
+          <input type="text" id="name" placeholder="Max Mustermann" required>
+        </div>
+        <div class="form-group">
+          <label for="email">E-Mail</label>
+          <input type="email" id="email" placeholder="deine@email.com" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Passwort</label>
+          <input type="password" id="password" placeholder="Min. 8 Zeichen" minlength="8" required>
+        </div>
+        <div class="form-group">
+          <label for="password2">Passwort wiederholen</label>
+          <input type="password" id="password2" placeholder="••••••••" required>
+        </div>
+
+        <div class="form-error" id="error-msg"></div>
+
+        <button type="submit" class="btn btn--primary">Konto erstellen</button>
+      </form>
+
+      <p class="form-link">
+        Bereits registriert? <a href="/login.html">Einloggen</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- Bestätigungs-Overlay nach Registrierung -->
+  <div id="success-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.85);
+       display:none; align-items:center; justify-content:center; z-index:200;">
+    <div class="form-card" style="margin:0; text-align:center;">
+      <div style="font-size:3rem; margin-bottom:16px;">✅</div>
+      <h2>Fast geschafft!</h2>
+      <p style="color:var(--color-muted); margin-top:12px;">
+        Wir haben dir eine Bestätigungs-E-Mail geschickt.<br>
+        Bitte klick den Link darin um dein Konto zu aktivieren.
+      </p>
+      <a href="/login.html" class="btn btn--primary" style="margin-top:24px; display:block">Zum Login</a>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errorMsg = document.getElementById('error-msg');
+      errorMsg.classList.remove('visible');
+
+      const name      = document.getElementById('name').value;
+      const email     = document.getElementById('email').value;
+      const password  = document.getElementById('password').value;
+      const password2 = document.getElementById('password2').value;
+      const btn       = e.target.querySelector('button[type="submit"]');
+
+      if (password !== password2) {
+        errorMsg.textContent = 'Die Passwörter stimmen nicht überein.';
+        errorMsg.classList.add('visible');
+        return;
+      }
+
+      btn.textContent = 'Bitte warten...';
+      btn.disabled = true;
+
+      try {
+        await register(email, password, name);
+        document.getElementById('success-overlay').style.display = 'flex';
+      } catch (err) {
+        errorMsg.textContent = err.message || 'Registrierung fehlgeschlagen.';
+        errorMsg.classList.add('visible');
+        btn.textContent = 'Konto erstellen';
+        btn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>
