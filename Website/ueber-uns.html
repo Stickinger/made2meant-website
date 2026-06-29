@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Über uns — MADE2MEANT</title>
+  <meta name="description" content="Die Geschichte hinter MADE2MEANT — Made personal. Meant forever.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .page-hero {
+      padding: 80px 0 60px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: center;
+    }
+    .page-hero__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 16px;
+    }
+    .page-hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .page-hero p {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 540px;
+      margin: 0 auto;
+      font-weight: 600;
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      padding: 80px 0;
+    }
+    .about-grid--reverse { direction: rtl; }
+    .about-grid--reverse > * { direction: ltr; }
+
+    .about-image {
+      aspect-ratio: 4/3;
+      background: var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 5rem;
+    }
+
+    .about-text__label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 12px;
+    }
+    .about-text h2 {
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      margin-bottom: 20px;
+      line-height: 1.3;
+    }
+    .about-text p {
+      color: var(--color-muted);
+      line-height: 1.8;
+      margin-bottom: 16px;
+      font-size: 0.95rem;
+    }
+
+    .values-section {
+      background: var(--color-text);
+      padding: 80px 0;
+    }
+    .values-section h2 {
+      color: #F2EDDC;
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 48px;
+      letter-spacing: 0.1em;
+    }
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+    }
+    .value-card {
+      text-align: center;
+      padding: 32px 24px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: var(--radius);
+    }
+    .value-card__icon { font-size: 2rem; margin-bottom: 16px; }
+    .value-card h3 {
+      color: #F2EDDC;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .value-card p {
+      color: rgba(242,237,220,0.5);
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+
+    .cta-section {
+      padding: 80px 0;
+      text-align: center;
+    }
+    .cta-section h2 {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    .cta-section p {
+      color: var(--color-muted);
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .about-grid { grid-template-columns: 1fr; gap: 40px; }
+      .about-grid--reverse { direction: ltr; }
+      .values-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">Shop</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/login.html" id="nav-login">Login</a></li>
+        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
+        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
+        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="page-hero__label">Unsere Geschichte</div>
+      <h1>Made personal.<br><span style="color:var(--color-primary)">Meant forever.</span></h1>
+      <p>Hinter jedem Stich steckt eine Geschichte. Hier ist unsere.</p>
+    </div>
+  </section>
+
+  <main>
+    <section class="section">
+      <div class="container">
+
+        <div class="about-grid">
+          <div class="about-image">🧵</div>
+          <div class="about-text">
+            <div class="about-text__label">Wie alles begann</div>
+            <h2>Aus Leidenschaft entstand ein Handwerk</h2>
+            <p>MADE2MEANT entstand aus dem Wunsch heraus, Dinge herzustellen, die wirklich bedeuten. Nicht Massenware, sondern Stücke, die Erinnerungen tragen und Geschichten erzählen.</p>
+            <p>Was als kleines Projekt begann, ist heute ein Ort für personalisierte Stickereien, die Menschen wirklich bewegen — sei es als Geschenk, Andenken oder persönliches Statement.</p>
+          </div>
+        </div>
+
+        <div class="about-grid about-grid--reverse">
+          <div class="about-image">✂️</div>
+          <div class="about-text">
+            <div class="about-text__label">Unser Ansatz</div>
+            <h2>Jedes Stück ist einzigartig</h2>
+            <p>Wir glauben, dass die schönsten Dinge persönlich sind. Jede Stickerei wird mit Sorgfalt und Liebe zum Detail gefertigt — für Menschen, die das Besondere zu schätzen wissen.</p>
+            <p>Von der ersten Skizze bis zum fertigen Produkt begleiten wir jeden Schritt mit dem Anspruch, etwas Bleibendes zu schaffen.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="values-section">
+      <div class="container">
+        <h2>Was uns antreibt</h2>
+        <div class="values-grid">
+          <div class="value-card">
+            <div class="value-card__icon">❤️</div>
+            <h3>Mit Herz</h3>
+            <p>Jede Stickerei entsteht mit echter Leidenschaft und dem Wunsch, etwas Bedeutungsvolles zu schaffen.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">🎯</div>
+            <h3>Präzision</h3>
+            <p>Wir setzen auf höchste Qualität in jedem Detail — vom Material bis zum letzten Stich.</p>
+          </div>
+          <div class="value-card">
+            <div class="value-card__icon">🤝</div>
+            <h3>Vertrauen</h3>
+            <p>Deine Idee ist bei uns sicher. Wir hören zu und setzen um, was du dir wirklich vorstellst.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <h2>Dein persönliches Stück wartet</h2>
+        <p>Entdecke unsere Kollektion oder lass uns gemeinsam etwas Einzigartiges für dich schaffen.</p>
+        <a href="/index.html" class="btn btn--primary" style="width:auto;display:inline-block;">Zum Shop →</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/track.js"></script>
+  <script>updateNav(); updateCartBadge();</script>
+</body>
+</html>

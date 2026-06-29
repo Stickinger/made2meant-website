@@ -6,9 +6,96 @@
   <title>MADE2MEANT — Made personal. Meant forever.</title>
   <meta name="description" content="Personalisierte Stickereien. Made personal. Meant forever.">
   <link rel="stylesheet" href="/css/style.css">
-  <!-- Google Fonts (optional, kannst du entfernen) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ── SHOP FILTER ── */
+    .shop-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+      max-width: 360px;
+    }
+    .search-box input {
+      width: 100%;
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 10px 16px 10px 40px;
+      font-family: var(--font-main);
+      font-size: 0.9rem;
+      color: var(--color-text);
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .search-box__icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-muted);
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .filter-tab {
+      padding: 8px 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 99px;
+      background: white;
+      color: var(--color-text);
+      font-family: var(--font-main);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+    }
+    .filter-tab.active {
+      background: var(--color-text);
+      border-color: var(--color-text);
+      color: #F2EDDC;
+    }
+    .filter-tab--bestseller.active {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+    }
+
+    .shop-result-count {
+      color: var(--color-muted);
+      font-size: 0.8rem;
+      margin-bottom: 20px;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--color-muted);
+    }
+    .no-results__icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .no-results p { font-size: 0.9rem; }
+  </style>
 </head>
 <body>
 
@@ -19,8 +106,10 @@
 
       <ul class="navbar__links">
         <li><a href="/index.html">Shop</a></li>
-        <li><a href="/admin/index.html">Admin</a></li>
-        <li><a href="#" id="nav-login">Login</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <!-- Admin nur direkt über /admin erreichbar, kein Link hier -->
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
         <li>
@@ -46,15 +135,30 @@
     </div>
   </section>
 
-  <!-- ===== PRODUKTGRID ===== -->
+  <!-- ===== SHOP ===== -->
   <main>
     <section class="section" id="products">
       <div class="container">
-        <h2 class="section-title">Alle Produkte</h2>
-        <!-- Produkte werden per JS hier reingeladen -->
+
+        <!-- Toolbar: Suche + Filter -->
+        <div class="shop-toolbar">
+          <div class="search-box">
+            <span class="search-box__icon">🔍</span>
+            <input type="text" id="search-input" placeholder="Suchen..." oninput="filterProducts()">
+          </div>
+          <div class="filter-tabs" id="filter-tabs">
+            <button class="filter-tab active" data-filter="all" onclick="setFilter('all', this)">Alle</button>
+            <button class="filter-tab filter-tab--bestseller" data-filter="bestseller" onclick="setFilter('bestseller', this)">⭐ Bestseller</button>
+            <!-- Kategorien werden per JS geladen -->
+          </div>
+        </div>
+
+        <p class="shop-result-count" id="result-count"></p>
+
         <div class="product-grid" id="product-grid">
           <p class="loading">Produkte werden geladen...</p>
         </div>
+
       </div>
     </section>
   </main>
@@ -62,7 +166,7 @@
   <!-- ===== FOOTER ===== -->
   <footer class="footer">
     <div class="container footer__inner">
-      <span class="footer__copy">© 2026 StickFactory. Alle Rechte vorbehalten.</span>
+      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
       <ul class="footer__links">
         <li><a href="/impressum.html">Impressum</a></li>
         <li><a href="/datenschutz.html">Datenschutz</a></li>
@@ -71,19 +175,92 @@
     </div>
   </footer>
 
-  <!-- ===== SCRIPTS ===== -->
-  <!-- Supabase CDN — kein npm, kein Build-Tool nötig -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/cart.js"></script>
   <script src="/js/products.js"></script>
+  <script src="/js/track.js"></script>
 
   <script>
-    // Seite initialisieren
-    updateNav();
-    updateCartBadge();
-    renderProductGrid('product-grid');
+    let allProducts = [];
+    let activeFilter = 'all';
+
+    // Kategorien als Filter-Tabs laden
+    async function loadCategoryFilters() {
+      try {
+        const { data } = await db.from('categories').select('*').eq('active', true).order('sort_order');
+        if (!data) return;
+        const tabs = document.getElementById('filter-tabs');
+        data.forEach(cat => {
+          const btn = document.createElement('button');
+          btn.className = 'filter-tab';
+          btn.dataset.filter = cat.id;
+          btn.textContent = cat.name;
+          btn.onclick = () => setFilter(cat.id, btn);
+          tabs.appendChild(btn);
+        });
+      } catch (_) {}
+    }
+
+    function setFilter(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      filterProducts();
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      let filtered = allProducts;
+
+      if (activeFilter === 'bestseller') {
+        filtered = filtered.filter(p => p.bestseller);
+      } else if (activeFilter !== 'all') {
+        filtered = filtered.filter(p => p.category_id === activeFilter);
+      }
+
+      if (q) {
+        filtered = filtered.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          (p.description || '').toLowerCase().includes(q) ||
+          (p.tags || []).some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      renderGrid(filtered);
+    }
+
+    function renderGrid(products) {
+      const container = document.getElementById('product-grid');
+      const count = document.getElementById('result-count');
+
+      if (products.length === 0) {
+        container.innerHTML = `
+          <div class="no-results" style="grid-column:1/-1">
+            <div class="no-results__icon">🧵</div>
+            <p>Keine Produkte gefunden.</p>
+          </div>`;
+        count.textContent = '';
+        return;
+      }
+
+      count.textContent = products.length + ' Produkt' + (products.length !== 1 ? 'e' : '');
+      container.innerHTML = products.map(renderProductCard).join('');
+    }
+
+    async function init() {
+      updateNav();
+      updateCartBadge();
+      loadCategoryFilters();
+
+      let products = await loadProducts();
+      if (products.length === 0) products = DEMO_PRODUCTS;
+      allProducts = products;
+      filterProducts();
+    }
+
+    init();
   </script>
 
 </body>

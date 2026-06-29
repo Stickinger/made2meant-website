@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unser Qualitätsanspruch — MADE2MEANT</title>
+  <meta name="description" content="Warum Qualität bei MADE2MEANT keine Floskel ist.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .page-hero {
+      padding: 80px 0 60px;
+      border-bottom: 1px solid var(--color-border);
+      text-align: center;
+    }
+    .page-hero__label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 16px;
+    }
+    .page-hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+    .page-hero p {
+      font-size: 1.1rem;
+      color: var(--color-muted);
+      max-width: 540px;
+      margin: 0 auto;
+      font-weight: 600;
+    }
+
+    .steps {
+      padding: 80px 0;
+      counter-reset: step;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 32px;
+      padding: 40px 0;
+      border-bottom: 1px solid var(--color-border);
+      align-items: start;
+    }
+    .step:last-child { border-bottom: none; }
+    .step__number {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--color-border);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      padding-top: 4px;
+    }
+    .step__label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+    .step h3 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+    }
+    .step p {
+      color: var(--color-muted);
+      line-height: 1.8;
+      font-size: 0.95rem;
+      max-width: 600px;
+    }
+
+    .promise-section {
+      background: var(--color-text);
+      padding: 80px 0;
+      text-align: center;
+    }
+    .promise-section h2 {
+      color: #F2EDDC;
+      font-size: 2rem;
+      margin-bottom: 16px;
+      letter-spacing: 0.1em;
+    }
+    .promise-section p {
+      color: rgba(242,237,220,0.6);
+      max-width: 560px;
+      margin: 0 auto 48px;
+      font-size: 0.95rem;
+      line-height: 1.8;
+    }
+    .promise-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      text-align: center;
+    }
+    .promise-item__icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .promise-item h4 {
+      color: #F2EDDC;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .promise-item p {
+      color: rgba(242,237,220,0.4);
+      font-size: 0.8rem;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .materials-section {
+      padding: 80px 0;
+    }
+    .materials-section h2 {
+      font-size: 2rem;
+      margin-bottom: 48px;
+      text-align: center;
+    }
+    .materials-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .material-card {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+    }
+    .material-card__icon { font-size: 2rem; margin-bottom: 16px; }
+    .material-card h3 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      color: var(--color-text);
+    }
+    .material-card p {
+      font-size: 0.85rem;
+      color: var(--color-muted);
+      line-height: 1.7;
+    }
+
+    .cta-section {
+      padding: 80px 0;
+      text-align: center;
+    }
+    .cta-section h2 { font-size: 2rem; margin-bottom: 16px; }
+    .cta-section p { color: var(--color-muted); margin-bottom: 32px; }
+
+    @media (max-width: 768px) {
+      .step { grid-template-columns: 48px 1fr; gap: 16px; }
+      .step__number { font-size: 2rem; }
+      .promise-grid { grid-template-columns: repeat(2, 1fr); }
+      .materials-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">Shop</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/login.html" id="nav-login">Login</a></li>
+        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
+        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
+        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <section class="page-hero">
+    <div class="container">
+      <div class="page-hero__label">Unser Versprechen</div>
+      <h1>Qualität,<br><span style="color:var(--color-primary)">die bleibt.</span></h1>
+      <p>Wir machen keine Kompromisse — von der ersten Nadel bis zum letzten Stich.</p>
+    </div>
+  </section>
+
+  <main>
+
+    <section class="steps">
+      <div class="container">
+
+        <div class="step">
+          <div class="step__number">01</div>
+          <div>
+            <div class="step__label">Auswahl</div>
+            <h3>Nur die besten Materialien</h3>
+            <p>Wir arbeiten ausschließlich mit hochwertigen Garnen und Stoffen, die langlebig, farbecht und angenehm in der Verarbeitung sind. Keine Kompromisse beim Ausgangsmaterial.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__number">02</div>
+          <div>
+            <div class="step__label">Technik</div>
+            <h3>Präzise Verarbeitung</h3>
+            <p>Jede Stickerei wird sorgfältig programmiert und kontrolliert. Wir achten auf exakte Stichdichte, saubere Übergänge und eine Verarbeitung, die auch nach vielen Wäschen noch perfekt aussieht.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__number">03</div>
+          <div>
+            <div class="step__label">Kontrolle</div>
+            <h3>Jedes Stück wird geprüft</h3>
+            <p>Bevor ein Produkt das Haus verlässt, wird es von uns persönlich kontrolliert. Wir versenden nichts, das wir selbst nicht behalten würden.</p>
+          </div>
+        </div>
+
+        <div class="step">
+          <div class="step__number">04</div>
+          <div>
+            <div class="step__label">Lieferung</div>
+            <h3>Sicher verpackt, pünktlich geliefert</h3>
+            <p>Deine Bestellung wird mit Sorgfalt verpackt, damit sie unbeschädigt und in einwandfreiem Zustand bei dir ankommt — so wie du es verdienst.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="promise-section">
+      <div class="container">
+        <h2>Unser Qualitätsversprechen</h2>
+        <p>Diese vier Punkte sind nicht verhandelbar. Sie gelten für jede einzelne Bestellung — egal wie groß oder klein.</p>
+        <div class="promise-grid">
+          <div class="promise-item">
+            <div class="promise-item__icon">🎨</div>
+            <h4>Farbecht</h4>
+            <p>Farben die auch nach vielen Wäschen nicht verblassen.</p>
+          </div>
+          <div class="promise-item">
+            <div class="promise-item__icon">💪</div>
+            <h4>Langlebig</h4>
+            <p>Stickereien die halten — für Jahrzehnte.</p>
+          </div>
+          <div class="promise-item">
+            <div class="promise-item__icon">✅</div>
+            <h4>Geprüft</h4>
+            <p>Jedes Stück wird vor Versand einzeln kontrolliert.</p>
+          </div>
+          <div class="promise-item">
+            <div class="promise-item__icon">🔄</div>
+            <h4>Zufriedenheit</h4>
+            <p>Nicht zufrieden? Wir finden eine Lösung.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="materials-section">
+      <div class="container">
+        <h2>Was wir verwenden</h2>
+        <div class="materials-grid">
+          <div class="material-card">
+            <div class="material-card__icon">🧶</div>
+            <h3>Premium Garne</h3>
+            <p>Wir verwenden ausschließlich hochwertige Stickgarne mit hoher Farbbrillanz und Reißfestigkeit.</p>
+          </div>
+          <div class="material-card">
+            <div class="material-card__icon">🏭</div>
+            <h3>Professionelle Maschinen</h3>
+            <p>Unsere Stickmaschinen arbeiten mit höchster Präzision für saubere, gleichmäßige Ergebnisse.</p>
+          </div>
+          <div class="material-card">
+            <div class="material-card__icon">📦</div>
+            <h3>Nachhaltige Verpackung</h3>
+            <p>Wir verpacken deine Bestellung schonend und möglichst umweltfreundlich.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-section">
+      <div class="container">
+        <h2>Überzeug dich selbst</h2>
+        <p>Entdecke unsere Produkte und erlebe Qualität, die man sieht und fühlt.</p>
+        <a href="/index.html" class="btn btn--primary" style="width:auto;display:inline-block;">Zum Shop →</a>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/track.js"></script>
+  <script>updateNav(); updateCartBadge();</script>
+</body>
+</html>
