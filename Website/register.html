@@ -94,7 +94,7 @@
         await register(email, password, name);
         document.getElementById('success-overlay').style.display = 'flex';
       } catch (err) {
-        errorMsg.textContent = err.message || err.error_description || err.msg || JSON.stringify(err) || 'Registrierung fehlgeschlagen.';
+        errorMsg.textContent = err.message || err.error_description || String(err) || 'Registrierung fehlgeschlagen.';
         errorMsg.classList.add('visible');
         btn.textContent = 'Konto erstellen';
         btn.disabled = false;

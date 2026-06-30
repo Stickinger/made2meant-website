@@ -17,7 +17,13 @@ async function register(email, password, fullName) {
       data: { full_name: fullName }
     }
   });
-  if (error) throw error;
+  if (error) throw new Error(error.message || error.error_description || JSON.stringify(error) || 'Registrierung fehlgeschlagen.');
+
+  // Profile-Eintrag anlegen (kein DB-Trigger nötig)
+  if (data?.user) {
+    await db.from('profiles').upsert({ id: data.user.id }).select();
+  }
+
   return data;
 }
 
