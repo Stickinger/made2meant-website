@@ -6,38 +6,261 @@
   <title>Produkt — MADE2MEANT</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ── PRODUCT LAYOUT ── */
     .product-detail {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 60px;
-      padding: 60px 0;
+      padding: 60px 0 80px;
       align-items: start;
     }
-    .product-detail__image {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
-      border-radius: var(--radius);
-      background: var(--color-surface);
+
+    /* ── LEFT: STICKY CANVAS ── */
+    .product-visual {
+      position: sticky;
+      top: 90px;
     }
-    .product-detail__info { display: flex; flex-direction: column; gap: 20px; }
-    .product-detail__price { font-size: 2rem; font-weight: 700; color: var(--color-primary); }
-    .product-detail__desc  { color: var(--color-muted); line-height: 1.8; }
-    .product-detail__stock { font-size: 0.85rem; color: var(--color-muted); }
-    .product-detail__stock.low { color: #f59e0b; }
+    .product-canvas-wrap {
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: white;
+      border: 1px solid var(--color-border);
+    }
+    .product-canvas-wrap canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .canvas-hint {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--color-muted);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 10px;
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* ── RIGHT: INFO + CONFIGURATOR ── */
+    .product-info { display: flex; flex-direction: column; gap: 0; }
+
+    .product-info__header { margin-bottom: 24px; }
+    .product-info__category {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 8px;
+    }
+    .product-info__title { font-size: 2rem; margin-bottom: 12px; line-height: 1.2; }
+    .product-info__price { font-size: 1.8rem; font-weight: 900; color: var(--color-primary); margin-bottom: 12px; }
+    .product-info__desc { color: var(--color-muted); line-height: 1.8; font-size: 0.95rem; margin-bottom: 16px; }
+    .product-info__stock { font-size: 0.82rem; color: var(--color-muted); }
+    .product-info__stock.low { color: #e07b2a; }
+
+    /* ── CONFIGURATOR ── */
+    .configurator-section {
+      margin-top: 32px;
+      border-top: 1px solid var(--color-border);
+      padding-top: 32px;
+    }
+    .configurator-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--color-primary);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .configurator-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--color-border);
+    }
+
+    /* Config blocks */
+    .config-block { margin-bottom: 28px; }
+    .config-block__title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--color-text);
+      margin-bottom: 12px;
+    }
+
+    /* Position pills */
+    .position-pills { display: flex; flex-wrap: wrap; gap: 8px; }
+    .position-pill {
+      padding: 8px 16px;
+      border: 1.5px solid var(--color-border);
+      border-radius: 99px;
+      font-family: var(--font-main);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: white;
+      color: var(--color-text);
+      transition: all 0.15s;
+    }
+    .position-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .position-pill.selected { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
+
+    /* Content tabs */
+    .content-tabs {
+      display: flex;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .content-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      cursor: pointer;
+      font-family: var(--font-main);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: white;
+      border: none;
+      color: var(--color-muted);
+      transition: all 0.15s;
+    }
+    .content-tab.active { background: var(--color-text); color: #F2EDDC; }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Text input */
+    .text-row { display: flex; flex-direction: column; gap: 10px; }
+    .text-row input {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 11px 14px;
+      font-family: var(--font-main);
+      font-size: 0.95rem;
+      color: var(--color-text);
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .text-row input:focus { outline: none; border-color: var(--color-primary); }
+    .char-count { text-align: right; font-size: 0.72rem; color: var(--color-muted); }
+    .char-count.warn { color: var(--color-primary); }
+
+    /* Font pills */
+    .font-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+    .font-pill {
+      padding: 7px 14px;
+      border: 1.5px solid var(--color-border);
+      border-radius: 99px;
+      cursor: pointer;
+      background: white;
+      font-size: 0.78rem;
+      transition: all 0.15s;
+      font-family: var(--font-main);
+      color: var(--color-text);
+    }
+    .font-pill:hover { border-color: var(--color-primary); }
+    .font-pill.selected { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
+
+    /* Symbol grid */
+    .symbol-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+    .symbol-btn {
+      border: 1.5px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 12px 6px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      transition: all 0.15s;
+      font-size: 1.3rem;
+      line-height: 1;
+    }
+    .symbol-btn:hover { border-color: var(--color-primary); }
+    .symbol-btn.selected { border-color: var(--color-primary); background: #fdf8f7; }
+    .symbol-btn__name {
+      display: block;
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-top: 4px;
+      font-family: var(--font-main);
+    }
+
+    /* Color swatches */
+    .color-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+    }
+    .color-swatch__circle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2.5px solid transparent;
+      transition: all 0.15s;
+    }
+    .color-swatch:hover .color-swatch__circle { transform: scale(1.12); }
+    .color-swatch.selected .color-swatch__circle {
+      border-color: var(--color-text);
+      box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
+    }
+    .color-swatch__name {
+      font-size: 0.58rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+
+    /* CTA */
+    .product-cta { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
     .qty-selector { display: flex; align-items: center; gap: 12px; }
     .qty-btn {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: var(--color-surface); border: 1px solid var(--color-border);
-      color: var(--color-text); font-size: 1.2rem; cursor: pointer;
+      width: 34px; height: 34px; border-radius: 50%;
+      background: white; border: 1px solid var(--color-border);
+      color: var(--color-text); font-size: 1.1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
+      transition: border-color 0.15s;
     }
     .qty-btn:hover { border-color: var(--color-primary); }
-    #qty-display { font-size: 1.1rem; font-weight: 600; min-width: 24px; text-align: center; }
-    @media (max-width: 640px) {
+    #qty-display { font-size: 1rem; font-weight: 700; min-width: 24px; text-align: center; }
+
+    .personalize-hint {
+      font-size: 0.78rem;
+      color: var(--color-muted);
+      padding: 10px 14px;
+      background: #fdf8f7;
+      border-radius: var(--radius);
+      border: 1px solid #f0e4e2;
+    }
+    .personalize-hint.complete {
+      background: #f0f7f2;
+      border-color: #c8dece;
+      color: var(--color-accent);
+    }
+
+    @media (max-width: 768px) {
       .product-detail { grid-template-columns: 1fr; gap: 32px; }
+      .product-visual { position: static; }
+      .symbol-grid { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
@@ -47,7 +270,10 @@
     <div class="container navbar__inner">
       <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
       <ul class="navbar__links">
-        <li><a href="/index.html">← Zurück</a></li>
+        <li><a href="/index.html">← Shop</a></li>
+        <li><a href="/login.html" id="nav-login">Login</a></li>
+        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
+        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
         <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
@@ -64,6 +290,11 @@
   <footer class="footer">
     <div class="container footer__inner">
       <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
     </div>
   </footer>
 
@@ -72,11 +303,95 @@
   <script src="/js/auth.js"></script>
   <script src="/js/cart.js"></script>
   <script src="/js/products.js"></script>
+
   <script>
+    updateNav();
     updateCartBadge();
 
+    // ── DATA ──────────────────────────────────────────────────
+
+    const PRODUCT_POSITIONS = {
+      polster:    ['Mitte', 'Ecke oben links', 'Ecke oben rechts', 'Ecke unten rechts'],
+      handtuch:   ['Ecke', 'Bordüre', 'Mitte'],
+      bademantel: ['Brust links', 'Rücken', 'Ärmel'],
+      saunatuch:  ['Ecke', 'Bordüre oben', 'Mitte'],
+      generic:    ['Mitte', 'Ecke oben links', 'Ecke oben rechts'],
+    };
+
+    const POSITION_COORDS = {
+      'Mitte':            { x: 0.5,  y: 0.5  },
+      'Ecke oben links':  { x: 0.2,  y: 0.22 },
+      'Ecke oben rechts': { x: 0.78, y: 0.22 },
+      'Ecke unten rechts':{ x: 0.78, y: 0.78 },
+      'Ecke':             { x: 0.2,  y: 0.78 },
+      'Bordüre':          { x: 0.5,  y: 0.88 },
+      'Bordüre oben':     { x: 0.5,  y: 0.15 },
+      'Brust links':      { x: 0.28, y: 0.32 },
+      'Rücken':           { x: 0.5,  y: 0.22 },
+      'Ärmel':            { x: 0.78, y: 0.42 },
+    };
+
+    const PRODUCT_COLORS = {
+      polster:    '#EDE8DF',
+      handtuch:   '#DFE8E5',
+      bademantel: '#E5DFED',
+      saunatuch:  '#E8DFDF',
+      generic:    '#F2EDDC',
+    };
+
+    const PRODUCT_EMOJIS = {
+      polster: '🛋️', handtuch: '🏖️', bademantel: '🩱', saunatuch: '🧖', generic: '✦',
+    };
+
+    const THREAD_COLORS = [
+      { name: 'Weiß',       hex: '#F0EDE8', border: '#ccc' },
+      { name: 'Schwarz',    hex: '#1a1a1a' },
+      { name: 'Navy',       hex: '#1B2A4A' },
+      { name: 'Bordeaux',   hex: '#7B1C2E' },
+      { name: 'Terracotta', hex: '#a85d4f' },
+      { name: 'Moosgrün',   hex: '#42553d' },
+      { name: 'Gold',       hex: '#C9A84C' },
+      { name: 'Silber',     hex: '#A8A9AD' },
+      { name: 'Rosa',       hex: '#D4789E' },
+      { name: 'Hellblau',   hex: '#5B9EC9' },
+      { name: 'Beige',      hex: '#C4A882' },
+      { name: 'Lila',       hex: '#7B5EA7' },
+    ];
+
+    const SYMBOLS = [
+      { char: '★', name: 'Stern' },   { char: '♥', name: 'Herz' },
+      { char: '✦', name: 'Raute' },   { char: '✿', name: 'Blume' },
+      { char: '♦', name: 'Diamant' }, { char: '☽', name: 'Mond' },
+      { char: '✈', name: 'Flieger' }, { char: '⚓', name: 'Anker' },
+      { char: '♾', name: '∞' },       { char: '☀', name: 'Sonne' },
+      { char: '☘', name: 'Klee' },    { char: '✉', name: 'Brief' },
+      { char: '⚡', name: 'Blitz' },   { char: '✜', name: 'Kreuz' },
+      { char: '❧', name: 'Ranke' },   { char: '❋', name: 'Ornament' },
+    ];
+
+    const FONTS = [
+      { id: 'source',   name: 'Modern',    family: "'Source Sans 3', sans-serif" },
+      { id: 'playfair', name: 'Elegant',   family: "'Playfair Display', serif" },
+      { id: 'dancing',  name: 'Verspielt', family: "'Dancing Script', cursive" },
+      { id: 'oswald',   name: 'Bold',      family: "'Oswald', sans-serif" },
+    ];
+
+    // ── STATE ─────────────────────────────────────────────────
+
     let currentProduct = null;
+    let productType = 'generic';
     let qty = 1;
+
+    const cfg = {
+      position: null,
+      tab: 'text',
+      text: '',
+      font: FONTS[0],
+      symbol: null,
+      color: null,
+    };
+
+    // ── INIT ──────────────────────────────────────────────────
 
     async function init() {
       const slug = new URLSearchParams(window.location.search).get('slug');
@@ -84,50 +399,378 @@
 
       currentProduct = await loadProduct(slug);
       if (!currentProduct) {
-        document.getElementById('product-detail').innerHTML =
-          '<p class="empty">Produkt nicht gefunden.</p>';
+        document.getElementById('product-detail').innerHTML = '<p class="empty">Produkt nicht gefunden.</p>';
         return;
       }
 
-      // Seitentitel setzen
       document.title = currentProduct.name + ' — MADE2MEANT';
+      productType = detectProductType(currentProduct.name);
+      renderPage();
+    }
 
-      const stockLabel = currentProduct.stock <= 5
-        ? `<span class="product-detail__stock low">Nur noch ${currentProduct.stock} verfügbar</span>`
-        : `<span class="product-detail__stock">${currentProduct.stock} auf Lager</span>`;
+    function detectProductType(name) {
+      const n = (name || '').toLowerCase();
+      if (n.includes('polster') || n.includes('kissen')) return 'polster';
+      if (n.includes('handtuch'))   return 'handtuch';
+      if (n.includes('bademantel')) return 'bademantel';
+      if (n.includes('saunatuch'))  return 'saunatuch';
+      return 'generic';
+    }
+
+    // ── RENDER ────────────────────────────────────────────────
+
+    function renderPage() {
+      const p = currentProduct;
+      const stockLabel = p.stock <= 5
+        ? `<span class="product-info__stock low">⚠ Nur noch ${p.stock} verfügbar</span>`
+        : `<span class="product-info__stock">✓ ${p.stock} auf Lager</span>`;
+
+      const positions = PRODUCT_POSITIONS[productType] || PRODUCT_POSITIONS.generic;
 
       document.getElementById('product-detail').innerHTML = `
-        <img
-          src="${currentProduct.image_url || '/assets/images/placeholder.png'}"
-          alt="${currentProduct.name}"
-          class="product-detail__image"
-        >
-        <div class="product-detail__info">
-          <h1>${currentProduct.name}</h1>
-          <p class="product-detail__price">€${currentProduct.price.toFixed(2)}</p>
-          <p class="product-detail__desc">${currentProduct.description || ''}</p>
-          ${stockLabel}
-          ${currentProduct.stock > 0 ? `
+
+        <!-- LEFT: CANVAS PREVIEW -->
+        <div class="product-visual">
+          <div class="product-canvas-wrap">
+            <canvas id="cfg-canvas" width="480" height="480"></canvas>
+          </div>
+          <div class="canvas-hint">✦ Live-Vorschau deiner Stickerei</div>
+        </div>
+
+        <!-- RIGHT: INFO + CONFIGURATOR -->
+        <div class="product-info">
+
+          <!-- Product header -->
+          <div class="product-info__header">
+            <div class="product-info__category">Personalisiertes Geschenk</div>
+            <h1 class="product-info__title">${p.name}</h1>
+            <div class="product-info__price">€ ${p.price.toFixed(2).replace('.', ',')}</div>
+            <p class="product-info__desc">${p.description || ''}</p>
+            ${stockLabel}
+          </div>
+
+          <!-- CONFIGURATOR -->
+          <div class="configurator-section">
+            <div class="configurator-label">✦ Personalisieren</div>
+
+            <!-- Position -->
+            <div class="config-block">
+              <div class="config-block__title">Position der Stickerei</div>
+              <div class="position-pills" id="position-pills">
+                ${positions.map(pos => `
+                  <button class="position-pill" onclick="selectPosition('${pos}')">${pos}</button>
+                `).join('')}
+              </div>
+            </div>
+
+            <!-- Text or Symbol -->
+            <div class="config-block">
+              <div class="config-block__title">Was soll gestickt werden?</div>
+              <div class="content-tabs">
+                <button class="content-tab active" id="tab-text" onclick="switchTab('text')">✍️ Text</button>
+                <button class="content-tab" id="tab-symbol" onclick="switchTab('symbol')">★ Symbol</button>
+              </div>
+
+              <div class="tab-panel active" id="panel-text">
+                <div class="text-row">
+                  <input type="text" id="custom-text" maxlength="20"
+                    placeholder="z.B. Familie Müller, Max, 2026 ..."
+                    oninput="onTextInput(this)">
+                  <div class="char-count" id="char-count">0 / 20</div>
+                  <div class="font-pills" id="font-pills">
+                    ${FONTS.map(f => `
+                      <button class="font-pill ${f.id === 'source' ? 'selected' : ''}"
+                              style="font-family:${f.family}"
+                              onclick="selectFont('${f.id}')">${f.name}</button>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+
+              <div class="tab-panel" id="panel-symbol">
+                <div class="symbol-grid" id="symbol-grid">
+                  ${SYMBOLS.map(s => `
+                    <div class="symbol-btn" onclick="selectSymbol('${s.char}', '${s.name}')">
+                      ${s.char}
+                      <span class="symbol-btn__name">${s.name}</span>
+                    </div>
+                  `).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Color -->
+            <div class="config-block">
+              <div class="config-block__title">Fadenfarbe</div>
+              <div class="color-swatches" id="color-swatches">
+                ${THREAD_COLORS.map(c => `
+                  <div class="color-swatch" onclick="selectColor('${c.name}', '${c.hex}')">
+                    <div class="color-swatch__circle"
+                         style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></div>
+                    <div class="color-swatch__name">${c.name}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+          </div>
+
+          <!-- CTA -->
+          <div class="product-cta">
+            <div class="personalize-hint" id="personalize-hint">
+              Wähle Position, Text/Symbol und Farbe um fortzufahren.
+            </div>
             <div class="qty-selector">
               <button class="qty-btn" onclick="changeQty(-1)">−</button>
               <span id="qty-display">1</span>
               <button class="qty-btn" onclick="changeQty(1)">+</button>
             </div>
-            <button class="btn btn--primary" onclick="handleAddToCart()" style="width:auto; padding:14px 32px;">
-              In den Warenkorb
+            <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()"
+                    style="width:auto;padding:15px 32px;" disabled>
+              Personalisiert in den Warenkorb
             </button>
-          ` : `<button class="btn btn--disabled" disabled>Ausverkauft</button>`}
+          </div>
+
         </div>
       `;
+
+      // Render initial canvas after DOM is ready
+      requestAnimationFrame(() => renderCanvas());
     }
 
+    // ── CANVAS ───────────────────────────────────────────────
+
+    function renderCanvas() {
+      const canvas = document.getElementById('cfg-canvas');
+      if (!canvas) return;
+      const W = canvas.width, H = canvas.height;
+      const ctx = canvas.getContext('2d');
+
+      // Background
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = PRODUCT_COLORS[productType] || '#F2EDDC';
+      ctx.fillRect(0, 0, W, H);
+
+      // Large faded product emoji
+      const emoji = PRODUCT_EMOJIS[productType] || '✦';
+      ctx.globalAlpha = 0.1;
+      ctx.font = `${W * 0.62}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(emoji, W / 2, H / 2);
+      ctx.globalAlpha = 1;
+
+      // Product name top-left
+      ctx.fillStyle = '#9a9088';
+      ctx.font = `700 ${W * 0.03}px 'Source Sans 3', sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText((currentProduct?.name || '').toUpperCase(), 16, 16);
+
+      if (cfg.position) {
+        const coord = POSITION_COORDS[cfg.position] || { x: 0.5, y: 0.5 };
+        const px = coord.x * W;
+        const py = coord.y * H;
+
+        const content = getContent();
+
+        if (content && cfg.color) {
+          // Glow rings
+          ctx.beginPath();
+          ctx.arc(px, py, 28, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(168,93,79,0.1)';
+          ctx.fill();
+
+          // Embroidery text/symbol
+          const isSymbol = cfg.tab === 'symbol';
+          const fontFamily = isSymbol ? 'sans-serif' : cfg.font.family;
+          const fontSize = isSymbol ? W * 0.11 : (content.length <= 3 ? W * 0.1 : content.length <= 8 ? W * 0.065 : W * 0.048);
+
+          ctx.shadowColor = 'rgba(0,0,0,0.18)';
+          ctx.shadowBlur = 3;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+
+          ctx.fillStyle = cfg.color.hex;
+          ctx.font = `700 ${fontSize}px ${fontFamily}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(content, px, py);
+
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+
+          // "STICKEREI" micro label
+          ctx.fillStyle = 'rgba(168,93,79,0.5)';
+          ctx.font = `600 ${W * 0.02}px 'Source Sans 3', sans-serif`;
+          ctx.fillText('✦ STICKEREI', px, py + fontSize * 0.75);
+
+        } else {
+          // Show position dot placeholder
+          ctx.beginPath();
+          ctx.arc(px, py, 20, 0, Math.PI * 2);
+          ctx.fillStyle = 'rgba(168,93,79,0.15)';
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(px, py, 7, 0, Math.PI * 2);
+          ctx.fillStyle = '#a85d4f';
+          ctx.fill();
+
+          // Position label
+          ctx.fillStyle = '#a85d4f';
+          ctx.font = `700 ${W * 0.025}px 'Source Sans 3', sans-serif`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText(cfg.position, px, py + 26);
+        }
+      } else {
+        // No position: guide text
+        ctx.fillStyle = '#b0a898';
+        ctx.font = `600 ${W * 0.038}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Wähle eine Position', W / 2, H * 0.85);
+      }
+    }
+
+    function getContent() {
+      return cfg.tab === 'text' ? (cfg.text || null) : (cfg.symbol?.char || null);
+    }
+
+    // ── SELECTIONS ────────────────────────────────────────────
+
+    function selectPosition(pos) {
+      cfg.position = pos;
+      document.querySelectorAll('.position-pill').forEach(el => {
+        el.classList.toggle('selected', el.textContent.trim() === pos);
+      });
+      renderCanvas();
+      checkReady();
+    }
+
+    function switchTab(tab) {
+      cfg.tab = tab;
+      cfg.text = '';
+      cfg.symbol = null;
+      document.getElementById('tab-text').classList.toggle('active', tab === 'text');
+      document.getElementById('tab-symbol').classList.toggle('active', tab === 'symbol');
+      document.getElementById('panel-text').classList.toggle('active', tab === 'text');
+      document.getElementById('panel-symbol').classList.toggle('active', tab === 'symbol');
+      if (tab === 'text') {
+        const inp = document.getElementById('custom-text');
+        if (inp) inp.value = '';
+        const cc = document.getElementById('char-count');
+        if (cc) cc.textContent = '0 / 20';
+      }
+      renderCanvas();
+      checkReady();
+    }
+
+    function onTextInput(input) {
+      cfg.text = input.value;
+      const count = input.value.length;
+      const cc = document.getElementById('char-count');
+      if (cc) {
+        cc.textContent = `${count} / 20`;
+        cc.classList.toggle('warn', count > 15);
+      }
+      renderCanvas();
+      checkReady();
+    }
+
+    function selectFont(id) {
+      cfg.font = FONTS.find(f => f.id === id) || FONTS[0];
+      document.querySelectorAll('.font-pill').forEach(el => {
+        el.classList.toggle('selected', el.onclick?.toString().includes(`'${id}'`));
+      });
+      // Re-render font pills to update selected state
+      const fp = document.getElementById('font-pills');
+      if (fp) fp.innerHTML = FONTS.map(f => `
+        <button class="font-pill ${f.id === cfg.font.id ? 'selected' : ''}"
+                style="font-family:${f.family}"
+                onclick="selectFont('${f.id}')">${f.name}</button>
+      `).join('');
+      renderCanvas();
+    }
+
+    function selectSymbol(char, name) {
+      cfg.symbol = { char, name };
+      const sg = document.getElementById('symbol-grid');
+      if (sg) sg.innerHTML = SYMBOLS.map(s => `
+        <div class="symbol-btn ${s.char === char ? 'selected' : ''}"
+             onclick="selectSymbol('${s.char}', '${s.name}')">
+          ${s.char}
+          <span class="symbol-btn__name">${s.name}</span>
+        </div>
+      `).join('');
+      renderCanvas();
+      checkReady();
+    }
+
+    function selectColor(name, hex) {
+      cfg.color = { name, hex };
+      const cs = document.getElementById('color-swatches');
+      if (cs) cs.innerHTML = THREAD_COLORS.map(c => `
+        <div class="color-swatch ${c.name === name ? 'selected' : ''}"
+             onclick="selectColor('${c.name}', '${c.hex}')">
+          <div class="color-swatch__circle"
+               style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></div>
+          <div class="color-swatch__name">${c.name}</div>
+        </div>
+      `).join('');
+      renderCanvas();
+      checkReady();
+    }
+
+    // ── VALIDATION ────────────────────────────────────────────
+
+    function checkReady() {
+      const content = getContent();
+      const ready = !!(cfg.position && content && cfg.color);
+      const btn = document.getElementById('add-btn');
+      const hint = document.getElementById('personalize-hint');
+      if (btn) btn.disabled = !ready;
+      if (hint) {
+        if (ready) {
+          hint.className = 'personalize-hint complete';
+          hint.textContent = `✓ Bereit: ${cfg.position} · ${content} · Faden: ${cfg.color.name}`;
+        } else {
+          hint.className = 'personalize-hint';
+          const missing = [];
+          if (!cfg.position) missing.push('Position');
+          if (!content) missing.push('Text oder Symbol');
+          if (!cfg.color) missing.push('Farbe');
+          hint.textContent = `Noch ausstehend: ${missing.join(', ')}`;
+        }
+      }
+    }
+
+    // ── CART ──────────────────────────────────────────────────
+
     function changeQty(delta) {
-      qty = Math.max(1, Math.min(qty + delta, currentProduct.stock));
-      document.getElementById('qty-display').textContent = qty;
+      qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99));
+      const el = document.getElementById('qty-display');
+      if (el) el.textContent = qty;
     }
 
     function handleAddToCart() {
-      for (let i = 0; i < qty; i++) addToCart(currentProduct);
+      if (!currentProduct) return;
+      const content = getContent();
+      const item = {
+        id: `${currentProduct.id}-${cfg.position}-${content}-${cfg.color?.name}-${Date.now()}`,
+        name: `${currentProduct.name} (${content}, ${cfg.color?.name})`,
+        price: currentProduct.price,
+        image: currentProduct.image_url || PRODUCT_EMOJIS[productType],
+        personalization: {
+          position:  cfg.position,
+          type:      cfg.tab,
+          content,
+          font:      cfg.tab === 'text' ? cfg.font?.name : null,
+          colorName: cfg.color?.name,
+          colorHex:  cfg.color?.hex,
+        }
+      };
+      for (let i = 0; i < qty; i++) addToCart(item);
     }
 
     init();
