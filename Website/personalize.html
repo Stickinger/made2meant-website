@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personalisieren — MADE2MEANT</title>
+  <meta name="description" content="Gestalte dein persönliches Stickerei-Produkt.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ── LAYOUT ── */
+    .configurator {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 48px;
+      align-items: start;
+      padding: 48px 0 80px;
+    }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 48px;
+    }
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      flex: 1;
+      position: relative;
+    }
+    .progress-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background: var(--color-border);
+      z-index: 0;
+    }
+    .progress-step.done:not(:last-child)::after { background: var(--color-primary); }
+    .progress-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      background: var(--color-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--color-muted);
+      z-index: 1;
+      transition: all 0.2s;
+    }
+    .progress-step.active .progress-dot {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: white;
+    }
+    .progress-step.done .progress-dot {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: white;
+    }
+    .progress-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+    }
+    .progress-step.active .progress-label { color: var(--color-primary); }
+
+    /* ── STEP CONTENT ── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .step-heading {
+      margin-bottom: 8px;
+    }
+    .step-heading h2 {
+      font-size: 1.8rem;
+      margin-bottom: 4px;
+    }
+    .step-heading p {
+      color: var(--color-muted);
+      font-size: 0.9rem;
+    }
+
+    /* ── PRODUCT CARDS ── */
+    .product-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-top: 28px;
+    }
+    .product-card {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s;
+      background: white;
+    }
+    .product-card:hover { border-color: var(--color-primary); }
+    .product-card.selected {
+      border-color: var(--color-primary);
+      background: #fdf8f7;
+    }
+    .product-card__emoji { font-size: 2.5rem; margin-bottom: 12px; }
+    .product-card__name {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .product-card__price { font-size: 0.85rem; color: var(--color-muted); }
+
+    /* ── POSITION SELECTOR ── */
+    .position-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .position-btn {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 16px 20px;
+      text-align: left;
+      cursor: pointer;
+      background: white;
+      font-family: var(--font-main);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-text);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .position-btn:hover { border-color: var(--color-primary); }
+    .position-btn.selected {
+      border-color: var(--color-primary);
+      background: #fdf8f7;
+      color: var(--color-primary);
+    }
+    .position-btn__dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--color-border);
+      flex-shrink: 0;
+    }
+    .position-btn.selected .position-btn__dot { background: var(--color-primary); }
+
+    /* ── CONTENT TABS (Text / Symbol) ── */
+    .content-tabs {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 28px;
+      margin-bottom: 24px;
+    }
+    .content-tab {
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      font-family: var(--font-main);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      background: white;
+      border: none;
+      color: var(--color-muted);
+      transition: all 0.15s;
+    }
+    .content-tab.active {
+      background: var(--color-text);
+      color: #F2EDDC;
+    }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Text input */
+    .text-input-group { margin-bottom: 20px; }
+    .text-input-group label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 8px;
+    }
+    .text-input-group input {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-family: var(--font-main);
+      font-size: 1rem;
+      color: var(--color-text);
+      background: white;
+      transition: border-color 0.2s;
+    }
+    .text-input-group input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+    .char-count {
+      text-align: right;
+      font-size: 0.75rem;
+      color: var(--color-muted);
+      margin-top: 4px;
+    }
+    .char-count.warn { color: var(--color-primary); }
+
+    /* Font picker */
+    .font-picker {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .font-btn {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      background: white;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .font-btn:hover { border-color: var(--color-primary); }
+    .font-btn.selected { border-color: var(--color-primary); background: #fdf8f7; }
+    .font-btn__preview { font-size: 1.1rem; margin-bottom: 4px; }
+    .font-btn__label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      font-family: var(--font-main);
+    }
+
+    /* Symbol grid */
+    .symbol-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .symbol-btn {
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 16px 8px;
+      text-align: center;
+      cursor: pointer;
+      background: white;
+      transition: all 0.15s;
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+    .symbol-btn:hover { border-color: var(--color-primary); }
+    .symbol-btn.selected { border-color: var(--color-primary); background: #fdf8f7; }
+    .symbol-btn__name {
+      display: block;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-top: 4px;
+      font-family: var(--font-main);
+    }
+
+    /* ── COLOR PICKER ── */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .color-swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .color-swatch__circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .color-swatch:hover .color-swatch__circle { transform: scale(1.1); }
+    .color-swatch.selected .color-swatch__circle {
+      border-color: var(--color-text);
+      box-shadow: 0 0 0 3px var(--color-bg), 0 0 0 5px var(--color-text);
+    }
+    .color-swatch__name {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      text-align: center;
+    }
+
+    /* ── PREVIEW PANEL (right side sticky) ── */
+    .preview-panel {
+      position: sticky;
+      top: 100px;
+    }
+    .preview-canvas-wrap {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .preview-canvas-wrap canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .preview-summary {
+      background: white;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .preview-summary__title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 12px;
+    }
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--color-border);
+      font-size: 0.85rem;
+    }
+    .summary-row:last-child { border-bottom: none; }
+    .summary-row__label { color: var(--color-muted); }
+    .summary-row__value { font-weight: 700; }
+    .summary-price {
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--color-primary);
+      margin-top: 16px;
+    }
+
+    /* ── NAVIGATION BUTTONS ── */
+    .step-nav {
+      display: flex;
+      gap: 12px;
+      margin-top: 40px;
+      align-items: center;
+    }
+    .btn-back {
+      padding: 12px 24px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      background: white;
+      font-family: var(--font-main);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      color: var(--color-text);
+      transition: all 0.15s;
+    }
+    .btn-back:hover { border-color: var(--color-text); }
+    .btn-next {
+      flex: 1;
+      padding: 14px 24px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--color-text);
+      color: #F2EDDC;
+      font-family: var(--font-main);
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-next:hover { background: var(--color-primary); }
+    .btn-next:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .btn-add-cart {
+      flex: 1;
+      padding: 16px 24px;
+      border: none;
+      border-radius: var(--radius);
+      background: var(--color-primary);
+      color: white;
+      font-family: var(--font-main);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-add-cart:hover { background: var(--color-accent); }
+
+    /* ── FINAL STEP ── */
+    .final-canvas-wrap {
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 24px;
+      background: white;
+    }
+    .final-canvas-wrap canvas { width: 100%; height: auto; display: block; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .configurator { grid-template-columns: 1fr; }
+      .preview-panel { position: static; order: -1; }
+      .preview-canvas-wrap canvas { max-height: 280px; width: auto; margin: 0 auto; display: block; }
+    }
+    @media (max-width: 600px) {
+      .product-cards { grid-template-columns: repeat(2, 1fr); }
+      .symbol-grid { grid-template-columns: repeat(4, 1fr); }
+      .color-grid { grid-template-columns: repeat(4, 1fr); }
+      .font-picker { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <ul class="navbar__links">
+        <li><a href="/index.html">Shop</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/login.html" id="nav-login">Login</a></li>
+        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
+        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
+        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main>
+    <div class="container" style="padding-top:40px;">
+
+      <!-- PROGRESS BAR -->
+      <div class="progress-bar" id="progress-bar">
+        <div class="progress-step active" data-step="1">
+          <div class="progress-dot">1</div>
+          <div class="progress-label">Produkt</div>
+        </div>
+        <div class="progress-step" data-step="2">
+          <div class="progress-dot">2</div>
+          <div class="progress-label">Position</div>
+        </div>
+        <div class="progress-step" data-step="3">
+          <div class="progress-dot">3</div>
+          <div class="progress-label">Inhalt</div>
+        </div>
+        <div class="progress-step" data-step="4">
+          <div class="progress-dot">4</div>
+          <div class="progress-label">Farbe</div>
+        </div>
+        <div class="progress-step" data-step="5">
+          <div class="progress-dot">5</div>
+          <div class="progress-label">Vorschau</div>
+        </div>
+      </div>
+
+      <div class="configurator">
+
+        <!-- LEFT: STEPS -->
+        <div class="steps-container">
+
+          <!-- STEP 1: PRODUKT -->
+          <div class="step active" id="step-1">
+            <div class="step-heading">
+              <h2>Welches Produkt?</h2>
+              <p>Wähle das Produkt, das du personalisieren möchtest.</p>
+            </div>
+            <div class="product-cards" id="product-cards">
+              <!-- rendered by JS -->
+            </div>
+            <div class="step-nav">
+              <button class="btn-next" id="next-1" onclick="goStep(2)" disabled>Weiter →</button>
+            </div>
+          </div>
+
+          <!-- STEP 2: POSITION -->
+          <div class="step" id="step-2">
+            <div class="step-heading">
+              <h2>Wo soll die Stickerei hin?</h2>
+              <p>Wähle die Position auf deinem Produkt.</p>
+            </div>
+            <div class="position-grid" id="position-grid">
+              <!-- rendered by JS -->
+            </div>
+            <div class="step-nav">
+              <button class="btn-back" onclick="goStep(1)">← Zurück</button>
+              <button class="btn-next" id="next-2" onclick="goStep(3)" disabled>Weiter →</button>
+            </div>
+          </div>
+
+          <!-- STEP 3: INHALT -->
+          <div class="step" id="step-3">
+            <div class="step-heading">
+              <h2>Was soll gestickt werden?</h2>
+              <p>Text eingeben oder ein Symbol wählen.</p>
+            </div>
+
+            <div class="content-tabs">
+              <button class="content-tab active" id="tab-text" onclick="switchTab('text')">✍️ Text</button>
+              <button class="content-tab" id="tab-symbol" onclick="switchTab('symbol')">★ Symbol</button>
+            </div>
+
+            <!-- TEXT PANEL -->
+            <div class="tab-panel active" id="panel-text">
+              <div class="text-input-group">
+                <label>Dein Text</label>
+                <input type="text" id="custom-text" maxlength="20" placeholder="z.B. Familie Müller" oninput="onTextInput(this)">
+                <div class="char-count" id="char-count">0 / 20</div>
+              </div>
+              <div class="text-input-group">
+                <label>Schriftart</label>
+                <div class="font-picker" id="font-picker">
+                  <!-- rendered by JS -->
+                </div>
+              </div>
+            </div>
+
+            <!-- SYMBOL PANEL -->
+            <div class="tab-panel" id="panel-symbol">
+              <div class="symbol-grid" id="symbol-grid">
+                <!-- rendered by JS -->
+              </div>
+            </div>
+
+            <div class="step-nav">
+              <button class="btn-back" onclick="goStep(2)">← Zurück</button>
+              <button class="btn-next" id="next-3" onclick="goStep(4)" disabled>Weiter →</button>
+            </div>
+          </div>
+
+          <!-- STEP 4: FARBE -->
+          <div class="step" id="step-4">
+            <div class="step-heading">
+              <h2>Welche Fadenfarbe?</h2>
+              <p>Wähle die Farbe des Stickgarns.</p>
+            </div>
+            <div class="color-grid" id="color-grid">
+              <!-- rendered by JS -->
+            </div>
+            <div class="step-nav">
+              <button class="btn-back" onclick="goStep(3)">← Zurück</button>
+              <button class="btn-next" id="next-4" onclick="goStep(5)" disabled>Weiter →</button>
+            </div>
+          </div>
+
+          <!-- STEP 5: VORSCHAU -->
+          <div class="step" id="step-5">
+            <div class="step-heading">
+              <h2>Deine Vorschau</h2>
+              <p>So sieht deine Stickerei aus. Alles passt?</p>
+            </div>
+
+            <div class="final-canvas-wrap" style="margin-top:28px;">
+              <canvas id="canvas-final" width="600" height="400"></canvas>
+            </div>
+
+            <div class="preview-summary">
+              <div class="preview-summary__title">Zusammenfassung</div>
+              <div class="summary-row">
+                <span class="summary-row__label">Produkt</span>
+                <span class="summary-row__value" id="sum-product">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-row__label">Position</span>
+                <span class="summary-row__value" id="sum-position">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-row__label">Inhalt</span>
+                <span class="summary-row__value" id="sum-content">—</span>
+              </div>
+              <div class="summary-row">
+                <span class="summary-row__label">Fadenfarbe</span>
+                <span class="summary-row__value" id="sum-color">—</span>
+              </div>
+              <div class="summary-price" id="sum-price">€ —</div>
+            </div>
+
+            <div class="step-nav">
+              <button class="btn-back" onclick="goStep(4)">← Zurück</button>
+              <button class="btn-add-cart" onclick="addPersonalizedToCart()">In den Warenkorb →</button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: LIVE PREVIEW -->
+        <div class="preview-panel">
+          <div class="preview-canvas-wrap">
+            <canvas id="canvas-preview" width="380" height="380"></canvas>
+          </div>
+          <div class="preview-summary">
+            <div class="preview-summary__title">Deine Auswahl</div>
+            <div class="summary-row">
+              <span class="summary-row__label">Produkt</span>
+              <span class="summary-row__value" id="side-product">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-row__label">Position</span>
+              <span class="summary-row__value" id="side-position">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-row__label">Inhalt</span>
+              <span class="summary-row__value" id="side-content">—</span>
+            </div>
+            <div class="summary-row">
+              <span class="summary-row__label">Farbe</span>
+              <span class="summary-row__value" id="side-color">—</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+
+  <script>
+    // ── DATA ──────────────────────────────────────────────────
+
+    const PRODUCTS = [
+      { id: 'polster',    name: 'Polster',    emoji: '🛋️', price: 29.90, bgColor: '#EDE8DF', positions: ['Mitte', 'Ecke oben links', 'Ecke oben rechts', 'Ecke unten rechts'] },
+      { id: 'handtuch',   name: 'Handtuch',   emoji: '🏖️', price: 24.90, bgColor: '#DFE8E5', positions: ['Ecke', 'Bordüre', 'Mitte'] },
+      { id: 'bademantel', name: 'Bademantel', emoji: '🩱', price: 69.90, bgColor: '#E5DFED', positions: ['Brust links', 'Rücken', 'Ärmel'] },
+      { id: 'saunatuch',  name: 'Saunatuch',  emoji: '🧖', price: 34.90, bgColor: '#E8DFDF', positions: ['Ecke', 'Bordüre oben', 'Mitte'] },
+    ];
+
+    const THREAD_COLORS = [
+      { name: 'Weiß',      hex: '#F0EDE8', border: '#ccc' },
+      { name: 'Schwarz',   hex: '#1a1a1a' },
+      { name: 'Navy',      hex: '#1B2A4A' },
+      { name: 'Bordeaux',  hex: '#7B1C2E' },
+      { name: 'Terracotta',hex: '#a85d4f' },
+      { name: 'Moosgrün',  hex: '#42553d' },
+      { name: 'Gold',      hex: '#C9A84C' },
+      { name: 'Silber',    hex: '#A8A9AD' },
+      { name: 'Rosa',      hex: '#D4789E' },
+      { name: 'Hellblau',  hex: '#5B9EC9' },
+      { name: 'Beige',     hex: '#C4A882' },
+      { name: 'Lila',      hex: '#7B5EA7' },
+    ];
+
+    const SYMBOLS = [
+      { char: '★', name: 'Stern' },
+      { char: '♥', name: 'Herz' },
+      { char: '✦', name: 'Raute' },
+      { char: '✿', name: 'Blume' },
+      { char: '♦', name: 'Diamant' },
+      { char: '☽', name: 'Mond' },
+      { char: '✈', name: 'Flieger' },
+      { char: '⚓', name: 'Anker' },
+      { char: '♾', name: '∞' },
+      { char: '☀', name: 'Sonne' },
+      { char: '☘', name: 'Klee' },
+      { char: '✉', name: 'Brief' },
+      { char: '⚡', name: 'Blitz' },
+      { char: '✜', name: 'Kreuz' },
+      { char: '❧', name: 'Ranke' },
+      { char: '❋', name: 'Ornament' },
+    ];
+
+    const FONTS = [
+      { id: 'source',   name: 'Modern',    family: "'Source Sans 3', sans-serif", preview: 'Aa' },
+      { id: 'playfair', name: 'Elegant',   family: "'Playfair Display', serif",   preview: 'Aa' },
+      { id: 'dancing',  name: 'Verspielt', family: "'Dancing Script', cursive",    preview: 'Aa' },
+      { id: 'oswald',   name: 'Bold',      family: "'Oswald', sans-serif",         preview: 'Aa' },
+    ];
+
+    const POSITION_COORDS = {
+      'Mitte':           { x: 0.5,  y: 0.5  },
+      'Ecke oben links': { x: 0.2,  y: 0.22 },
+      'Ecke oben rechts':{ x: 0.78, y: 0.22 },
+      'Ecke unten rechts':{ x: 0.78, y: 0.78 },
+      'Ecke':            { x: 0.2,  y: 0.78 },
+      'Bordüre':         { x: 0.5,  y: 0.87 },
+      'Bordüre oben':    { x: 0.5,  y: 0.15 },
+      'Brust links':     { x: 0.3,  y: 0.32 },
+      'Rücken':          { x: 0.5,  y: 0.25 },
+      'Ärmel':           { x: 0.78, y: 0.42 },
+    };
+
+    // ── STATE ─────────────────────────────────────────────────
+
+    const state = {
+      product:   null,
+      position:  null,
+      tab:       'text',
+      text:      '',
+      font:      FONTS[0],
+      symbol:    null,
+      color:     null,
+      currentStep: 1,
+    };
+
+    // ── INIT ──────────────────────────────────────────────────
+
+    function init() {
+      updateNav();
+      updateCartBadge();
+      renderProductCards();
+      renderFontPicker();
+      renderSymbolGrid();
+      renderColorGrid();
+      renderCanvas('canvas-preview', 380, 380);
+    }
+
+    // ── RENDER COMPONENTS ─────────────────────────────────────
+
+    function renderProductCards() {
+      const el = document.getElementById('product-cards');
+      el.innerHTML = PRODUCTS.map(p => `
+        <div class="product-card ${state.product?.id === p.id ? 'selected' : ''}"
+             onclick="selectProduct('${p.id}')">
+          <div class="product-card__emoji">${p.emoji}</div>
+          <div class="product-card__name">${p.name}</div>
+          <div class="product-card__price">ab € ${p.price.toFixed(2).replace('.', ',')}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderPositionGrid() {
+      if (!state.product) return;
+      const el = document.getElementById('position-grid');
+      el.innerHTML = state.product.positions.map(pos => `
+        <button class="position-btn ${state.position === pos ? 'selected' : ''}"
+                onclick="selectPosition('${pos}')">
+          <div class="position-btn__dot"></div>
+          ${pos}
+        </button>
+      `).join('');
+    }
+
+    function renderFontPicker() {
+      const el = document.getElementById('font-picker');
+      el.innerHTML = FONTS.map(f => `
+        <div class="font-btn ${state.font?.id === f.id ? 'selected' : ''}"
+             onclick="selectFont('${f.id}')">
+          <div class="font-btn__preview" style="font-family:${f.family}">${f.preview}</div>
+          <div class="font-btn__label">${f.name}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderSymbolGrid() {
+      const el = document.getElementById('symbol-grid');
+      el.innerHTML = SYMBOLS.map(s => `
+        <div class="symbol-btn ${state.symbol?.char === s.char ? 'selected' : ''}"
+             onclick="selectSymbol('${s.char}', '${s.name}')">
+          ${s.char}
+          <span class="symbol-btn__name">${s.name}</span>
+        </div>
+      `).join('');
+    }
+
+    function renderColorGrid() {
+      const el = document.getElementById('color-grid');
+      el.innerHTML = THREAD_COLORS.map(c => `
+        <div class="color-swatch ${state.color?.name === c.name ? 'selected' : ''}"
+             onclick="selectColor('${c.name}', '${c.hex}')">
+          <div class="color-swatch__circle"
+               style="background:${c.hex}; ${c.border ? 'border-color:'+c.border : ''}"></div>
+          <div class="color-swatch__name">${c.name}</div>
+        </div>
+      `).join('');
+    }
+
+    // ── CANVAS ───────────────────────────────────────────────
+
+    function renderCanvas(canvasId, w, h) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const p = state.product;
+
+      // Background
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = p ? p.bgColor : '#F2EDDC';
+      roundRect(ctx, 0, 0, w, h, 0);
+      ctx.fill();
+
+      if (!p) {
+        // Placeholder
+        ctx.fillStyle = '#C4B9A8';
+        ctx.font = `700 ${w * 0.04}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Wähle ein Produkt', w / 2, h / 2);
+        return;
+      }
+
+      // Product emoji (large, faded)
+      ctx.globalAlpha = 0.12;
+      ctx.font = `${w * 0.55}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, w / 2, h / 2);
+      ctx.globalAlpha = 1;
+
+      // Product name label
+      ctx.fillStyle = '#8a7f72';
+      ctx.font = `700 ${w * 0.033}px 'Source Sans 3', sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(p.name.toUpperCase(), 16, 14);
+
+      // Position dot indicator
+      if (state.position) {
+        const coords = POSITION_COORDS[state.position] || { x: 0.5, y: 0.5 };
+        const px = coords.x * w;
+        const py = coords.y * h;
+
+        // Soft glow ring
+        ctx.beginPath();
+        ctx.arc(px, py, 22, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(168, 93, 79, 0.12)';
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(px, py, 14, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(168, 93, 79, 0.2)';
+        ctx.fill();
+
+        // Content (text or symbol)
+        const content = getContent();
+        if (content && state.color) {
+          const threadColor = state.color.hex;
+          const isSymbol = state.tab === 'symbol';
+          const fontFamily = isSymbol ? 'sans-serif' : (state.font?.family || "'Source Sans 3', sans-serif");
+          const fontSize = isSymbol ? w * 0.1 : (content.length <= 4 ? w * 0.09 : w * 0.055);
+
+          // Shadow for embroidery depth effect
+          ctx.shadowColor = 'rgba(0,0,0,0.2)';
+          ctx.shadowBlur = 2;
+          ctx.shadowOffsetX = 1;
+          ctx.shadowOffsetY = 1;
+
+          ctx.fillStyle = threadColor;
+          ctx.font = `700 ${fontSize}px ${fontFamily}`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(content, px, py);
+
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+
+          // Small "STICKEREI" label below content
+          ctx.fillStyle = 'rgba(168, 93, 79, 0.6)';
+          ctx.font = `600 ${w * 0.022}px 'Source Sans 3', sans-serif`;
+          ctx.fillText('✦ STICKEREI', px, py + fontSize * 0.8);
+
+        } else {
+          // Just show position dot
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, Math.PI * 2);
+          ctx.fillStyle = '#a85d4f';
+          ctx.fill();
+        }
+      }
+
+      // Price tag
+      if (p) {
+        ctx.fillStyle = 'rgba(44, 44, 42, 0.7)';
+        ctx.font = `700 ${w * 0.035}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+        ctx.fillText(`€ ${p.price.toFixed(2).replace('.', ',')}`, w - 16, 14);
+      }
+    }
+
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+    }
+
+    function refreshCanvas() {
+      renderCanvas('canvas-preview', 380, 380);
+      if (state.currentStep === 5) renderCanvas('canvas-final', 600, 400);
+    }
+
+    function getContent() {
+      if (state.tab === 'text') return state.text || null;
+      return state.symbol?.char || null;
+    }
+
+    // ── SELECTIONS ────────────────────────────────────────────
+
+    function selectProduct(id) {
+      state.product = PRODUCTS.find(p => p.id === id);
+      state.position = null;
+      renderProductCards();
+      renderPositionGrid();
+      document.getElementById('next-1').disabled = false;
+      updateSideSummary();
+      refreshCanvas();
+    }
+
+    function selectPosition(pos) {
+      state.position = pos;
+      renderPositionGrid();
+      document.getElementById('next-2').disabled = false;
+      updateSideSummary();
+      refreshCanvas();
+    }
+
+    function switchTab(tab) {
+      state.tab = tab;
+      state.text = tab === 'symbol' ? '' : state.text;
+      state.symbol = tab === 'text' ? null : state.symbol;
+
+      document.getElementById('tab-text').classList.toggle('active', tab === 'text');
+      document.getElementById('tab-symbol').classList.toggle('active', tab === 'symbol');
+      document.getElementById('panel-text').classList.toggle('active', tab === 'text');
+      document.getElementById('panel-symbol').classList.toggle('active', tab === 'symbol');
+
+      validateStep3();
+      refreshCanvas();
+    }
+
+    function onTextInput(input) {
+      state.text = input.value.trim();
+      const count = input.value.length;
+      const countEl = document.getElementById('char-count');
+      countEl.textContent = `${count} / 20`;
+      countEl.classList.toggle('warn', count > 15);
+      validateStep3();
+      updateSideSummary();
+      refreshCanvas();
+    }
+
+    function selectFont(id) {
+      state.font = FONTS.find(f => f.id === id);
+      renderFontPicker();
+      refreshCanvas();
+    }
+
+    function selectSymbol(char, name) {
+      state.symbol = { char, name };
+      renderSymbolGrid();
+      validateStep3();
+      updateSideSummary();
+      refreshCanvas();
+    }
+
+    function selectColor(name, hex) {
+      state.color = { name, hex };
+      renderColorGrid();
+      document.getElementById('next-4').disabled = false;
+      updateSideSummary();
+      refreshCanvas();
+    }
+
+    function validateStep3() {
+      const valid = state.tab === 'text' ? state.text.length > 0 : state.symbol !== null;
+      document.getElementById('next-3').disabled = !valid;
+    }
+
+    // ── STEP NAVIGATION ───────────────────────────────────────
+
+    function goStep(n) {
+      const current = document.getElementById(`step-${state.currentStep}`);
+      const next = document.getElementById(`step-${n}`);
+      if (!current || !next) return;
+      current.classList.remove('active');
+      next.classList.add('active');
+      state.currentStep = n;
+      updateProgressBar();
+      if (n === 5) renderFinalStep();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateProgressBar() {
+      document.querySelectorAll('.progress-step').forEach(el => {
+        const s = parseInt(el.dataset.step);
+        el.classList.toggle('active', s === state.currentStep);
+        el.classList.toggle('done', s < state.currentStep);
+      });
+    }
+
+    function renderFinalStep() {
+      setTimeout(() => renderCanvas('canvas-final', 600, 400), 50);
+      const content = getContent();
+      document.getElementById('sum-product').textContent = state.product?.name || '—';
+      document.getElementById('sum-position').textContent = state.position || '—';
+      document.getElementById('sum-content').textContent = content || '—';
+      document.getElementById('sum-color').textContent = state.color?.name || '—';
+      document.getElementById('sum-price').textContent = `€ ${(state.product?.price || 0).toFixed(2).replace('.', ',')}`;
+    }
+
+    function updateSideSummary() {
+      document.getElementById('side-product').textContent = state.product?.name || '—';
+      document.getElementById('side-position').textContent = state.position || '—';
+      const content = getContent();
+      document.getElementById('side-content').textContent = content || '—';
+      document.getElementById('side-color').textContent = state.color?.name || '—';
+    }
+
+    // ── ADD TO CART ───────────────────────────────────────────
+
+    function addPersonalizedToCart() {
+      const p = state.product;
+      const content = getContent();
+      if (!p || !content || !state.color) return;
+
+      const cartItem = {
+        id: `personalized-${p.id}-${Date.now()}`,
+        name: `${p.name} (Personalisiert)`,
+        price: p.price,
+        image: p.emoji,
+        personalization: {
+          product:   p.name,
+          position:  state.position,
+          type:      state.tab,
+          content:   content,
+          font:      state.tab === 'text' ? state.font?.name : null,
+          colorName: state.color.name,
+          colorHex:  state.color.hex,
+        }
+      };
+
+      addToCart(cartItem);
+      setTimeout(() => { window.location.href = '/cart.html'; }, 800);
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
