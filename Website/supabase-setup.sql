@@ -1,5 +1,5 @@
 -- ============================================================
--- STICKFACTORY — Supabase Datenbank Setup
+-- MADE2MEANT — Supabase Datenbank Setup
 -- Dieses SQL einmal im Supabase SQL Editor ausführen
 -- ============================================================
 

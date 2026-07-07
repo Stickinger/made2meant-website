@@ -14,34 +14,45 @@ function saveCart(cart) {
   updateCartBadge();
 }
 
-// Produkt hinzufügen
-function addToCart(product) {
+// Eindeutiger Schlüssel pro Produkt+Variante (z.B. gleiche Decke,
+// andere Schriftfarbe = eigene Warenkorb-Position)
+function cartKey(productId, options) {
+  const opts = options && Object.keys(options).length
+    ? '|' + Object.keys(options).sort().map(k => k + ':' + options[k]).join(';')
+    : '';
+  return productId + opts;
+}
+
+// Produkt hinzufügen (options z.B. {Schriftfarbe:'Grün', Polsterfarbe:'Braun'})
+function addToCart(product, options = {}) {
   const cart = getCart();
-  const existing = cart.find(item => item.id === product.id);
+  const key = cartKey(product.id, options);
+  const existing = cart.find(item => (item.key || item.id) === key);
 
   if (existing) {
     existing.quantity += 1;
   } else {
-    cart.push({ ...product, quantity: 1 });
+    const { options: _productOptions, ...rest } = product;
+    cart.push({ ...rest, key, options, quantity: 1 });
   }
 
   saveCart(cart);
   showToast('Zum Warenkorb hinzugefügt!');
 }
 
-// Produkt entfernen
-function removeFromCart(productId) {
-  const cart = getCart().filter(item => item.id !== productId);
+// Position entfernen (key = cartKey; alte Einträge ohne key matchen über id)
+function removeFromCart(key) {
+  const cart = getCart().filter(item => (item.key || item.id) !== key);
   saveCart(cart);
 }
 
 // Menge ändern
-function updateQuantity(productId, quantity) {
+function updateQuantity(key, quantity) {
   const cart = getCart();
-  const item = cart.find(item => item.id === productId);
+  const item = cart.find(item => (item.key || item.id) === key);
   if (item) {
     item.quantity = quantity;
-    if (item.quantity <= 0) return removeFromCart(productId);
+    if (item.quantity <= 0) return removeFromCart(key);
   }
   saveCart(cart);
 }

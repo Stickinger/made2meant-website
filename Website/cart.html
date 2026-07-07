@@ -97,6 +97,10 @@
                    alt="${item.name}" class="cart-item-img">
               <div>
                 <strong>${item.name}</strong><br>
+                ${item.options && Object.keys(item.options).length ? `
+                  <span style="color:var(--color-muted); font-size:0.8rem;">
+                    ${Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(' · ')}
+                  </span><br>` : ''}
                 <span style="color:var(--color-muted); font-size:0.85rem;">
                   €${item.price.toFixed(2)} / Stück
                 </span>
@@ -109,12 +113,12 @@
               class="qty-input"
               value="${item.quantity}"
               min="1"
-              onchange="handleQtyChange('${item.id}', this.value)"
+              onchange="handleQtyChange('${item.key || item.id}', this.value)"
             >
           </td>
           <td><strong>€${(item.price * item.quantity).toFixed(2)}</strong></td>
           <td>
-            <button class="remove-btn" onclick="handleRemove('${item.id}')" title="Entfernen">✕</button>
+            <button class="remove-btn" onclick="handleRemove('${item.key || item.id}')" title="Entfernen">✕</button>
           </td>
         </tr>
       `).join('');

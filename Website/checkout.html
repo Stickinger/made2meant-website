@@ -160,7 +160,9 @@
     function renderOrderSummary() {
       const items = cart.map(item => `
         <div class="order-item">
-          <span>${item.name} × ${item.quantity}</span>
+          <span>${item.name}${item.options && Object.keys(item.options).length
+            ? ' <small style="color:var(--color-muted)">(' + Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(', ') + ')</small>'
+            : ''} × ${item.quantity}</span>
           <span>€${(item.price * item.quantity).toFixed(2)}</span>
         </div>
       `).join('');
@@ -225,6 +227,7 @@
         name:       item.name,
         price:      item.price,
         quantity:   item.quantity,
+        options:    item.options || {},
       }));
 
       const { error: itemsError } = await db.from('order_items').insert(items);
