@@ -155,7 +155,7 @@
       background: white;
       transition: border-color 0.2s;
     }
-    .text-row input:focus { outline: none; border-color: var(--color-primary); }
+    .text-row input:focus { border-color: var(--color-primary); }
     .char-count { text-align: right; font-size: 0.72rem; color: var(--color-muted); }
     .char-count.warn { color: var(--color-primary); }
 
@@ -187,6 +187,7 @@
       transition: all 0.15s;
       font-size: 1.3rem;
       line-height: 1;
+      width: 100%;
     }
     .symbol-btn:hover { border-color: var(--color-primary); }
     .symbol-btn.selected { border-color: var(--color-primary); background: #fdf8f7; }
@@ -209,6 +210,10 @@
       align-items: center;
       gap: 5px;
       cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      font-family: var(--font-main);
     }
     .color-swatch__circle {
       width: 36px;
@@ -266,6 +271,8 @@
 </head>
 <body>
 
+
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
   <nav class="navbar">
     <div class="container navbar__inner">
       <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
@@ -274,12 +281,12 @@
         <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
 
-  <main>
+  <main id="main">
     <div class="container">
       <div id="product-detail" class="product-detail">
         <p class="loading">Produkt wird geladen...</p>
@@ -432,9 +439,9 @@
         <!-- LEFT: CANVAS PREVIEW -->
         <div class="product-visual">
           <div class="product-canvas-wrap">
-            <canvas id="cfg-canvas" width="480" height="480"></canvas>
+            <canvas id="cfg-canvas" width="480" height="480" role="img" aria-label="Live-Vorschau deiner Stickerei"></canvas>
           </div>
-          <div class="canvas-hint">✦ Live-Vorschau deiner Stickerei</div>
+          <div class="canvas-hint" aria-hidden="true">✦ Live-Vorschau deiner Stickerei</div>
         </div>
 
         <!-- RIGHT: INFO + CONFIGURATOR -->
@@ -458,7 +465,7 @@
               <div class="config-block__title">Position der Stickerei</div>
               <div class="position-pills" id="position-pills">
                 ${positions.map(pos => `
-                  <button class="position-pill" onclick="selectPosition('${pos}')">${pos}</button>
+                  <button class="position-pill" aria-pressed="false" onclick="selectPosition('${pos}')">${pos}</button>
                 `).join('')}
               </div>
             </div>
@@ -467,14 +474,15 @@
             <div class="config-block">
               <div class="config-block__title">Was soll gestickt werden?</div>
               <div class="content-tabs">
-                <button class="content-tab active" id="tab-text" onclick="switchTab('text')">✍️ Text</button>
-                <button class="content-tab" id="tab-symbol" onclick="switchTab('symbol')">★ Symbol</button>
+                <button class="content-tab active" id="tab-text" aria-pressed="true" onclick="switchTab('text')">✍️ Text</button>
+                <button class="content-tab" id="tab-symbol" aria-pressed="false" onclick="switchTab('symbol')">★ Symbol</button>
               </div>
 
               <div class="tab-panel active" id="panel-text">
                 <div class="text-row">
                   <input type="text" id="custom-text" maxlength="20"
                     placeholder="z.B. Familie Müller, Max, 2026 ..."
+                    aria-label="Dein Text für die Stickerei (max. 20 Zeichen)"
                     oninput="onTextInput(this)">
                   <div class="char-count" id="char-count">0 / 20</div>
                   <div class="font-pills" id="font-pills">
@@ -490,10 +498,10 @@
               <div class="tab-panel" id="panel-symbol">
                 <div class="symbol-grid" id="symbol-grid">
                   ${SYMBOLS.map(s => `
-                    <div class="symbol-btn" onclick="selectSymbol('${s.char}', '${s.name}')">
+                    <button type="button" class="symbol-btn" aria-pressed="false" onclick="selectSymbol('${s.char}', '${s.name}')">
                       ${s.char}
                       <span class="symbol-btn__name">${s.name}</span>
-                    </div>
+                    </button>
                   `).join('')}
                 </div>
               </div>
@@ -504,11 +512,11 @@
               <div class="config-block__title">Fadenfarbe</div>
               <div class="color-swatches" id="color-swatches">
                 ${THREAD_COLORS.map(c => `
-                  <div class="color-swatch" onclick="selectColor('${c.name}', '${c.hex}')">
-                    <div class="color-swatch__circle"
-                         style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></div>
-                    <div class="color-swatch__name">${c.name}</div>
-                  </div>
+                  <button type="button" class="color-swatch" aria-pressed="false" onclick="selectColor('${c.name}', '${c.hex}')">
+                    <span class="color-swatch__circle"
+                         style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></span>
+                    <span class="color-swatch__name">${c.name}</span>
+                  </button>
                 `).join('')}
               </div>
             </div>
@@ -517,13 +525,13 @@
 
           <!-- CTA -->
           <div class="product-cta">
-            <div class="personalize-hint" id="personalize-hint">
+            <div class="personalize-hint" id="personalize-hint" role="status">
               Wähle Position, Text/Symbol und Farbe um fortzufahren.
             </div>
             <div class="qty-selector">
-              <button class="qty-btn" onclick="changeQty(-1)">−</button>
-              <span id="qty-display">1</span>
-              <button class="qty-btn" onclick="changeQty(1)">+</button>
+              <button class="qty-btn" aria-label="Menge verringern" onclick="changeQty(-1)">−</button>
+              <span id="qty-display" aria-live="polite">1</span>
+              <button class="qty-btn" aria-label="Menge erhöhen" onclick="changeQty(1)">+</button>
             </div>
             <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()"
                     style="width:auto;padding:15px 32px;" disabled>
@@ -642,7 +650,9 @@
     function selectPosition(pos) {
       cfg.position = pos;
       document.querySelectorAll('.position-pill').forEach(el => {
-        el.classList.toggle('selected', el.textContent.trim() === pos);
+        const sel = el.textContent.trim() === pos;
+        el.classList.toggle('selected', sel);
+        el.setAttribute('aria-pressed', sel);
       });
       renderCanvas();
       checkReady();
@@ -654,6 +664,8 @@
       cfg.symbol = null;
       document.getElementById('tab-text').classList.toggle('active', tab === 'text');
       document.getElementById('tab-symbol').classList.toggle('active', tab === 'symbol');
+      document.getElementById('tab-text').setAttribute('aria-pressed', tab === 'text');
+      document.getElementById('tab-symbol').setAttribute('aria-pressed', tab === 'symbol');
       document.getElementById('panel-text').classList.toggle('active', tab === 'text');
       document.getElementById('panel-symbol').classList.toggle('active', tab === 'symbol');
       if (tab === 'text') {
@@ -687,7 +699,7 @@
       const fp = document.getElementById('font-pills');
       if (fp) fp.innerHTML = FONTS.map(f => `
         <button class="font-pill ${f.id === cfg.font.id ? 'selected' : ''}"
-                style="font-family:${f.family}"
+                style="font-family:${f.family}" aria-pressed="${f.id === cfg.font.id}"
                 onclick="selectFont('${f.id}')">${f.name}</button>
       `).join('');
       renderCanvas();
@@ -697,11 +709,12 @@
       cfg.symbol = { char, name };
       const sg = document.getElementById('symbol-grid');
       if (sg) sg.innerHTML = SYMBOLS.map(s => `
-        <div class="symbol-btn ${s.char === char ? 'selected' : ''}"
+        <button type="button" class="symbol-btn ${s.char === char ? 'selected' : ''}"
+             aria-pressed="${s.char === char}"
              onclick="selectSymbol('${s.char}', '${s.name}')">
           ${s.char}
           <span class="symbol-btn__name">${s.name}</span>
-        </div>
+        </button>
       `).join('');
       renderCanvas();
       checkReady();
@@ -711,12 +724,13 @@
       cfg.color = { name, hex };
       const cs = document.getElementById('color-swatches');
       if (cs) cs.innerHTML = THREAD_COLORS.map(c => `
-        <div class="color-swatch ${c.name === name ? 'selected' : ''}"
+        <button type="button" class="color-swatch ${c.name === name ? 'selected' : ''}"
+             aria-pressed="${c.name === name}"
              onclick="selectColor('${c.name}', '${c.hex}')">
-          <div class="color-swatch__circle"
-               style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></div>
-          <div class="color-swatch__name">${c.name}</div>
-        </div>
+          <span class="color-swatch__circle"
+               style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></span>
+          <span class="color-swatch__name">${c.name}</span>
+        </button>
       `).join('');
       renderCanvas();
       checkReady();

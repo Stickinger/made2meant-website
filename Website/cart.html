@@ -53,17 +53,19 @@
 </head>
 <body>
 
+
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
   <nav class="navbar">
     <div class="container navbar__inner">
       <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
       <ul class="navbar__links">
         <li><a href="/index.html">← Weiter shoppen</a></li>
-        <li><a href="/cart.html" class="cart-icon">🛒 <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
 
-  <main>
+  <main id="main">
     <div class="container">
       <div id="cart-content"></div>
     </div>
@@ -113,12 +115,13 @@
               class="qty-input"
               value="${item.quantity}"
               min="1"
+              aria-label="Menge für ${item.name}"
               onchange="handleQtyChange('${item.key || item.id}', this.value)"
             >
           </td>
           <td><strong>€${(item.price * item.quantity).toFixed(2)}</strong></td>
           <td>
-            <button class="remove-btn" onclick="handleRemove('${item.key || item.id}')" title="Entfernen">✕</button>
+            <button class="remove-btn" onclick="handleRemove('${item.key || item.id}')" title="Entfernen" aria-label="${item.name} entfernen">✕</button>
           </td>
         </tr>
       `).join('');

@@ -86,6 +86,7 @@ function updateCartBadge() {
 function showToast(message) {
   const toast = document.createElement('div');
   toast.className = 'toast';
+  toast.setAttribute('role', 'status');   // Screenreader lesen die Meldung vor
   toast.textContent = message;
   document.body.appendChild(toast);
   setTimeout(() => toast.classList.add('show'), 10);
