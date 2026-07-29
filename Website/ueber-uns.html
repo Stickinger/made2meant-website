@@ -11,7 +11,6 @@
   <style>
     .page-hero {
       padding: 80px 0 60px;
-      border-bottom: 1px solid var(--color-border);
       text-align: center;
     }
     .page-hero__label {
@@ -47,14 +46,21 @@
 
     .about-image {
       aspect-ratio: 4/3;
-      background: var(--color-border);
+      background: linear-gradient(135deg, #b56a5a, #8f4d41);
       border-radius: var(--radius);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 5rem;
     }
+    .about-image--moss { background: linear-gradient(135deg, #4f6349, #334430); }
+    .about-image__mark {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: 0.15em;
+      color: rgba(242,237,220,0.92);
+    }
+    .about-image__mark span { opacity: 0.55; }
 
     .about-text__label {
       font-size: 0.65rem;
@@ -98,7 +104,7 @@
       border: 1px solid rgba(255,255,255,0.1);
       border-radius: var(--radius);
     }
-    .value-card__icon { font-size: 2rem; margin-bottom: 16px; }
+    .value-card__icon { width: 28px; height: 2px; background: var(--color-primary); margin: 0 auto 18px; border-radius: 2px; }
     .value-card h3 {
       color: #F2EDDC;
       font-size: 0.85rem;
@@ -148,7 +154,7 @@
         <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
@@ -166,7 +172,7 @@
       <div class="container">
 
         <div class="about-grid">
-          <div class="about-image">🧵</div>
+          <div class="about-image"><span class="about-image__mark">MADE<span>2</span>MEANT</span></div>
           <div class="about-text">
             <div class="about-text__label">Wie alles begann</div>
             <h2>Aus Leidenschaft entstand ein Handwerk</h2>
@@ -176,7 +182,7 @@
         </div>
 
         <div class="about-grid about-grid--reverse">
-          <div class="about-image">✂️</div>
+          <div class="about-image about-image--moss"><span class="about-image__mark">MADE<span>2</span>MEANT</span></div>
           <div class="about-text">
             <div class="about-text__label">Unser Ansatz</div>
             <h2>Jedes Stück ist einzigartig</h2>
@@ -193,17 +199,17 @@
         <h2>Was uns antreibt</h2>
         <div class="values-grid">
           <div class="value-card">
-            <div class="value-card__icon">❤️</div>
+            <div class="value-card__icon" aria-hidden="true"></div>
             <h3>Mit Herz</h3>
             <p>Jede Stickerei entsteht mit echter Leidenschaft und dem Wunsch, etwas Bedeutungsvolles zu schaffen.</p>
           </div>
           <div class="value-card">
-            <div class="value-card__icon">🎯</div>
+            <div class="value-card__icon" aria-hidden="true"></div>
             <h3>Präzision</h3>
             <p>Wir setzen auf höchste Qualität in jedem Detail — vom Material bis zum letzten Stich.</p>
           </div>
           <div class="value-card">
-            <div class="value-card__icon">🤝</div>
+            <div class="value-card__icon" aria-hidden="true"></div>
             <h3>Vertrauen</h3>
             <p>Deine Idee ist bei uns sicher. Wir hören zu und setzen um, was du dir wirklich vorstellst.</p>
           </div>

@@ -137,7 +137,6 @@ h2, h3 {
    ============================================================ */
 .navbar {
   background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -205,7 +204,6 @@ h2, h3 {
   padding: 100px 0;
   text-align: center;
   background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border);
   position: relative;
   overflow: hidden;
 }
@@ -687,7 +685,6 @@ h2, h3 {
    ============================================================ */
 .footer {
   background: var(--color-text);
-  border-top: 1px solid var(--color-border);
   padding: 40px 0;
   margin-top: auto;
 }
@@ -769,6 +766,23 @@ textarea:focus-visible,
 .skip-link:focus {
   left: 0;
 }
+
+/* Passwort-Anzeigen-Umschalter */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap input { width: 100%; padding-right: 46px; }
+.pw-toggle {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  line-height: 0;
+  color: var(--color-muted);
+}
+.pw-toggle:hover { color: var(--color-text); }
 
 /* Nur für Screenreader sichtbar */
 .sr-only {

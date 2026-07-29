@@ -71,7 +71,7 @@
         await login(email, password);
         window.location.href = '/account.html';
       } catch (err) {
-        errorMsg.textContent = 'E-Mail oder Passwort falsch.';
+        errorMsg.textContent = authErrorMessage(err);
         errorMsg.classList.add('visible');
         btn.textContent = 'Einloggen';
         btn.disabled = false;

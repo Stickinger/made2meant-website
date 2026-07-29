@@ -471,7 +471,7 @@
         <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
@@ -545,8 +545,8 @@
             </div>
 
             <div class="content-tabs">
-              <button class="content-tab active" id="tab-text" onclick="switchTab('text')">✍️ Text</button>
-              <button class="content-tab" id="tab-symbol" onclick="switchTab('symbol')">★ Symbol</button>
+              <button class="content-tab active" id="tab-text" onclick="switchTab('text')">Text</button>
+              <button class="content-tab" id="tab-symbol" onclick="switchTab('symbol')">Symbol</button>
             </div>
 
             <!-- TEXT PANEL -->
@@ -909,7 +909,7 @@
           // Small "STICKEREI" label below content
           ctx.fillStyle = 'rgba(168, 93, 79, 0.6)';
           ctx.font = `600 ${w * 0.022}px 'Source Sans 3', sans-serif`;
-          ctx.fillText('✦ STICKEREI', px, py + fontSize * 0.8);
+          ctx.fillText('STICKEREI', px, py + fontSize * 0.8);
 
         } else {
           // Just show position dot

@@ -281,7 +281,7 @@
         <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
@@ -429,8 +429,8 @@
     function renderPage() {
       const p = currentProduct;
       const stockLabel = p.stock <= 5
-        ? `<span class="product-info__stock low">⚠ Nur noch ${p.stock} verfügbar</span>`
-        : `<span class="product-info__stock">✓ ${p.stock} auf Lager</span>`;
+        ? `<span class="product-info__stock low">Nur noch ${p.stock} verfügbar</span>`
+        : `<span class="product-info__stock">${p.stock} auf Lager</span>`;
 
       const positions = PRODUCT_POSITIONS[productType] || PRODUCT_POSITIONS.generic;
 
@@ -441,7 +441,7 @@
           <div class="product-canvas-wrap">
             <canvas id="cfg-canvas" width="480" height="480" role="img" aria-label="Live-Vorschau deiner Stickerei"></canvas>
           </div>
-          <div class="canvas-hint" aria-hidden="true">✦ Live-Vorschau deiner Stickerei</div>
+          <div class="canvas-hint" aria-hidden="true">Live-Vorschau deiner Stickerei</div>
         </div>
 
         <!-- RIGHT: INFO + CONFIGURATOR -->
@@ -458,7 +458,7 @@
 
           <!-- CONFIGURATOR -->
           <div class="configurator-section">
-            <div class="configurator-label">✦ Personalisieren</div>
+            <div class="configurator-label">Personalisieren</div>
 
             <!-- Position -->
             <div class="config-block">
@@ -474,8 +474,8 @@
             <div class="config-block">
               <div class="config-block__title">Was soll gestickt werden?</div>
               <div class="content-tabs">
-                <button class="content-tab active" id="tab-text" aria-pressed="true" onclick="switchTab('text')">✍️ Text</button>
-                <button class="content-tab" id="tab-symbol" aria-pressed="false" onclick="switchTab('symbol')">★ Symbol</button>
+                <button class="content-tab active" id="tab-text" aria-pressed="true" onclick="switchTab('text')">Text</button>
+                <button class="content-tab" id="tab-symbol" aria-pressed="false" onclick="switchTab('symbol')">Symbol</button>
               </div>
 
               <div class="tab-panel active" id="panel-text">
@@ -559,13 +559,13 @@
       ctx.fillStyle = PRODUCT_COLORS[productType] || '#F2EDDC';
       ctx.fillRect(0, 0, W, H);
 
-      // Large faded product emoji
-      const emoji = PRODUCT_EMOJIS[productType] || '✦';
-      ctx.globalAlpha = 0.1;
-      ctx.font = `${W * 0.62}px sans-serif`;
+      // Dezentes Marken-Wasserzeichen im Hintergrund
+      ctx.globalAlpha = 0.06;
+      ctx.fillStyle = '#2C2C2A';
+      ctx.font = `900 ${W * 0.12}px 'Source Sans 3', sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(emoji, W / 2, H / 2);
+      ctx.fillText('MADE2MEANT', W / 2, H / 2);
       ctx.globalAlpha = 1;
 
       // Product name top-left
@@ -611,7 +611,7 @@
           // "STICKEREI" micro label
           ctx.fillStyle = 'rgba(168,93,79,0.5)';
           ctx.font = `600 ${W * 0.02}px 'Source Sans 3', sans-serif`;
-          ctx.fillText('✦ STICKEREI', px, py + fontSize * 0.75);
+          ctx.fillText('STICKEREI', px, py + fontSize * 0.75);
 
         } else {
           // Show position dot placeholder
@@ -747,7 +747,7 @@
       if (hint) {
         if (ready) {
           hint.className = 'personalize-hint complete';
-          hint.textContent = `✓ Bereit: ${cfg.position} · ${content} · Faden: ${cfg.color.name}`;
+          hint.textContent = `Bereit: ${cfg.position} · ${content} · Faden: ${cfg.color.name}`;
         } else {
           hint.className = 'personalize-hint';
           const missing = [];

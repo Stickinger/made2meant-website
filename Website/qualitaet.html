@@ -11,7 +11,6 @@
   <style>
     .page-hero {
       padding: 80px 0 60px;
-      border-bottom: 1px solid var(--color-border);
       text-align: center;
     }
     .page-hero__label {
@@ -99,7 +98,7 @@
       gap: 24px;
       text-align: center;
     }
-    .promise-item__icon { font-size: 1.8rem; margin-bottom: 12px; }
+    .promise-item__icon { width: 28px; height: 2px; background: var(--color-primary); margin: 0 auto 18px; border-radius: 2px; }
     .promise-item h4 {
       color: #F2EDDC;
       font-size: 0.8rem;
@@ -134,7 +133,7 @@
       border-radius: var(--radius);
       padding: 32px 24px;
     }
-    .material-card__icon { font-size: 2rem; margin-bottom: 16px; }
+    .material-card__icon { width: 28px; height: 2px; background: var(--color-primary); margin-bottom: 18px; border-radius: 2px; }
     .material-card h3 {
       font-size: 0.85rem;
       font-weight: 700;
@@ -178,7 +177,7 @@
         <li><a href="/login.html" id="nav-login">Login</a></li>
         <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
         <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true">🛒</span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
       </ul>
     </div>
   </nav>
@@ -241,22 +240,22 @@
         <p>Diese vier Punkte sind nicht verhandelbar. Sie gelten für jede einzelne Bestellung — egal wie groß oder klein.</p>
         <div class="promise-grid">
           <div class="promise-item">
-            <div class="promise-item__icon">🎨</div>
+            <div class="promise-item__icon" aria-hidden="true"></div>
             <h4>Farbecht</h4>
             <p>Farben die auch nach vielen Wäschen nicht verblassen.</p>
           </div>
           <div class="promise-item">
-            <div class="promise-item__icon">💪</div>
+            <div class="promise-item__icon" aria-hidden="true"></div>
             <h4>Langlebig</h4>
             <p>Stickereien die halten — für Jahrzehnte.</p>
           </div>
           <div class="promise-item">
-            <div class="promise-item__icon">✅</div>
+            <div class="promise-item__icon" aria-hidden="true"></div>
             <h4>Geprüft</h4>
             <p>Jedes Stück wird vor Versand einzeln kontrolliert.</p>
           </div>
           <div class="promise-item">
-            <div class="promise-item__icon">🔄</div>
+            <div class="promise-item__icon" aria-hidden="true"></div>
             <h4>Zufriedenheit</h4>
             <p>Nicht zufrieden? Wir finden eine Lösung.</p>
           </div>
@@ -269,17 +268,17 @@
         <h2>Was wir verwenden</h2>
         <div class="materials-grid">
           <div class="material-card">
-            <div class="material-card__icon">🧶</div>
+            <div class="material-card__icon" aria-hidden="true"></div>
             <h3>Premium Garne</h3>
             <p>Wir verwenden ausschließlich hochwertige Stickgarne mit hoher Farbbrillanz und Reißfestigkeit.</p>
           </div>
           <div class="material-card">
-            <div class="material-card__icon">🏭</div>
+            <div class="material-card__icon" aria-hidden="true"></div>
             <h3>Professionelle Maschinen</h3>
             <p>Unsere Stickmaschinen arbeiten mit höchster Präzision für saubere, gleichmäßige Ergebnisse.</p>
           </div>
           <div class="material-card">
-            <div class="material-card__icon">📦</div>
+            <div class="material-card__icon" aria-hidden="true"></div>
             <h3>Nachhaltige Verpackung</h3>
             <p>Wir verpacken deine Bestellung schonend und möglichst umweltfreundlich.</p>
           </div>

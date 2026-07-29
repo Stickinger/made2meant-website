@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- PDF-Rendering (erste Seite → PNG beim Upload) -->
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
   <style>
     :root {
       --admin-sidebar: 220px;
@@ -739,8 +741,13 @@
           <textarea id="p-desc" rows="3" placeholder="Produktbeschreibung..."></textarea>
         </div>
         <div class="field form-full">
-          <label>Hauptbild-URL (Titelbild im Shop-Grid)</label>
-          <input type="url" id="p-image" placeholder="https://...">
+          <label>Hauptbild (Titelbild im Shop-Grid)</label>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+            <input type="file" id="p-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" onchange="handleMainImageUpload(this)">
+            <span id="p-image-status" style="font-size:0.85rem;color:var(--color-muted);"></span>
+          </div>
+          <input type="url" id="p-image" placeholder="…oder Bild-URL einfügen" style="margin-top:8px">
+          <img id="p-image-preview" alt="" style="display:none;margin-top:8px;max-width:120px;border-radius:6px;">
         </div>
 
         <div class="field form-full">
@@ -1121,6 +1128,94 @@ function addOptionRow(name = '', values = '') {
   document.getElementById('p-options').appendChild(div);
 }
 
+// ── Datei-Upload in Supabase Storage ──────────────────────
+// PDF wird zur ersten Seite als PNG gerendert; PNG/JPEG/WEBP direkt.
+// Gibt die öffentliche URL zurück (oder null bei Fehler).
+async function uploadToStorage(file) {
+  const allowed = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
+  if (!allowed.includes(file.type)) {
+    alert('Bitte nur PNG, JPEG, WEBP oder PDF hochladen.');
+    return null;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Datei zu groß (max. 10 MB).');
+    return null;
+  }
+
+  let blob = file;
+  let ext = (file.name.split('.').pop() || 'png').toLowerCase();
+
+  if (file.type === 'application/pdf') {
+    try {
+      blob = await pdfFirstPageToPng(file);
+      ext = 'png';
+    } catch (e) {
+      alert('PDF konnte nicht verarbeitet werden: ' + e.message);
+      return null;
+    }
+  }
+
+  const safeName = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+  const { error } = await db.storage.from('product-images')
+    .upload(safeName, blob, { contentType: blob.type || 'image/png', upsert: false });
+
+  if (error) {
+    alert('Upload fehlgeschlagen: ' + error.message +
+          '\n(Wurde storage-setup.sql in Supabase ausgeführt? Bist du als Admin eingeloggt?)');
+    return null;
+  }
+  const { data: pub } = db.storage.from('product-images').getPublicUrl(safeName);
+  return pub.publicUrl;
+}
+
+// PDF (erste Seite) → PNG-Blob mit pdf.js
+async function pdfFirstPageToPng(file) {
+  if (!window.pdfjsLib) throw new Error('PDF-Bibliothek nicht geladen');
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  const page = await pdf.getPage(1);
+  const viewport = page.getViewport({ scale: 2 });
+  const canvas = document.createElement('canvas');
+  canvas.width = viewport.width;
+  canvas.height = viewport.height;
+  await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+  return await new Promise(res => canvas.toBlob(res, 'image/png'));
+}
+
+// Hauptbild-Upload
+async function handleMainImageUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('p-image-status');
+  status.textContent = 'Lädt hoch…';
+  const url = await uploadToStorage(file);
+  if (url) {
+    document.getElementById('p-image').value = url;
+    const prev = document.getElementById('p-image-preview');
+    prev.src = url; prev.style.display = 'block';
+    status.textContent = 'Hochgeladen ✓';
+  } else {
+    status.textContent = '';
+  }
+  input.value = '';
+}
+
+// Upload einer einzelnen Bild-Zeile (pro Farbkombination)
+async function handleRowImageUpload(i, input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.disabled = true;
+  const url = await uploadToStorage(file);
+  input.disabled = false;
+  if (url) {
+    modalImages[i].url = url;
+    renderImagesEditor();
+  }
+  input.value = '';
+}
+
 function addImageRow(img = null) {
   modalImages.push(img || { url: '', option_values: {} });
   renderImagesEditor();
@@ -1137,7 +1232,9 @@ function renderImagesEditor() {
   box.innerHTML = modalImages.map((img, i) => `
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
       ${img.url ? `<img src="${img.url}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">` : ''}
-      <input type="url" placeholder="https://... (Bild-URL)" value="${(img.url||'').replace(/"/g,'&quot;')}" style="flex:2;min-width:180px"
+      <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" style="max-width:200px"
+             onchange="handleRowImageUpload(${i}, this)">
+      <input type="url" placeholder="…oder Bild-URL" value="${(img.url||'').replace(/"/g,'&quot;')}" style="flex:1;min-width:140px"
              onchange="modalImages[${i}].url = this.value; renderImagesEditor()">
       ${options.map(o => `
         <select style="flex:1;min-width:110px" onchange="modalImages[${i}].option_values[${JSON.stringify(o.name).replace(/"/g,'&quot;')}] = this.value || undefined; if(!this.value) delete modalImages[${i}].option_values[${JSON.stringify(o.name).replace(/"/g,'&quot;')}]">
@@ -1158,6 +1255,12 @@ async function openProductModal(product = null) {
   document.getElementById('p-stock').value         = product?.stock ?? '';
   document.getElementById('p-desc').value          = product?.description || '';
   document.getElementById('p-image').value         = product?.image_url || '';
+  // Upload-Vorschau/Status zurücksetzen
+  const _imgPrev = document.getElementById('p-image-preview');
+  _imgPrev.src = product?.image_url || '';
+  _imgPrev.style.display = product?.image_url ? 'block' : 'none';
+  document.getElementById('p-image-status').textContent = '';
+  document.getElementById('p-image-file').value = '';
   document.getElementById('p-seo-title').value     = product?.seo_title || '';
   document.getElementById('p-seo-desc').value      = product?.seo_description || '';
   document.getElementById('p-tags').value          = (product?.tags || []).join(', ');
@@ -1614,8 +1717,16 @@ async function init() {
   if (!user) return;
 
   // Nur echte Admins (admins-Tabelle, siehe admin-fix.sql)
-  const { data: adminRow } = await db.from('admins')
+  const { data: adminRow, error: adminErr } = await db.from('admins')
     .select('user_id').eq('user_id', user.id).maybeSingle();
+
+  // Verbindungs-/Serverfehler NICHT als "kein Admin" werten (kein Rauswurf)
+  if (adminErr) {
+    alert('Der Server ist gerade nicht erreichbar, dein Admin-Zugang konnte nicht geprüft werden.\n\n'
+        + 'Falls das anhält: Prüfe, ob dein Supabase-Projekt aktiv ist (Gratis-Projekte werden nach 7 Tagen pausiert).\n\n'
+        + 'Bitte lade die Seite neu, sobald der Server wieder läuft.');
+    return;
+  }
   if (!adminRow) {
     alert('Kein Admin-Zugang für dieses Konto.');
     window.location.href = '/index.html';
