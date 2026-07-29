@@ -412,6 +412,34 @@
       .stats-grid { grid-template-columns: 1fr 1fr; }
       .form-grid { grid-template-columns: 1fr; }
     }
+
+    /* Drag & Drop Bild-Upload */
+    .dropzone {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius);
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      color: var(--color-muted);
+      font-size: 0.9rem;
+      transition: border-color 0.15s, background 0.15s;
+      background: var(--color-bg);
+    }
+    .dropzone:hover,
+    .dropzone:focus-visible { border-color: var(--color-primary); outline: none; }
+    .dropzone--over {
+      border-color: var(--color-primary);
+      background: rgba(168,93,79,0.08);
+      color: var(--color-primary);
+    }
+    .dropzone small { display: block; margin-top: 4px; font-size: 0.78rem; opacity: 0.8; }
+    .dropzone--row {
+      padding: 10px 12px;
+      font-size: 0.8rem;
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -742,10 +770,14 @@
         </div>
         <div class="field form-full">
           <label>Hauptbild (Titelbild im Shop-Grid)</label>
-          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-            <input type="file" id="p-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" onchange="handleMainImageUpload(this)">
-            <span id="p-image-status" style="font-size:0.85rem;color:var(--color-muted);"></span>
+          <div id="p-image-drop" class="dropzone" tabindex="0" role="button"
+               aria-label="Bild hochladen: hierher ziehen oder klicken zum Auswählen">
+            <span>Bild hierher ziehen oder klicken
+              <small>PNG, JPEG, WEBP oder PDF — max. 10 MB</small>
+            </span>
+            <input type="file" id="p-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="handleMainImageUpload(this)">
           </div>
+          <span id="p-image-status" style="display:inline-block;margin-top:6px;font-size:0.85rem;color:var(--color-muted);"></span>
           <input type="url" id="p-image" placeholder="…oder Bild-URL einfügen" style="margin-top:8px">
           <img id="p-image-preview" alt="" style="display:none;margin-top:8px;max-width:120px;border-radius:6px;">
         </div>
@@ -1184,9 +1216,14 @@ async function pdfFirstPageToPng(file) {
   return await new Promise(res => canvas.toBlob(res, 'image/png'));
 }
 
-// Hauptbild-Upload
-async function handleMainImageUpload(input) {
-  const file = input.files[0];
+// Hauptbild-Upload (aus Datei-Auswahl)
+function handleMainImageUpload(input) {
+  handleMainFile(input.files[0]);
+  input.value = '';
+}
+
+// Hauptbild verarbeiten (aus Datei-Auswahl ODER Drag & Drop)
+async function handleMainFile(file) {
   if (!file) return;
   const status = document.getElementById('p-image-status');
   status.textContent = 'Lädt hoch…';
@@ -1199,22 +1236,37 @@ async function handleMainImageUpload(input) {
   } else {
     status.textContent = '';
   }
-  input.value = '';
 }
 
-// Upload einer einzelnen Bild-Zeile (pro Farbkombination)
-async function handleRowImageUpload(i, input) {
-  const file = input.files[0];
+// Bild-Zeile verarbeiten (aus Datei-Auswahl ODER Drag & Drop)
+async function handleRowFile(i, file) {
   if (!file) return;
-  input.disabled = true;
   const url = await uploadToStorage(file);
-  input.disabled = false;
   if (url) {
     modalImages[i].url = url;
     renderImagesEditor();
   }
-  input.value = '';
 }
+
+// Drag & Drop fürs Hauptbild verdrahten (einmalig beim Laden)
+document.addEventListener('DOMContentLoaded', () => {
+  const zone = document.getElementById('p-image-drop');
+  if (!zone) return;
+  const fileInput = document.getElementById('p-image-file');
+  zone.addEventListener('click', () => fileInput.click());
+  zone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+  });
+  ['dragover', 'dragenter'].forEach(ev => zone.addEventListener(ev, (e) => {
+    e.preventDefault(); zone.classList.add('dropzone--over');
+  }));
+  ['dragleave', 'dragend'].forEach(ev => zone.addEventListener(ev, () => zone.classList.remove('dropzone--over')));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dropzone--over');
+    handleMainFile(e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
+});
 
 function addImageRow(img = null) {
   modalImages.push(img || { url: '', option_values: {} });
@@ -1232,9 +1284,18 @@ function renderImagesEditor() {
   box.innerHTML = modalImages.map((img, i) => `
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
       ${img.url ? `<img src="${img.url}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">` : ''}
-      <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" style="max-width:200px"
-             onchange="handleRowImageUpload(${i}, this)">
-      <input type="url" placeholder="…oder Bild-URL" value="${(img.url||'').replace(/"/g,'&quot;')}" style="flex:1;min-width:140px"
+      <div class="dropzone dropzone--row" tabindex="0" role="button"
+           aria-label="Bild für diese Zeile hochladen: ziehen oder klicken"
+           onclick="this.querySelector('input[type=file]').click()"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
+           ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+           ondragleave="this.classList.remove('dropzone--over')"
+           ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleRowFile(${i}, event.dataTransfer.files[0])">
+        Bild ziehen oder klicken
+        <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden
+               onchange="handleRowFile(${i}, this.files[0]); this.value=''">
+      </div>
+      <input type="url" placeholder="…oder Bild-URL" value="${(img.url||'').replace(/"/g,'&quot;')}" style="flex:1;min-width:120px"
              onchange="modalImages[${i}].url = this.value; renderImagesEditor()">
       ${options.map(o => `
         <select style="flex:1;min-width:110px" onchange="modalImages[${i}].option_values[${JSON.stringify(o.name).replace(/"/g,'&quot;')}] = this.value || undefined; if(!this.value) delete modalImages[${i}].option_values[${JSON.stringify(o.name).replace(/"/g,'&quot;')}]">
