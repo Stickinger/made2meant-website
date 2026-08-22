@@ -6,9 +6,8 @@
   <title>Produkt — MADE2MEANT</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&family=Playfair+Display:wght@400;700&family=Dancing+Script:wght@400;700&family=Oswald:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
-    /* ── PRODUCT LAYOUT ── */
     .product-detail {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -17,258 +16,98 @@
       align-items: start;
     }
 
-    /* ── LEFT: STICKY CANVAS ── */
-    .product-visual {
-      position: sticky;
-      top: 90px;
-    }
-    .product-canvas-wrap {
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: white;
-      border: 1px solid var(--color-border);
-    }
-    .product-canvas-wrap canvas {
+    /* LINKS: Produktfoto (wechselt mit Kappenfarbe) */
+    .product-visual { position: sticky; top: 90px; }
+    .product-detail__image {
       width: 100%;
-      height: auto;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: var(--radius);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
       display: block;
-      touch-action: none;   /* Ziehen auf dem Bild, ohne dass die Seite scrollt */
-      cursor: grab;
-    }
-    .product-canvas-wrap canvas:active { cursor: grabbing; }
-    .canvas-hint {
-      text-align: center;
-      font-size: 0.72rem;
-      color: var(--color-muted);
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 10px;
-      border-top: 1px solid var(--color-border);
     }
 
-    /* ── RIGHT: INFO + CONFIGURATOR ── */
-    .product-info { display: flex; flex-direction: column; gap: 0; }
-
-    .product-info__header { margin-bottom: 24px; }
+    /* RECHTS: Info + Konfigurator */
+    .product-info { display: flex; flex-direction: column; }
     .product-info__category {
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--color-primary);
-      margin-bottom: 8px;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--color-primary); margin-bottom: 8px;
     }
-    .product-info__title { font-size: 2rem; margin-bottom: 12px; line-height: 1.2; }
-    .product-info__price { font-size: 1.8rem; font-weight: 900; color: var(--color-primary); margin-bottom: 12px; }
-    .product-info__desc { color: var(--color-muted); line-height: 1.8; font-size: 0.95rem; margin-bottom: 16px; }
+    .product-info__title { font-size: 2rem; margin-bottom: 10px; line-height: 1.2; }
+    .product-info__desc { color: var(--color-muted); line-height: 1.8; font-size: 0.95rem; margin-bottom: 8px; }
     .product-info__stock { font-size: 0.82rem; color: var(--color-muted); }
     .product-info__stock.low { color: #e07b2a; }
 
-    /* ── CONFIGURATOR ── */
-    .configurator-section {
-      margin-top: 32px;
-      border-top: 1px solid var(--color-border);
-      padding-top: 32px;
+    .cfg { margin-top: 28px; border-top: 1px solid var(--color-border); padding-top: 28px; }
+    .cfg-block { margin-bottom: 26px; }
+    .cfg-block__title {
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--color-text); margin-bottom: 6px;
     }
-    .configurator-label {
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--color-primary);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .cfg-block__hint { font-size: 0.78rem; color: var(--color-muted); margin-bottom: 12px; }
+
+    /* Dropdowns */
+    .cfg-select {
+      width: 100%; padding: 11px 14px;
+      border: 1px solid var(--color-border); border-radius: var(--radius);
+      font-family: var(--font-main); font-size: 0.95rem;
+      color: var(--color-text); background: #fff; cursor: pointer;
     }
-    .configurator-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--color-border);
+    .cfg-select:focus { border-color: var(--color-primary); }
+    .thread-row { display: flex; align-items: center; gap: 12px; }
+    .thread-row .cfg-select { flex: 1; }
+    .thread-dot {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15); flex: 0 0 auto; background: transparent;
     }
 
-    /* Config blocks */
-    .config-block { margin-bottom: 28px; }
-    .config-block__title {
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--color-text);
-      margin-bottom: 12px;
+    /* Positions-Karten */
+    .pos-list { display: flex; flex-direction: column; gap: 10px; }
+    .pos-card {
+      border: 1.5px solid var(--color-border); border-radius: var(--radius);
+      padding: 14px 16px; transition: border-color 0.15s, background 0.15s;
     }
+    .pos-card.active { border-color: var(--color-primary); background: #fdf8f7; }
+    .pos-card__head { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+    .pos-card__head input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+    .pos-card__name { font-weight: 700; flex: 1; font-size: 0.92rem; }
+    .pos-card__price { color: var(--color-primary); font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
+    .pos-text { margin-top: 12px; display: none; }
+    .pos-text label { display: block; font-size: 0.78rem; color: var(--color-muted); margin-bottom: 5px; }
+    .pos-text input {
+      width: 100%; padding: 10px 12px;
+      border: 1px solid var(--color-border); border-radius: var(--radius);
+      font-family: var(--font-main); font-size: 0.95rem; color: var(--color-text); background: #fff;
+    }
+    .pos-text input:focus { border-color: var(--color-primary); }
 
-    /* Position pills */
-    .position-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-    .position-pill {
-      padding: 8px 16px;
-      border: 1.5px solid var(--color-border);
-      border-radius: 99px;
-      font-family: var(--font-main);
-      font-size: 0.78rem;
-      font-weight: 700;
-      cursor: pointer;
-      background: white;
-      color: var(--color-text);
-      transition: all 0.15s;
+    /* Preis + CTA */
+    .price-summary {
+      display: flex; align-items: baseline; gap: 12px;
+      margin: 8px 0 18px; flex-wrap: wrap;
     }
-    .position-pill:hover { border-color: var(--color-primary); color: var(--color-primary); }
-    .position-pill.selected { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
-
-    /* Content tabs */
-    .content-tabs {
-      display: flex;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      margin-bottom: 16px;
+    .price-display { font-size: 1.8rem; font-weight: 900; color: var(--color-primary); }
+    .price-note { font-size: 0.8rem; color: var(--color-muted); }
+    .personalize-hint {
+      font-size: 0.82rem; color: var(--color-muted);
+      padding: 10px 14px; background: #fdf8f7; border: 1px solid #f0e4e2;
+      border-radius: var(--radius); margin-bottom: 12px;
     }
-    .content-tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      cursor: pointer;
-      font-family: var(--font-main);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      background: white;
-      border: none;
-      color: var(--color-muted);
-      transition: all 0.15s;
-    }
-    .content-tab.active { background: var(--color-text); color: #F2EDDC; }
-
-    .tab-panel { display: none; }
-    .tab-panel.active { display: block; }
-
-    /* Text input */
-    .text-row { display: flex; flex-direction: column; gap: 10px; }
-    .text-row input {
-      width: 100%;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 11px 14px;
-      font-family: var(--font-main);
-      font-size: 0.95rem;
-      color: var(--color-text);
-      background: white;
-      transition: border-color 0.2s;
-    }
-    .text-row input:focus { border-color: var(--color-primary); }
-    .char-count { text-align: right; font-size: 0.72rem; color: var(--color-muted); }
-    .char-count.warn { color: var(--color-primary); }
-
-    /* Font pills */
-    .font-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
-    .font-pill {
-      padding: 7px 14px;
-      border: 1.5px solid var(--color-border);
-      border-radius: 99px;
-      cursor: pointer;
-      background: white;
-      font-size: 0.78rem;
-      transition: all 0.15s;
-      font-family: var(--font-main);
-      color: var(--color-text);
-    }
-    .font-pill:hover { border-color: var(--color-primary); }
-    .font-pill.selected { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
-
-    /* Symbol grid */
-    .symbol-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
-    .symbol-btn {
-      border: 1.5px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 12px 6px 8px;
-      text-align: center;
-      cursor: pointer;
-      background: white;
-      transition: all 0.15s;
-      font-size: 1.3rem;
-      line-height: 1;
-      width: 100%;
-    }
-    .symbol-btn:hover { border-color: var(--color-primary); }
-    .symbol-btn.selected { border-color: var(--color-primary); background: #fdf8f7; }
-    .symbol-btn__name {
-      display: block;
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--color-muted);
-      margin-top: 4px;
-      font-family: var(--font-main);
-    }
-
-    /* Color swatches */
-    .color-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
-    .color-swatch {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 5px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      padding: 0;
-      font-family: var(--font-main);
-    }
-    .color-swatch__circle {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 2.5px solid transparent;
-      transition: all 0.15s;
-    }
-    .color-swatch:hover .color-swatch__circle { transform: scale(1.12); }
-    .color-swatch.selected .color-swatch__circle {
-      border-color: var(--color-text);
-      box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
-    }
-    .color-swatch__name {
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--color-muted);
-    }
-
-    /* CTA */
-    .product-cta { margin-top: 12px; display: flex; flex-direction: column; gap: 10px; }
-    .qty-selector { display: flex; align-items: center; gap: 12px; }
+    .personalize-hint.complete { background: #f0f7f2; border-color: #c8dece; color: var(--color-accent); }
+    .qty-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
     .qty-btn {
       width: 34px; height: 34px; border-radius: 50%;
-      background: white; border: 1px solid var(--color-border);
+      background: #fff; border: 1px solid var(--color-border);
       color: var(--color-text); font-size: 1.1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      transition: border-color 0.15s;
     }
     .qty-btn:hover { border-color: var(--color-primary); }
-    #qty-display { font-size: 1rem; font-weight: 700; min-width: 24px; text-align: center; }
-
-    .personalize-hint {
-      font-size: 0.78rem;
-      color: var(--color-muted);
-      padding: 10px 14px;
-      background: #fdf8f7;
-      border-radius: var(--radius);
-      border: 1px solid #f0e4e2;
-    }
-    .personalize-hint.complete {
-      background: #f0f7f2;
-      border-color: #c8dece;
-      color: var(--color-accent);
-    }
+    #qty-display { font-size: 1.05rem; font-weight: 600; min-width: 22px; text-align: center; }
 
     @media (max-width: 768px) {
       .product-detail { grid-template-columns: 1fr; gap: 32px; }
       .product-visual { position: static; }
-      .symbol-grid { grid-template-columns: repeat(4, 1fr); }
     }
   </style>
 </head>
@@ -318,43 +157,9 @@
     updateNav();
     updateCartBadge();
 
-    // ── DATA ──────────────────────────────────────────────────
-
-    const PRODUCT_POSITIONS = {
-      polster:    ['Mitte', 'Ecke oben links', 'Ecke oben rechts', 'Ecke unten rechts'],
-      handtuch:   ['Ecke', 'Bordüre', 'Mitte'],
-      bademantel: ['Brust links', 'Rücken', 'Ärmel'],
-      saunatuch:  ['Ecke', 'Bordüre oben', 'Mitte'],
-      generic:    ['Mitte', 'Ecke oben links', 'Ecke oben rechts'],
-    };
-
-    const POSITION_COORDS = {
-      'Mitte':            { x: 0.5,  y: 0.5  },
-      'Ecke oben links':  { x: 0.2,  y: 0.22 },
-      'Ecke oben rechts': { x: 0.78, y: 0.22 },
-      'Ecke unten rechts':{ x: 0.78, y: 0.78 },
-      'Ecke':             { x: 0.2,  y: 0.78 },
-      'Bordüre':          { x: 0.5,  y: 0.88 },
-      'Bordüre oben':     { x: 0.5,  y: 0.15 },
-      'Brust links':      { x: 0.28, y: 0.32 },
-      'Rücken':           { x: 0.5,  y: 0.22 },
-      'Ärmel':            { x: 0.78, y: 0.42 },
-    };
-
-    const PRODUCT_COLORS = {
-      polster:    '#EDE8DF',
-      handtuch:   '#DFE8E5',
-      bademantel: '#E5DFED',
-      saunatuch:  '#E8DFDF',
-      generic:    '#F2EDDC',
-    };
-
-    const PRODUCT_EMOJIS = {
-      polster: '🛋️', handtuch: '🏖️', bademantel: '🩱', saunatuch: '🧖', generic: '✦',
-    };
-
+    // ── DATEN ─────────────────────────────────────────────────
     const THREAD_COLORS = [
-      { name: 'Weiß',       hex: '#F0EDE8', border: '#ccc' },
+      { name: 'Weiß',       hex: '#F0EDE8' },
       { name: 'Schwarz',    hex: '#1a1a1a' },
       { name: 'Navy',       hex: '#1B2A4A' },
       { name: 'Bordeaux',   hex: '#7B1C2E' },
@@ -368,44 +173,26 @@
       { name: 'Lila',       hex: '#7B5EA7' },
     ];
 
-    const SYMBOLS = [
-      { char: '★', name: 'Stern' },   { char: '♥', name: 'Herz' },
-      { char: '✦', name: 'Raute' },   { char: '✿', name: 'Blume' },
-      { char: '♦', name: 'Diamant' }, { char: '☽', name: 'Mond' },
-      { char: '✈', name: 'Flieger' }, { char: '⚓', name: 'Anker' },
-      { char: '♾', name: '∞' },       { char: '☀', name: 'Sonne' },
-      { char: '☘', name: 'Klee' },    { char: '✉', name: 'Brief' },
-      { char: '⚡', name: 'Blitz' },   { char: '✜', name: 'Kreuz' },
-      { char: '❧', name: 'Ranke' },   { char: '❋', name: 'Ornament' },
-    ];
-
-    const FONTS = [
-      { id: 'source',   name: 'Modern',    family: "'Source Sans 3', sans-serif" },
-      { id: 'playfair', name: 'Elegant',   family: "'Playfair Display', serif" },
-      { id: 'dancing',  name: 'Verspielt', family: "'Dancing Script', cursive" },
-      { id: 'oswald',   name: 'Bold',      family: "'Oswald', sans-serif" },
+    // Stickpositionen mit Aufpreis
+    const POSITIONS = [
+      { id: 'stirn',  label: 'Vorne auf der Stirn',       price: 9.90 },
+      { id: 'hinten', label: 'Hinten auf der Cappy',      price: 6.90 },
+      { id: 'seite',  label: 'Seitlich (links & rechts)', price: 6.90 },
     ];
 
     // ── STATE ─────────────────────────────────────────────────
-
     let currentProduct = null;
-    let productType = 'generic';
+    let productImages = [];      // Fotos pro Kappenfarbe (aus product_images)
+    let capOption = null;        // {name, values} der Kappenfarben-Option
     let qty = 1;
 
     const cfg = {
-      pos: { x: 0.5, y: 0.45 },   // normierte Position des Textes auf dem Foto (0..1)
-      tab: 'text',
-      text: '',
-      font: FONTS[0],
-      symbol: null,
-      color: null,
+      capColor: null,
+      threadColor: null,
+      positions: {},             // id -> Text (nur für gewählte Positionen)
     };
 
-    let productImg = null;      // geladenes Produktfoto für die Vorschau
-    let productImgReady = false;
-
     // ── INIT ──────────────────────────────────────────────────
-
     async function init() {
       const slug = new URLSearchParams(window.location.search).get('slug');
       if (!slug) { window.location.href = '/index.html'; return; }
@@ -415,125 +202,114 @@
         document.getElementById('product-detail').innerHTML = '<p class="empty">Produkt nicht gefunden.</p>';
         return;
       }
-
       document.title = currentProduct.name + ' — MADE2MEANT';
-      productType = detectProductType(currentProduct.name);
 
-      // Produktfoto vorab laden (für die Live-Vorschau auf dem echten Produkt)
-      if (currentProduct.image_url) {
-        productImg = new Image();
-        productImg.crossOrigin = 'anonymous';
-        productImg.onload = () => { productImgReady = true; renderCanvas(); };
-        productImg.onerror = () => { productImg = null; productImgReady = false; renderCanvas(); };
-        productImg.src = currentProduct.image_url;
-      }
+      // Fotos pro Farbkombination laden
+      const { data: imgs } = await db.from('product_images')
+        .select('url, option_values, sort_order')
+        .eq('product_id', currentProduct.id)
+        .order('sort_order');
+      productImages = imgs || [];
+
+      // Kappenfarben-Option finden (im Admin als Option "Kappenfarbe" angelegt)
+      const opts = currentProduct.options || [];
+      capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
+      if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
 
       renderPage();
     }
 
-    function detectProductType(name) {
-      const n = (name || '').toLowerCase();
-      if (n.includes('polster') || n.includes('kissen')) return 'polster';
-      if (n.includes('handtuch'))   return 'handtuch';
-      if (n.includes('bademantel')) return 'bademantel';
-      if (n.includes('saunatuch'))  return 'saunatuch';
-      return 'generic';
+    // ── HELFER ────────────────────────────────────────────────
+    function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
+
+    function pickCapImage() {
+      const ph = currentProduct.image_url || '/assets/images/placeholder.png';
+      if (!capOption || !cfg.capColor) return ph;
+      const match = productImages
+        .filter(img => (img.option_values || {})[capOption.name] === cfg.capColor)
+        .sort((a, b) => Object.keys(b.option_values || {}).length - Object.keys(a.option_values || {}).length);
+      return match[0]?.url || ph;
+    }
+
+    function currentPrice() {
+      const base = Number(currentProduct.price) || 0;
+      const add = POSITIONS.filter(p => p.id in cfg.positions).reduce((s, p) => s + p.price, 0);
+      return base + add;
     }
 
     // ── RENDER ────────────────────────────────────────────────
-
     function renderPage() {
       const p = currentProduct;
       const stockLabel = p.stock <= 5
         ? `<span class="product-info__stock low">Nur noch ${p.stock} verfügbar</span>`
         : `<span class="product-info__stock">${p.stock} auf Lager</span>`;
 
-      const positions = PRODUCT_POSITIONS[productType] || PRODUCT_POSITIONS.generic;
+      const capBlock = (capOption && capOption.values?.length) ? `
+        <div class="cfg-block">
+          <div class="cfg-block__title">Kappenfarbe</div>
+          <select class="cfg-select" id="cap-select" onchange="selectCap(this.value)" aria-label="Kappenfarbe wählen">
+            ${capOption.values.map(v => `<option value="${v}" ${v === cfg.capColor ? 'selected' : ''}>${v}</option>`).join('')}
+          </select>
+        </div>` : '';
+
+      const posBlock = `
+        <div class="cfg-block">
+          <div class="cfg-block__title">Stickstellen</div>
+          <div class="cfg-block__hint">Wähle eine oder mehrere Stellen — jede kann eigenen Text bekommen.</div>
+          <div class="pos-list">
+            ${POSITIONS.map(pos => `
+              <div class="pos-card" id="poscard-${pos.id}">
+                <label class="pos-card__head">
+                  <input type="checkbox" onchange="togglePosition('${pos.id}', this.checked)">
+                  <span class="pos-card__name">${pos.label}</span>
+                  <span class="pos-card__price">+ ${euro(pos.price)}</span>
+                </label>
+                <div class="pos-text" id="postext-${pos.id}">
+                  <label for="posinput-${pos.id}">Dein Text für diese Stelle</label>
+                  <input type="text" id="posinput-${pos.id}" maxlength="24"
+                         placeholder="z.B. Max, 2026, Familie Müller"
+                         oninput="setPositionText('${pos.id}', this.value)">
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>`;
+
+      const threadBlock = `
+        <div class="cfg-block">
+          <div class="cfg-block__title">Fadenfarbe</div>
+          <div class="thread-row">
+            <select class="cfg-select" id="thread-select" onchange="selectThread(this.value)" aria-label="Fadenfarbe wählen">
+              <option value="">Bitte wählen…</option>
+              ${THREAD_COLORS.map(c => `<option value="${c.name}">${c.name}</option>`).join('')}
+            </select>
+            <span class="thread-dot" id="thread-dot"></span>
+          </div>
+        </div>`;
 
       document.getElementById('product-detail').innerHTML = `
-
-        <!-- LEFT: CANVAS PREVIEW -->
         <div class="product-visual">
-          <div class="product-canvas-wrap">
-            <canvas id="cfg-canvas" width="480" height="480" role="img" aria-label="Live-Vorschau deiner Stickerei"></canvas>
-          </div>
-          <div class="canvas-hint" aria-hidden="true">Zieh deinen Text auf dem Bild an die gewünschte Stelle</div>
+          <img id="cap-image" class="product-detail__image" src="${pickCapImage()}" alt="${p.name}">
         </div>
 
-        <!-- RIGHT: INFO + CONFIGURATOR -->
         <div class="product-info">
+          <div class="product-info__category">Personalisierte Kappe</div>
+          <h1 class="product-info__title">${p.name}</h1>
+          <p class="product-info__desc">${p.description || ''}</p>
+          ${stockLabel}
 
-          <!-- Product header -->
-          <div class="product-info__header">
-            <div class="product-info__category">Personalisiertes Geschenk</div>
-            <h1 class="product-info__title">${p.name}</h1>
-            <div class="product-info__price">€ ${p.price.toFixed(2).replace('.', ',')}</div>
-            <p class="product-info__desc">${p.description || ''}</p>
-            ${stockLabel}
-          </div>
+          <div class="cfg">
+            ${capBlock}
+            ${posBlock}
+            ${threadBlock}
 
-          <!-- CONFIGURATOR -->
-          <div class="configurator-section">
-            <div class="configurator-label">Personalisieren</div>
-
-            <!-- Text or Symbol -->
-            <div class="config-block">
-              <div class="config-block__title">Was soll gestickt werden?</div>
-              <div class="content-tabs">
-                <button class="content-tab active" id="tab-text" aria-pressed="true" onclick="switchTab('text')">Text</button>
-                <button class="content-tab" id="tab-symbol" aria-pressed="false" onclick="switchTab('symbol')">Symbol</button>
-              </div>
-
-              <div class="tab-panel active" id="panel-text">
-                <div class="text-row">
-                  <input type="text" id="custom-text" maxlength="20"
-                    placeholder="z.B. Familie Müller, Max, 2026 ..."
-                    aria-label="Dein Text für die Stickerei (max. 20 Zeichen)"
-                    oninput="onTextInput(this)">
-                  <div class="char-count" id="char-count">0 / 20</div>
-                  <div class="font-pills" id="font-pills">
-                    ${FONTS.map(f => `
-                      <button class="font-pill ${f.id === 'source' ? 'selected' : ''}"
-                              style="font-family:${f.family}"
-                              onclick="selectFont('${f.id}')">${f.name}</button>
-                    `).join('')}
-                  </div>
-                </div>
-              </div>
-
-              <div class="tab-panel" id="panel-symbol">
-                <div class="symbol-grid" id="symbol-grid">
-                  ${SYMBOLS.map(s => `
-                    <button type="button" class="symbol-btn" aria-pressed="false" onclick="selectSymbol('${s.char}', '${s.name}')">
-                      ${s.char}
-                      <span class="symbol-btn__name">${s.name}</span>
-                    </button>
-                  `).join('')}
-                </div>
-              </div>
+            <div class="price-summary">
+              <span class="price-display" id="price-display">${euro(currentPrice())}</span>
+              <span class="price-note" id="price-note">Grundpreis${p.price ? ' ' + euro(p.price) : ''} + gewählte Stickstellen</span>
             </div>
 
-            <!-- Color -->
-            <div class="config-block">
-              <div class="config-block__title">Fadenfarbe</div>
-              <div class="color-swatches" id="color-swatches">
-                ${THREAD_COLORS.map(c => `
-                  <button type="button" class="color-swatch" aria-pressed="false" onclick="selectColor('${c.name}', '${c.hex}')">
-                    <span class="color-swatch__circle"
-                         style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></span>
-                    <span class="color-swatch__name">${c.name}</span>
-                  </button>
-                `).join('')}
-              </div>
-            </div>
+            <div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Fadenfarbe.</div>
 
-          </div>
-
-          <!-- CTA -->
-          <div class="product-cta">
-            <div class="personalize-hint" id="personalize-hint" role="status">
-              Gib deinen Text ein und wähle eine Farbe.
-            </div>
             <div class="qty-selector">
               <button class="qty-btn" aria-label="Menge verringern" onclick="changeQty(-1)">−</button>
               <span id="qty-display" aria-live="polite">1</span>
@@ -544,260 +320,86 @@
               Personalisiert in den Warenkorb
             </button>
           </div>
-
         </div>
       `;
-
-      // Render initial canvas after DOM is ready
-      requestAnimationFrame(() => { renderCanvas(); setupCanvasDrag(); });
     }
 
-    // ── CANVAS ───────────────────────────────────────────────
-
-    function renderCanvas() {
-      const canvas = document.getElementById('cfg-canvas');
-      if (!canvas) return;
-      const W = canvas.width, H = canvas.height;
-      const ctx = canvas.getContext('2d');
-
-      ctx.clearRect(0, 0, W, H);
-
-      // Hintergrund: echtes Produktfoto (cover), sonst Farbfläche als Fallback
-      if (productImgReady && productImg) {
-        const iw = productImg.naturalWidth, ih = productImg.naturalHeight;
-        const scale = Math.max(W / iw, H / ih);
-        const dw = iw * scale, dh = ih * scale;
-        ctx.drawImage(productImg, (W - dw) / 2, (H - dh) / 2, dw, dh);
-      } else {
-        ctx.fillStyle = PRODUCT_COLORS[productType] || '#F2EDDC';
-        ctx.fillRect(0, 0, W, H);
-        if (currentProduct?.image_url) {
-          ctx.fillStyle = '#b0a898';
-          ctx.font = `600 ${W * 0.03}px 'Source Sans 3', sans-serif`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('Foto wird geladen…', W / 2, H / 2);
-        }
-      }
-
-      const content = getContent();
-      const px = cfg.pos.x * W;
-      const py = cfg.pos.y * H;
-
-      if (content && cfg.color) {
-        const isSymbol = cfg.tab === 'symbol';
-        const fontFamily = isSymbol ? 'sans-serif' : cfg.font.family;
-        const fontSize = isSymbol
-          ? W * 0.11
-          : (content.length <= 3 ? W * 0.1 : content.length <= 8 ? W * 0.065 : W * 0.048);
-
-        ctx.font = `700 ${fontSize}px ${fontFamily}`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        // Weicher heller Schein für Lesbarkeit auf beliebigem Foto
-        ctx.save();
-        ctx.lineWidth = fontSize * 0.14;
-        ctx.strokeStyle = 'rgba(255,255,255,0.55)';
-        ctx.lineJoin = 'round';
-        ctx.strokeText(content, px, py);
-        ctx.restore();
-
-        // Der eigentliche Text in Garnfarbe, mit dezentem Schatten
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.28)';
-        ctx.shadowBlur = 3;
-        ctx.shadowOffsetX = 1;
-        ctx.shadowOffsetY = 1;
-        ctx.fillStyle = cfg.color.hex;
-        ctx.fillText(content, px, py);
-        ctx.restore();
-      } else {
-        // Noch kein Text/Farbe: dezenter Zieh-Marker an der aktuellen Position
-        ctx.save();
-        ctx.setLineDash([6, 5]);
-        ctx.strokeStyle = 'rgba(168,93,79,0.9)';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(px - W * 0.16, py - H * 0.07, W * 0.32, H * 0.14);
-        ctx.restore();
-        ctx.fillStyle = '#a85d4f';
-        ctx.font = `700 ${W * 0.028}px 'Source Sans 3', sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Hier kommt dein Text', px, py);
-      }
+    // ── AUSWAHL ───────────────────────────────────────────────
+    function selectCap(value) {
+      cfg.capColor = value;
+      document.getElementById('cap-image').src = pickCapImage();
     }
 
-    // ── DRAG & DROP: Text auf dem Foto platzieren ─────────────
-    let dragging = false;
-
-    function canvasPointToNorm(canvas, clientX, clientY) {
-      const rect = canvas.getBoundingClientRect();
-      const x = (clientX - rect.left) / rect.width;
-      const y = (clientY - rect.top) / rect.height;
-      return {
-        x: Math.min(0.9, Math.max(0.1, x)),
-        y: Math.min(0.92, Math.max(0.08, y)),
-      };
-    }
-
-    function setupCanvasDrag() {
-      const canvas = document.getElementById('cfg-canvas');
-      if (!canvas || canvas.dataset.dragWired) return;
-      canvas.dataset.dragWired = '1';
-
-      const move = (e) => {
-        if (!dragging) return;
-        e.preventDefault();
-        cfg.pos = canvasPointToNorm(canvas, e.clientX, e.clientY);
-        renderCanvas();
-      };
-      canvas.addEventListener('pointerdown', (e) => {
-        dragging = true;
-        canvas.setPointerCapture(e.pointerId);
-        cfg.pos = canvasPointToNorm(canvas, e.clientX, e.clientY);
-        renderCanvas();
-      });
-      canvas.addEventListener('pointermove', move);
-      canvas.addEventListener('pointerup', () => { dragging = false; });
-      canvas.addEventListener('pointercancel', () => { dragging = false; });
-    }
-
-    function getContent() {
-      return cfg.tab === 'text' ? (cfg.text || null) : (cfg.symbol?.char || null);
-    }
-
-    // ── SELECTIONS ────────────────────────────────────────────
-
-    function switchTab(tab) {
-      cfg.tab = tab;
-      cfg.text = '';
-      cfg.symbol = null;
-      document.getElementById('tab-text').classList.toggle('active', tab === 'text');
-      document.getElementById('tab-symbol').classList.toggle('active', tab === 'symbol');
-      document.getElementById('tab-text').setAttribute('aria-pressed', tab === 'text');
-      document.getElementById('tab-symbol').setAttribute('aria-pressed', tab === 'symbol');
-      document.getElementById('panel-text').classList.toggle('active', tab === 'text');
-      document.getElementById('panel-symbol').classList.toggle('active', tab === 'symbol');
-      if (tab === 'text') {
-        const inp = document.getElementById('custom-text');
-        if (inp) inp.value = '';
-        const cc = document.getElementById('char-count');
-        if (cc) cc.textContent = '0 / 20';
-      }
-      renderCanvas();
+    function selectThread(name) {
+      cfg.threadColor = name || null;
+      const dot = document.getElementById('thread-dot');
+      const c = THREAD_COLORS.find(t => t.name === name);
+      dot.style.background = c ? c.hex : 'transparent';
       checkReady();
     }
 
-    function onTextInput(input) {
-      cfg.text = input.value;
-      const count = input.value.length;
-      const cc = document.getElementById('char-count');
-      if (cc) {
-        cc.textContent = `${count} / 20`;
-        cc.classList.toggle('warn', count > 15);
-      }
-      renderCanvas();
+    function togglePosition(id, on) {
+      if (on) { if (!(id in cfg.positions)) cfg.positions[id] = ''; }
+      else { delete cfg.positions[id]; }
+      document.getElementById('poscard-' + id).classList.toggle('active', on);
+      document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
+      if (on) { const inp = document.getElementById('posinput-' + id); if (inp) inp.focus(); }
+      updatePrice();
       checkReady();
     }
 
-    function selectFont(id) {
-      cfg.font = FONTS.find(f => f.id === id) || FONTS[0];
-      document.querySelectorAll('.font-pill').forEach(el => {
-        el.classList.toggle('selected', el.onclick?.toString().includes(`'${id}'`));
-      });
-      // Re-render font pills to update selected state
-      const fp = document.getElementById('font-pills');
-      if (fp) fp.innerHTML = FONTS.map(f => `
-        <button class="font-pill ${f.id === cfg.font.id ? 'selected' : ''}"
-                style="font-family:${f.family}" aria-pressed="${f.id === cfg.font.id}"
-                onclick="selectFont('${f.id}')">${f.name}</button>
-      `).join('');
-      renderCanvas();
-    }
-
-    function selectSymbol(char, name) {
-      cfg.symbol = { char, name };
-      const sg = document.getElementById('symbol-grid');
-      if (sg) sg.innerHTML = SYMBOLS.map(s => `
-        <button type="button" class="symbol-btn ${s.char === char ? 'selected' : ''}"
-             aria-pressed="${s.char === char}"
-             onclick="selectSymbol('${s.char}', '${s.name}')">
-          ${s.char}
-          <span class="symbol-btn__name">${s.name}</span>
-        </button>
-      `).join('');
-      renderCanvas();
+    function setPositionText(id, val) {
+      cfg.positions[id] = val;
       checkReady();
     }
 
-    function selectColor(name, hex) {
-      cfg.color = { name, hex };
-      const cs = document.getElementById('color-swatches');
-      if (cs) cs.innerHTML = THREAD_COLORS.map(c => `
-        <button type="button" class="color-swatch ${c.name === name ? 'selected' : ''}"
-             aria-pressed="${c.name === name}"
-             onclick="selectColor('${c.name}', '${c.hex}')">
-          <span class="color-swatch__circle"
-               style="background:${c.hex};${c.border ? 'outline:1px solid '+c.border : ''}"></span>
-          <span class="color-swatch__name">${c.name}</span>
-        </button>
-      `).join('');
-      renderCanvas();
-      checkReady();
+    function updatePrice() {
+      document.getElementById('price-display').textContent = euro(currentPrice());
     }
-
-    // ── VALIDATION ────────────────────────────────────────────
-
-    function checkReady() {
-      const content = getContent();
-      const ready = !!(content && cfg.color);
-      const btn = document.getElementById('add-btn');
-      const hint = document.getElementById('personalize-hint');
-      if (btn) btn.disabled = !ready;
-      if (hint) {
-        if (ready) {
-          hint.className = 'personalize-hint complete';
-          hint.textContent = `Bereit: „${content}" · Faden: ${cfg.color.name} — zieh den Text an die gewünschte Stelle.`;
-        } else {
-          hint.className = 'personalize-hint';
-          const missing = [];
-          if (!content) missing.push('Text oder Symbol');
-          if (!cfg.color) missing.push('Farbe');
-          hint.textContent = `Noch ausstehend: ${missing.join(', ')}`;
-        }
-      }
-    }
-
-    // ── CART ──────────────────────────────────────────────────
 
     function changeQty(delta) {
       qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99));
-      const el = document.getElementById('qty-display');
-      if (el) el.textContent = qty;
+      document.getElementById('qty-display').textContent = qty;
     }
 
+    // ── VALIDIERUNG ───────────────────────────────────────────
+    function checkReady() {
+      const active = Object.keys(cfg.positions);
+      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id] || '').trim());
+      const capOk = !capOption || !!cfg.capColor;
+      const ready = allFilled && !!cfg.threadColor && capOk;
+
+      const btn = document.getElementById('add-btn');
+      const hint = document.getElementById('hint');
+      if (btn) btn.disabled = !ready;
+      if (!hint) return;
+
+      if (ready) {
+        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${cfg.positions[id]}"`);
+        hint.className = 'personalize-hint complete';
+        hint.textContent = `Bereit — ${parts.join(' · ')} · Faden: ${cfg.threadColor}`;
+      } else {
+        hint.className = 'personalize-hint';
+        const missing = [];
+        if (!active.length) missing.push('mindestens eine Stickstelle');
+        else if (!allFilled) missing.push('Text für jede gewählte Stelle');
+        if (!cfg.threadColor) missing.push('Fadenfarbe');
+        if (capOption && !cfg.capColor) missing.push('Kappenfarbe');
+        hint.textContent = `Noch offen: ${missing.join(', ')}.`;
+      }
+    }
+
+    // ── WARENKORB ─────────────────────────────────────────────
     function handleAddToCart() {
-      if (!currentProduct || !cfg.color) return;
-      const content = getContent();
-      if (!content) return;
+      const active = Object.keys(cfg.positions);
+      if (!active.length || !cfg.threadColor) return;
 
-      // Vorschau als Warenkorb-Bild einfrieren (zeigt das fertige, personalisierte Produkt)
-      let previewUrl = currentProduct.image_url || null;
-      try {
-        previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png');
-      } catch (_) { /* Foto ohne CORS-Freigabe → Basisbild als Fallback */ }
+      const options = {};
+      if (capOption) options[capOption.name] = cfg.capColor;
+      options['Fadenfarbe'] = cfg.threadColor;
+      POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id]; });
 
-      // Personalisierung über das bestehende Options-System (fließt in Warenkorb & Bestellung)
-      const options = {
-        'Text': content,
-        [cfg.tab === 'text' ? 'Schriftart' : 'Symbol']:
-          cfg.tab === 'text' ? cfg.font.name : (cfg.symbol?.name || content),
-        'Farbe': cfg.color.name,
-        'Position': `${Math.round(cfg.pos.x * 100)}% / ${Math.round(cfg.pos.y * 100)}%`,
-      };
-
-      const base = { ...currentProduct, image_url: previewUrl };
+      const base = { ...currentProduct, price: currentPrice(), image_url: pickCapImage() };
       for (let i = 0; i < qty; i++) addToCart(base, options);
     }
 
