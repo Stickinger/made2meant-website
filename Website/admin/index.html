@@ -783,16 +783,27 @@
         </div>
 
         <div class="field form-full">
-          <label>Optionen (z.B. Schriftfarbe, Polsterfarbe)</label>
-          <div id="p-options"></div>
-          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addOptionRow()">+ Option hinzufügen</button>
+          <label>Kappenfarben & Fotos <span style="font-weight:400;color:var(--color-muted)">— für Kappen mit Live-Vorschau</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Lege pro Kappenfarbe die 3 leeren Fotos ab (Vorne, Hinten, Seite). Der Rest passiert automatisch.
+          </p>
+          <div id="p-capcolors"></div>
+          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addCapColor()">+ Kappenfarbe hinzufügen</button>
         </div>
 
-        <div class="field form-full">
-          <label>Bilder (pro Farbkombination ein Bild — ohne Zuordnung = allgemeines Bild)</label>
-          <div id="p-images"></div>
-          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addImageRow()">+ Bild hinzufügen</button>
-        </div>
+        <details class="field form-full" style="margin-top:8px">
+          <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted)">Erweitert: eigene Optionen & Bilder (nicht nötig für Kappen)</summary>
+          <div style="margin-top:14px">
+            <label>Optionen (z.B. Schriftfarbe, Polsterfarbe)</label>
+            <div id="p-options"></div>
+            <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addOptionRow()">+ Option hinzufügen</button>
+          </div>
+          <div style="margin-top:18px">
+            <label>Bilder (pro Farbkombination ein Bild — ohne Zuordnung = allgemeines Bild)</label>
+            <div id="p-images"></div>
+            <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addImageRow()">+ Bild hinzufügen</button>
+          </div>
+        </details>
         <div class="field form-full">
           <label>SEO Titel</label>
           <input type="text" id="p-seo-title" placeholder="Für Google (max. 60 Zeichen)">
@@ -1149,6 +1160,55 @@ function readOptionsFromDOM() {
   })).filter(o => o.name && o.values.length);
 }
 
+// ── KAPPENFARBEN (einfacher Bereich: pro Farbe 3 Fotos) ──────
+const CAP_VIEWS = ['Vorne', 'Hinten', 'Seite'];
+let capColors = [];   // [{ name, photos: {Vorne,Hinten,Seite} }]
+
+function addCapColor() {
+  capColors.push({ name: '', photos: { Vorne: '', Hinten: '', Seite: '' } });
+  renderCapColors();
+}
+function removeCapColor(i) { capColors.splice(i, 1); renderCapColors(); }
+function setCapName(i, val) { capColors[i].name = val; }
+
+async function handleCapPhoto(i, view, file) {
+  if (!file) return;
+  const url = await uploadToStorage(file);
+  if (url) { capColors[i].photos[view] = url; renderCapColors(); }
+}
+
+function renderCapColors() {
+  const box = document.getElementById('p-capcolors');
+  if (!box) return;
+  box.innerHTML = capColors.map((c, i) => `
+    <div style="border:1px solid var(--color-border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+        <input type="text" placeholder="Farbname, z.B. Schwarz" value="${(c.name||'').replace(/"/g,'&quot;')}"
+               style="flex:1;font-weight:700" onchange="setCapName(${i}, this.value)">
+        <button type="button" class="btn-sm btn-sm--outline" onclick="removeCapColor(${i})">Farbe entfernen</button>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${CAP_VIEWS.map(v => `
+          <div style="flex:1;min-width:120px;text-align:center;">
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">${v}</div>
+            ${c.photos[v] ? `<img src="${c.photos[v]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;">` : ''}
+            <div class="dropzone dropzone--row" tabindex="0" role="button"
+                 aria-label="${v}-Foto hochladen"
+                 onclick="this.querySelector('input[type=file]').click()"
+                 onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
+                 ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+                 ondragleave="this.classList.remove('dropzone--over')"
+                 ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleCapPhoto(${i}, '${v}', event.dataTransfer.files[0])">
+              ${c.photos[v] ? 'Ersetzen' : 'Foto ziehen / klicken'}
+              <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden
+                     onchange="handleCapPhoto(${i}, '${v}', this.files[0]); this.value=''">
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Kappenfarben. Klick „+ Kappenfarbe hinzufügen".</p>';
+}
+
 function addOptionRow(name = '', values = '') {
   const div = document.createElement('div');
   div.className = 'option-row';
@@ -1332,10 +1392,6 @@ async function openProductModal(product = null) {
   sel.innerHTML = '<option value="">Keine Kategorie</option>' +
     allCategories.map(c => `<option value="${c.id}" ${product?.category_id===c.id?'selected':''}>${c.name}</option>`).join('');
 
-  // Optionen befüllen
-  document.getElementById('p-options').innerHTML = '';
-  (product?.options || []).forEach(o => addOptionRow(o.name, (o.values || []).join(', ')));
-
   // Bilder laden
   modalImages = [];
   if (product?.id) {
@@ -1343,6 +1399,31 @@ async function openProductModal(product = null) {
       .select('*').eq('product_id', product.id).order('sort_order');
     modalImages = (imgs || []).map(r => ({ id: r.id, url: r.url, option_values: r.option_values || {} }));
   }
+
+  // Kappenfarben aus Produkt rekonstruieren (Kappenfarbe-Option + Ansicht-Tags)
+  capColors = [];
+  const capOpt = (product?.options || []).find(o => /kappe|farbe/i.test(o.name));
+  if (capOpt) {
+    capColors = (capOpt.values || []).map(name => {
+      const photos = { Vorne: '', Hinten: '', Seite: '' };
+      modalImages.forEach(im => {
+        const ov = im.option_values || {};
+        if (Object.values(ov).includes(name)) {
+          CAP_VIEWS.forEach(v => { if (Object.values(ov).includes(v)) photos[v] = im.url; });
+        }
+      });
+      return { name, photos };
+    });
+  }
+  renderCapColors();
+
+  // Erweiterte Optionen befüllen (ohne die Kappenfarbe, die der Kappen-Bereich verwaltet)
+  document.getElementById('p-options').innerHTML = '';
+  (product?.options || []).filter(o => !/kappe|farbe/i.test(o.name))
+    .forEach(o => addOptionRow(o.name, (o.values || []).join(', ')));
+
+  // Erweiterte Bilder: nur solche ohne Ansicht-Tag (Kappen-Bilder verwaltet der Kappen-Bereich)
+  modalImages = modalImages.filter(m => !Object.values(m.option_values || {}).some(v => CAP_VIEWS.includes(v)));
   renderImagesEditor();
 
   openModal('product-modal');
@@ -1351,6 +1432,20 @@ async function openProductModal(product = null) {
 async function saveProduct() {
   const id = document.getElementById('p-id').value;
   const tags = document.getElementById('p-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
+
+  // Optionen: erweiterte Optionen + (falls Kappenfarben angelegt) die Kappenfarbe-Option
+  const options = readOptionsFromDOM().filter(o => !/kappe|farbe/i.test(o.name));
+  const capNames = capColors.map(c => (c.name || '').trim()).filter(Boolean);
+  if (capNames.length) options.push({ name: 'Kappenfarbe', values: capNames });
+
+  // Hauptbild ggf. automatisch aus dem ersten Front-Foto setzen
+  let mainImage = document.getElementById('p-image').value || null;
+  if (!mainImage) {
+    const firstFront = capColors.find(c => c.photos.Vorne)?.photos.Vorne
+      || capColors.find(c => c.photos.Hinten || c.photos.Seite)?.photos.Seite;
+    if (firstFront) mainImage = firstFront;
+  }
+
   const data = {
     name:            document.getElementById('p-name').value,
     slug:            document.getElementById('p-slug').value,
@@ -1358,12 +1453,12 @@ async function saveProduct() {
     price:           parseFloat(document.getElementById('p-price').value),
     compare_price:   parseFloat(document.getElementById('p-compare-price').value) || null,
     stock:           parseInt(document.getElementById('p-stock').value),
-    image_url:       document.getElementById('p-image').value || null,
+    image_url:       mainImage,
     seo_title:       document.getElementById('p-seo-title').value || null,
     seo_description: document.getElementById('p-seo-desc').value || null,
     category_id:     document.getElementById('p-category').value || null,
     tags,
-    options:         readOptionsFromDOM(),
+    options,
     active:          document.getElementById('p-active').checked,
   };
 
@@ -1379,14 +1474,23 @@ async function saveProduct() {
     return;
   }
 
-  // Bilder synchronisieren: alle alten löschen, aktuelle Liste neu einfügen
+  // Bilder synchronisieren: erweiterte Bilder + aus Kappenfarben erzeugte (Kappenfarbe + Ansicht getaggt)
   const productId = saved[0].id;
-  const imgs = modalImages.filter(m => m.url.trim());
+  const imgs = modalImages.filter(m => m.url.trim())
+    .map(m => ({ url: m.url.trim(), option_values: m.option_values || {} }));
+  capColors.forEach(c => {
+    const nm = (c.name || '').trim();
+    if (!nm) return;
+    CAP_VIEWS.forEach(v => {
+      if (c.photos[v]) imgs.push({ url: c.photos[v], option_values: { Kappenfarbe: nm, Ansicht: v } });
+    });
+  });
+
   const { error: delErr } = await db.from('product_images').delete().eq('product_id', productId);
   if (delErr) { alert('Fehler beim Bilder-Update: ' + delErr.message); return; }
   if (imgs.length) {
     const { error: imgErr } = await db.from('product_images').insert(
-      imgs.map((m, i) => ({ product_id: productId, url: m.url.trim(), option_values: m.option_values || {}, sort_order: i }))
+      imgs.map((m, i) => ({ product_id: productId, url: m.url, option_values: m.option_values, sort_order: i }))
     );
     if (imgErr) { alert('Fehler beim Bilder-Speichern: ' + imgErr.message); return; }
   }
