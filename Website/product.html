@@ -16,16 +16,31 @@
       align-items: start;
     }
 
-    /* LINKS: Produktfoto (wechselt mit Kappenfarbe) */
+    /* LINKS: Live-Vorschau */
     .product-visual { position: sticky; top: 90px; }
-    .product-detail__image {
-      width: 100%;
-      aspect-ratio: 1;
-      object-fit: cover;
+    .preview-wrap {
       border-radius: var(--radius);
+      overflow: hidden;
       background: var(--color-surface);
       border: 1px solid var(--color-border);
-      display: block;
+    }
+    .preview-wrap canvas {
+      width: 100%; height: auto; display: block;
+      touch-action: none; cursor: grab;
+    }
+    .preview-wrap canvas:active { cursor: grabbing; }
+    .view-tabs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .view-tab {
+      padding: 7px 14px; border: 1px solid var(--color-border); border-radius: 99px;
+      background: #fff; color: var(--color-text); font-family: var(--font-main);
+      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .view-tab.active { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
+    .preview-hint {
+      text-align: center; font-size: 0.72rem; color: var(--color-muted);
+      font-weight: 600; letter-spacing: 0.06em; margin-top: 10px;
     }
 
     /* RECHTS: Info + Konfigurator */
@@ -47,7 +62,6 @@
     }
     .cfg-block__hint { font-size: 0.78rem; color: var(--color-muted); margin-bottom: 12px; }
 
-    /* Dropdowns */
     .cfg-select {
       width: 100%; padding: 11px 14px;
       border: 1px solid var(--color-border); border-radius: var(--radius);
@@ -62,7 +76,6 @@
       border: 1px solid rgba(0,0,0,0.15); flex: 0 0 auto; background: transparent;
     }
 
-    /* Positions-Karten */
     .pos-list { display: flex; flex-direction: column; gap: 10px; }
     .pos-card {
       border: 1.5px solid var(--color-border); border-radius: var(--radius);
@@ -82,11 +95,7 @@
     }
     .pos-text input:focus { border-color: var(--color-primary); }
 
-    /* Preis + CTA */
-    .price-summary {
-      display: flex; align-items: baseline; gap: 12px;
-      margin: 8px 0 18px; flex-wrap: wrap;
-    }
+    .price-summary { display: flex; align-items: baseline; gap: 12px; margin: 8px 0 18px; flex-wrap: wrap; }
     .price-display { font-size: 1.8rem; font-weight: 900; color: var(--color-primary); }
     .price-note { font-size: 0.8rem; color: var(--color-muted); }
     .personalize-hint {
@@ -159,38 +168,45 @@
 
     // ── DATEN ─────────────────────────────────────────────────
     const THREAD_COLORS = [
-      { name: 'Weiß',       hex: '#F0EDE8' },
-      { name: 'Schwarz',    hex: '#1a1a1a' },
-      { name: 'Navy',       hex: '#1B2A4A' },
-      { name: 'Bordeaux',   hex: '#7B1C2E' },
-      { name: 'Terracotta', hex: '#a85d4f' },
-      { name: 'Moosgrün',   hex: '#42553d' },
-      { name: 'Gold',       hex: '#C9A84C' },
-      { name: 'Silber',     hex: '#A8A9AD' },
-      { name: 'Rosa',       hex: '#D4789E' },
-      { name: 'Hellblau',   hex: '#5B9EC9' },
-      { name: 'Beige',      hex: '#C4A882' },
-      { name: 'Lila',       hex: '#7B5EA7' },
+      { name: 'Weiß', hex: '#F0EDE8' }, { name: 'Schwarz', hex: '#1a1a1a' },
+      { name: 'Navy', hex: '#1B2A4A' }, { name: 'Bordeaux', hex: '#7B1C2E' },
+      { name: 'Terracotta', hex: '#a85d4f' }, { name: 'Moosgrün', hex: '#42553d' },
+      { name: 'Gold', hex: '#C9A84C' }, { name: 'Silber', hex: '#A8A9AD' },
+      { name: 'Rosa', hex: '#D4789E' }, { name: 'Hellblau', hex: '#5B9EC9' },
+      { name: 'Beige', hex: '#C4A882' }, { name: 'Lila', hex: '#7B5EA7' },
     ];
 
-    // Stickpositionen mit Aufpreis
+    // Stickpositionen (= Ansichten) mit Aufpreis + Ansichts-Name + Standard-Textstelle
     const POSITIONS = [
-      { id: 'stirn',  label: 'Vorne auf der Stirn',       price: 9.90 },
-      { id: 'hinten', label: 'Hinten auf der Cappy',      price: 6.90 },
-      { id: 'seite',  label: 'Seitlich (links & rechts)', price: 6.90 },
+      { id: 'stirn',  label: 'Vorne auf der Stirn',       view: 'Vorne',  price: 9.90, def: { x: 0.5, y: 0.42 } },
+      { id: 'hinten', label: 'Hinten auf der Cappy',      view: 'Hinten', price: 6.90, def: { x: 0.5, y: 0.44 } },
+      { id: 'seite',  label: 'Seitlich (links & rechts)', view: 'Seite',  price: 6.90, def: { x: 0.5, y: 0.46 } },
     ];
 
     // ── STATE ─────────────────────────────────────────────────
     let currentProduct = null;
-    let productImages = [];      // Fotos pro Kappenfarbe (aus product_images)
-    let capOption = null;        // {name, values} der Kappenfarben-Option
+    let productImages = [];
+    let capOption = null;
     let qty = 1;
 
     const cfg = {
       capColor: null,
-      threadColor: null,
-      positions: {},             // id -> Text (nur für gewählte Positionen)
+      threadColor: null,          // {name,hex}
+      positions: {},              // id -> { text, pos:{x,y} }
+      previewPos: 'stirn',        // aktuell gezeigte Ansicht
     };
+
+    const imgCache = {};
+    function getImg(url) {
+      if (!url) return null;
+      if (url in imgCache) return imgCache[url];
+      const im = new Image();
+      im.onload = () => renderCanvas();
+      im.onerror = () => { imgCache[url] = null; };
+      im.src = url;
+      imgCache[url] = im;
+      return im;
+    }
 
     // ── INIT ──────────────────────────────────────────────────
     async function init() {
@@ -204,14 +220,12 @@
       }
       document.title = currentProduct.name + ' — MADE2MEANT';
 
-      // Fotos pro Farbkombination laden
       const { data: imgs } = await db.from('product_images')
         .select('url, option_values, sort_order')
         .eq('product_id', currentProduct.id)
         .order('sort_order');
       productImages = imgs || [];
 
-      // Kappenfarben-Option finden (im Admin als Option "Kappenfarbe" angelegt)
       const opts = currentProduct.options || [];
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
       if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
@@ -222,13 +236,19 @@
     // ── HELFER ────────────────────────────────────────────────
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
 
-    function pickCapImage() {
-      const ph = currentProduct.image_url || '/assets/images/placeholder.png';
-      if (!capOption || !cfg.capColor) return ph;
-      const match = productImages
-        .filter(img => (img.option_values || {})[capOption.name] === cfg.capColor)
-        .sort((a, b) => Object.keys(b.option_values || {}).length - Object.keys(a.option_values || {}).length);
-      return match[0]?.url || ph;
+    // Foto für eine Ansicht (view) + aktuelle Kappenfarbe finden
+    function photoFor(positionId) {
+      const p = POSITIONS.find(x => x.id === positionId);
+      const view = p ? p.view : null;
+      const hasColor = (ov) => !cfg.capColor || Object.values(ov || {}).includes(cfg.capColor);
+      const hasView  = (ov) => Object.values(ov || {}).includes(view);
+
+      // 1. exakt: passende Ansicht + Farbe
+      let m = productImages.find(img => hasView(img.option_values) && hasColor(img.option_values));
+      // 2. nur passende Farbe (ein Foto der Farbe)
+      if (!m) m = productImages.find(img => hasColor(img.option_values));
+      // 3. irgendein Foto / Hauptbild
+      return m?.url || currentProduct.image_url || '/assets/images/placeholder.png';
     }
 
     function currentPrice() {
@@ -237,7 +257,7 @@
       return base + add;
     }
 
-    // ── RENDER ────────────────────────────────────────────────
+    // ── RENDER SEITE ──────────────────────────────────────────
     function renderPage() {
       const p = currentProduct;
       const stockLabel = p.stock <= 5
@@ -255,7 +275,7 @@
       const posBlock = `
         <div class="cfg-block">
           <div class="cfg-block__title">Stickstellen</div>
-          <div class="cfg-block__hint">Wähle eine oder mehrere Stellen — jede kann eigenen Text bekommen.</div>
+          <div class="cfg-block__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>
           <div class="pos-list">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -268,6 +288,7 @@
                   <label for="posinput-${pos.id}">Dein Text für diese Stelle</label>
                   <input type="text" id="posinput-${pos.id}" maxlength="24"
                          placeholder="z.B. Max, 2026, Familie Müller"
+                         onfocus="setPreview('${pos.id}')"
                          oninput="setPositionText('${pos.id}', this.value)">
                 </div>
               </div>
@@ -289,7 +310,11 @@
 
       document.getElementById('product-detail').innerHTML = `
         <div class="product-visual">
-          <img id="cap-image" class="product-detail__image" src="${pickCapImage()}" alt="${p.name}">
+          <div class="preview-wrap">
+            <canvas id="cfg-canvas" width="560" height="560" role="img" aria-label="Live-Vorschau deiner Kappe"></canvas>
+          </div>
+          <div class="view-tabs" id="view-tabs"></div>
+          <div class="preview-hint" id="preview-hint">Wähle eine Stickstelle und tippe deinen Text.</div>
         </div>
 
         <div class="product-info">
@@ -322,35 +347,134 @@
           </div>
         </div>
       `;
+
+      renderViewTabs();
+      requestAnimationFrame(() => { renderCanvas(); setupCanvasDrag(); });
+    }
+
+    // ── VORSCHAU (Canvas) ─────────────────────────────────────
+    function renderCanvas() {
+      const canvas = document.getElementById('cfg-canvas');
+      if (!canvas) return;
+      const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, W, H);
+
+      const view = cfg.previewPos;
+      const img = getImg(photoFor(view));
+      if (img && img.complete && img.naturalWidth) {
+        const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+        ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+      } else {
+        ctx.fillStyle = '#EDE8DF'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#b0a898';
+        ctx.font = `600 ${W * 0.03}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('Foto wird geladen…', W / 2, H / 2);
+      }
+
+      const data = cfg.positions[view];
+      if (data && data.text && cfg.threadColor) {
+        const px = data.pos.x * W, py = data.pos.y * H;
+        const t = data.text;
+        const fontSize = t.length <= 3 ? W * 0.1 : t.length <= 8 ? W * 0.07 : W * 0.05;
+        ctx.font = `700 ${fontSize}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        // heller Rand für Lesbarkeit
+        ctx.save();
+        ctx.lineWidth = fontSize * 0.14; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineJoin = 'round';
+        ctx.strokeText(t, px, py); ctx.restore();
+        // Text in Garnfarbe
+        ctx.save();
+        ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+        ctx.fillStyle = cfg.threadColor.hex; ctx.fillText(t, px, py); ctx.restore();
+      } else if (data) {
+        const px = data.pos.x * W, py = data.pos.y * H;
+        ctx.save();
+        ctx.setLineDash([6, 5]); ctx.strokeStyle = 'rgba(168,93,79,0.9)'; ctx.lineWidth = 2;
+        ctx.strokeRect(px - W * 0.16, py - H * 0.06, W * 0.32, H * 0.12); ctx.restore();
+        ctx.fillStyle = '#a85d4f'; ctx.font = `700 ${W * 0.026}px 'Source Sans 3', sans-serif`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('Hier kommt dein Text', px, py);
+      }
+    }
+
+    function renderViewTabs() {
+      const tabs = document.getElementById('view-tabs');
+      if (!tabs) return;
+      const active = POSITIONS.filter(p => p.id in cfg.positions);
+      if (active.length <= 1) { tabs.innerHTML = ''; return; }
+      tabs.innerHTML = active.map(p =>
+        `<button class="view-tab ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')">${p.view}</button>`
+      ).join('');
+    }
+
+    // Drag: Text auf dem Foto verschieben
+    let dragging = false;
+    function normPoint(canvas, cx, cy) {
+      const r = canvas.getBoundingClientRect();
+      return {
+        x: Math.min(0.9, Math.max(0.1, (cx - r.left) / r.width)),
+        y: Math.min(0.92, Math.max(0.08, (cy - r.top) / r.height)),
+      };
+    }
+    function setupCanvasDrag() {
+      const canvas = document.getElementById('cfg-canvas');
+      if (!canvas || canvas.dataset.wired) return;
+      canvas.dataset.wired = '1';
+      const apply = (e) => {
+        const d = cfg.positions[cfg.previewPos];
+        if (!d) return;
+        d.pos = normPoint(canvas, e.clientX, e.clientY);
+        renderCanvas();
+      };
+      canvas.addEventListener('pointerdown', (e) => {
+        if (!cfg.positions[cfg.previewPos]) return;
+        dragging = true; canvas.setPointerCapture(e.pointerId); apply(e);
+      });
+      canvas.addEventListener('pointermove', (e) => { if (dragging) { e.preventDefault(); apply(e); } });
+      canvas.addEventListener('pointerup', () => { dragging = false; });
+      canvas.addEventListener('pointercancel', () => { dragging = false; });
     }
 
     // ── AUSWAHL ───────────────────────────────────────────────
-    function selectCap(value) {
-      cfg.capColor = value;
-      document.getElementById('cap-image').src = pickCapImage();
-    }
+    function selectCap(value) { cfg.capColor = value; renderCanvas(); }
 
     function selectThread(name) {
-      cfg.threadColor = name || null;
-      const dot = document.getElementById('thread-dot');
-      const c = THREAD_COLORS.find(t => t.name === name);
-      dot.style.background = c ? c.hex : 'transparent';
-      checkReady();
+      cfg.threadColor = THREAD_COLORS.find(t => t.name === name) || null;
+      document.getElementById('thread-dot').style.background = cfg.threadColor ? cfg.threadColor.hex : 'transparent';
+      renderCanvas(); checkReady();
+    }
+
+    function setPreview(id) {
+      cfg.previewPos = id;
+      renderViewTabs();
+      renderCanvas();
     }
 
     function togglePosition(id, on) {
-      if (on) { if (!(id in cfg.positions)) cfg.positions[id] = ''; }
-      else { delete cfg.positions[id]; }
+      if (on) {
+        if (!(id in cfg.positions)) {
+          const def = POSITIONS.find(p => p.id === id).def;
+          cfg.positions[id] = { text: '', pos: { x: def.x, y: def.y } };
+        }
+        cfg.previewPos = id;
+      } else {
+        delete cfg.positions[id];
+        if (cfg.previewPos === id) {
+          const remaining = POSITIONS.find(p => p.id in cfg.positions);
+          cfg.previewPos = remaining ? remaining.id : 'stirn';
+        }
+      }
       document.getElementById('poscard-' + id).classList.toggle('active', on);
       document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
       if (on) { const inp = document.getElementById('posinput-' + id); if (inp) inp.focus(); }
-      updatePrice();
-      checkReady();
+      renderViewTabs(); renderCanvas(); updatePrice(); checkReady();
     }
 
     function setPositionText(id, val) {
-      cfg.positions[id] = val;
-      checkReady();
+      if (cfg.positions[id]) cfg.positions[id].text = val;
+      renderCanvas(); checkReady();
     }
 
     function updatePrice() {
@@ -365,7 +489,7 @@
     // ── VALIDIERUNG ───────────────────────────────────────────
     function checkReady() {
       const active = Object.keys(cfg.positions);
-      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id] || '').trim());
+      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
       const capOk = !capOption || !!cfg.capColor;
       const ready = allFilled && !!cfg.threadColor && capOk;
 
@@ -375,9 +499,9 @@
       if (!hint) return;
 
       if (ready) {
-        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${cfg.positions[id]}"`);
+        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${cfg.positions[id].text}"`);
         hint.className = 'personalize-hint complete';
-        hint.textContent = `Bereit — ${parts.join(' · ')} · Faden: ${cfg.threadColor}`;
+        hint.textContent = `Bereit — ${parts.join(' · ')} · Faden: ${cfg.threadColor.name}`;
       } else {
         hint.className = 'personalize-hint';
         const missing = [];
@@ -396,10 +520,13 @@
 
       const options = {};
       if (capOption) options[capOption.name] = cfg.capColor;
-      options['Fadenfarbe'] = cfg.threadColor;
-      POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id]; });
+      options['Fadenfarbe'] = cfg.threadColor.name;
+      POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
 
-      const base = { ...currentProduct, price: currentPrice(), image_url: pickCapImage() };
+      let previewUrl = photoFor(cfg.previewPos);
+      try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}
+
+      const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
       for (let i = 0; i < qty; i++) addToCart(base, options);
     }
 
