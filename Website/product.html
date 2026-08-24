@@ -176,12 +176,8 @@
       { name: 'Beige', hex: '#C4A882' }, { name: 'Lila', hex: '#7B5EA7' },
     ];
 
-    // Stickpositionen (= Ansichten) mit Aufpreis + Ansichts-Name + Standard-Textstelle
-    const POSITIONS = [
-      { id: 'stirn',  label: 'Vorne auf der Stirn',       view: 'Vorne',  price: 9.90, def: { x: 0.5, y: 0.42 } },
-      { id: 'hinten', label: 'Hinten auf der Cappy',      view: 'Hinten', price: 6.90, def: { x: 0.5, y: 0.44 } },
-      { id: 'seite',  label: 'Seitlich (links & rechts)', view: 'Seite',  price: 6.90, def: { x: 0.5, y: 0.46 } },
-    ];
+    // Stickstellen werden pro Produkt im Admin definiert (product.positions)
+    let POSITIONS = [];
 
     // ── STATE ─────────────────────────────────────────────────
     let currentProduct = null;
@@ -193,7 +189,7 @@
       capColor: null,
       threadColor: null,          // {name,hex}
       positions: {},              // id -> { text, pos:{x,y} }
-      previewPos: 'stirn',        // aktuell gezeigte Ansicht
+      previewPos: null,           // aktuell gezeigte Stelle (id)
     };
 
     const imgCache = {};
@@ -230,6 +226,13 @@
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
       if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
 
+      // Stickstellen aus dem Produkt laden
+      POSITIONS = (currentProduct.positions || []).map((p, i) => ({
+        id: 'p' + i, label: p.label, view: p.label,
+        price: Number(p.price) || 0, def: { x: 0.5, y: 0.45 },
+      }));
+      cfg.previewPos = POSITIONS[0]?.id || null;
+
       renderPage();
     }
 
@@ -264,15 +267,17 @@
         ? `<span class="product-info__stock low">Nur noch ${p.stock} verfügbar</span>`
         : `<span class="product-info__stock">${p.stock} auf Lager</span>`;
 
+      const personalizable = POSITIONS.length > 0;
+
       const capBlock = (capOption && capOption.values?.length) ? `
         <div class="cfg-block">
-          <div class="cfg-block__title">Kappenfarbe</div>
-          <select class="cfg-select" id="cap-select" onchange="selectCap(this.value)" aria-label="Kappenfarbe wählen">
+          <div class="cfg-block__title">Farbe</div>
+          <select class="cfg-select" id="cap-select" onchange="selectCap(this.value)" aria-label="Farbe wählen">
             ${capOption.values.map(v => `<option value="${v}" ${v === cfg.capColor ? 'selected' : ''}>${v}</option>`).join('')}
           </select>
         </div>` : '';
 
-      const posBlock = `
+      const posBlock = !personalizable ? '' : `
         <div class="cfg-block">
           <div class="cfg-block__title">Stickstellen</div>
           <div class="cfg-block__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>
@@ -287,7 +292,7 @@
                 <div class="pos-text" id="postext-${pos.id}">
                   <label for="posinput-${pos.id}">Dein Text für diese Stelle</label>
                   <input type="text" id="posinput-${pos.id}" maxlength="24"
-                         placeholder="z.B. Max, 2026, Familie Müller"
+                         placeholder="z.B. Emma, 2026, Kleiner Schatz"
                          onfocus="setPreview('${pos.id}')"
                          oninput="setPositionText('${pos.id}', this.value)">
                 </div>
@@ -296,7 +301,7 @@
           </div>
         </div>`;
 
-      const threadBlock = `
+      const threadBlock = !personalizable ? '' : `
         <div class="cfg-block">
           <div class="cfg-block__title">Fadenfarbe</div>
           <div class="thread-row">
@@ -308,17 +313,24 @@
           </div>
         </div>`;
 
+      const priceNote = personalizable
+        ? `Grundpreis${p.price ? ' ' + euro(p.price) : ''} + gewählte Stickstellen`
+        : '';
+      const startHint = personalizable
+        ? 'Wähle mindestens eine Stickstelle mit Text und eine Fadenfarbe.'
+        : '';
+
       document.getElementById('product-detail').innerHTML = `
         <div class="product-visual">
           <div class="preview-wrap">
-            <canvas id="cfg-canvas" width="560" height="560" role="img" aria-label="Live-Vorschau deiner Kappe"></canvas>
+            <canvas id="cfg-canvas" width="560" height="560" role="img" aria-label="Live-Vorschau des Produkts"></canvas>
           </div>
           <div class="view-tabs" id="view-tabs"></div>
-          <div class="preview-hint" id="preview-hint">Wähle eine Stickstelle und tippe deinen Text.</div>
+          ${personalizable ? '<div class="preview-hint" id="preview-hint">Wähle eine Stickstelle und tippe deinen Text.</div>' : ''}
         </div>
 
         <div class="product-info">
-          <div class="product-info__category">Personalisierte Kappe</div>
+          <div class="product-info__category">${personalizable ? 'Individuell bestickt' : 'Produkt'}</div>
           <h1 class="product-info__title">${p.name}</h1>
           <p class="product-info__desc">${p.description || ''}</p>
           ${stockLabel}
@@ -330,10 +342,10 @@
 
             <div class="price-summary">
               <span class="price-display" id="price-display">${euro(currentPrice())}</span>
-              <span class="price-note" id="price-note">Grundpreis${p.price ? ' ' + euro(p.price) : ''} + gewählte Stickstellen</span>
+              <span class="price-note" id="price-note">${priceNote}</span>
             </div>
 
-            <div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Fadenfarbe.</div>
+            ${personalizable ? `<div class="personalize-hint" id="hint" role="status">${startHint}</div>` : '<div id="hint"></div>'}
 
             <div class="qty-selector">
               <button class="qty-btn" aria-label="Menge verringern" onclick="changeQty(-1)">−</button>
@@ -341,8 +353,8 @@
               <button class="qty-btn" aria-label="Menge erhöhen" onclick="changeQty(1)">+</button>
             </div>
             <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()"
-                    style="width:auto;padding:15px 32px;" disabled>
-              Personalisiert in den Warenkorb
+                    style="width:auto;padding:15px 32px;" ${personalizable ? 'disabled' : ''}>
+              ${personalizable ? 'Personalisiert in den Warenkorb' : 'In den Warenkorb'}
             </button>
           </div>
         </div>
@@ -463,7 +475,7 @@
         delete cfg.positions[id];
         if (cfg.previewPos === id) {
           const remaining = POSITIONS.find(p => p.id in cfg.positions);
-          cfg.previewPos = remaining ? remaining.id : 'stirn';
+          cfg.previewPos = remaining ? remaining.id : (POSITIONS[0]?.id || null);
         }
       }
       document.getElementById('poscard-' + id).classList.toggle('active', on);
@@ -488,13 +500,16 @@
 
     // ── VALIDIERUNG ───────────────────────────────────────────
     function checkReady() {
-      const active = Object.keys(cfg.positions);
-      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
-      const capOk = !capOption || !!cfg.capColor;
-      const ready = allFilled && !!cfg.threadColor && capOk;
-
       const btn = document.getElementById('add-btn');
       const hint = document.getElementById('hint');
+      const capOk = !capOption || !!cfg.capColor;
+
+      // Produkt ohne Stickstellen: einfaches Produkt, immer kaufbar (Farbe ggf. nötig)
+      if (POSITIONS.length === 0) { if (btn) btn.disabled = !capOk; return; }
+
+      const active = Object.keys(cfg.positions);
+      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
+      const ready = allFilled && !!cfg.threadColor && capOk;
       if (btn) btn.disabled = !ready;
       if (!hint) return;
 
@@ -508,20 +523,22 @@
         if (!active.length) missing.push('mindestens eine Stickstelle');
         else if (!allFilled) missing.push('Text für jede gewählte Stelle');
         if (!cfg.threadColor) missing.push('Fadenfarbe');
-        if (capOption && !cfg.capColor) missing.push('Kappenfarbe');
+        if (capOption && !cfg.capColor) missing.push('Farbe');
         hint.textContent = `Noch offen: ${missing.join(', ')}.`;
       }
     }
 
     // ── WARENKORB ─────────────────────────────────────────────
     function handleAddToCart() {
-      const active = Object.keys(cfg.positions);
-      if (!active.length || !cfg.threadColor) return;
-
       const options = {};
       if (capOption) options[capOption.name] = cfg.capColor;
-      options['Fadenfarbe'] = cfg.threadColor.name;
-      POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
+
+      if (POSITIONS.length > 0) {
+        const active = Object.keys(cfg.positions);
+        if (!active.length || !cfg.threadColor) return;
+        options['Fadenfarbe'] = cfg.threadColor.name;
+        POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
+      }
 
       let previewUrl = photoFor(cfg.previewPos);
       try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}

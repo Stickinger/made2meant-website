@@ -783,12 +783,21 @@
         </div>
 
         <div class="field form-full">
-          <label>Kappenfarben & Fotos <span style="font-weight:400;color:var(--color-muted)">— für Kappen mit Live-Vorschau</span></label>
+          <label>Stickstellen <span style="font-weight:400;color:var(--color-muted)">— wo kann bestickt werden + Aufpreis</span></label>
           <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
-            Lege pro Kappenfarbe die 3 leeren Fotos ab (Vorne, Hinten, Seite). Der Rest passiert automatisch.
+            z.B. „Brust" 6,90 · „Rücken" 6,90. Der Kunde wählt diese Stellen und tippt seinen Text.
           </p>
-          <div id="p-capcolors"></div>
-          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addCapColor()">+ Kappenfarbe hinzufügen</button>
+          <div id="p-stitchpos"></div>
+          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addStitchPos()">+ Stickstelle hinzufügen</button>
+        </div>
+
+        <div class="field form-full">
+          <label>Farben & Fotos <span style="font-weight:400;color:var(--color-muted)">— je Farbe ein leeres Foto pro Stickstelle</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Lade pro Farbe die leeren Produktfotos hoch — für jede Stickstelle eins. Darauf erscheint später der Kundentext live.
+          </p>
+          <div id="p-colorvariants"></div>
+          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addColorVariant()">+ Farbe hinzufügen</button>
         </div>
 
         <details class="field form-full" style="margin-top:8px">
@@ -1160,53 +1169,77 @@ function readOptionsFromDOM() {
   })).filter(o => o.name && o.values.length);
 }
 
-// ── KAPPENFARBEN (einfacher Bereich: pro Farbe 3 Fotos) ──────
-const CAP_VIEWS = ['Vorne', 'Hinten', 'Seite'];
-let capColors = [];   // [{ name, photos: {Vorne,Hinten,Seite} }]
+// ── STICKSTELLEN (pro Produkt: Name + Aufpreis) ──────────────
+let stitchPositions = [];   // [{ label, price }]
+let colorVariants = [];     // [{ name, photos: { <stelle-label>: url } }]
 
-function addCapColor() {
-  capColors.push({ name: '', photos: { Vorne: '', Hinten: '', Seite: '' } });
-  renderCapColors();
+function stitchLabels() {
+  return stitchPositions.map(s => (s.label || '').trim()).filter(Boolean);
 }
-function removeCapColor(i) { capColors.splice(i, 1); renderCapColors(); }
-function setCapName(i, val) { capColors[i].name = val; }
 
-async function handleCapPhoto(i, view, file) {
+function addStitchPos() { stitchPositions.push({ label: '', price: '' }); renderStitchPos(); renderColorVariants(); }
+function removeStitchPos(i) { stitchPositions.splice(i, 1); renderStitchPos(); renderColorVariants(); }
+function setStitchLabel(i, v) { stitchPositions[i].label = v; renderColorVariants(); }
+function setStitchPrice(i, v) { stitchPositions[i].price = v; }
+
+function renderStitchPos() {
+  const box = document.getElementById('p-stitchpos');
+  if (!box) return;
+  box.innerHTML = stitchPositions.map((s, i) => `
+    <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;">
+      <input type="text" placeholder="Stelle, z.B. Brust" value="${(s.label||'').replace(/"/g,'&quot;')}"
+             style="flex:2" onchange="setStitchLabel(${i}, this.value)">
+      <div style="display:flex;align-items:center;gap:4px;flex:1;">
+        <span style="color:var(--color-muted)">+ €</span>
+        <input type="number" step="0.01" min="0" placeholder="6.90" value="${s.price}"
+               style="width:100%" onchange="setStitchPrice(${i}, this.value)">
+      </div>
+      <button type="button" class="btn-sm btn-sm--outline" onclick="removeStitchPos(${i})">✕</button>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Stickstellen. Klick „+ Stickstelle hinzufügen".</p>';
+}
+
+// ── FARBEN & FOTOS (je Farbe ein Foto pro Stickstelle) ───────
+function addColorVariant() { colorVariants.push({ name: '', photos: {} }); renderColorVariants(); }
+function removeColorVariant(i) { colorVariants.splice(i, 1); renderColorVariants(); }
+function setColorName(i, v) { colorVariants[i].name = v; }
+
+async function handleVariantPhoto(i, label, file) {
   if (!file) return;
   const url = await uploadToStorage(file);
-  if (url) { capColors[i].photos[view] = url; renderCapColors(); }
+  if (url) { colorVariants[i].photos[label] = url; renderColorVariants(); }
 }
 
-function renderCapColors() {
-  const box = document.getElementById('p-capcolors');
+function renderColorVariants() {
+  const box = document.getElementById('p-colorvariants');
   if (!box) return;
-  box.innerHTML = capColors.map((c, i) => `
+  const labels = stitchLabels();
+  box.innerHTML = colorVariants.map((c, i) => `
     <div style="border:1px solid var(--color-border);border-radius:var(--radius);padding:14px;margin-bottom:12px;">
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
-        <input type="text" placeholder="Farbname, z.B. Schwarz" value="${(c.name||'').replace(/"/g,'&quot;')}"
-               style="flex:1;font-weight:700" onchange="setCapName(${i}, this.value)">
-        <button type="button" class="btn-sm btn-sm--outline" onclick="removeCapColor(${i})">Farbe entfernen</button>
+        <input type="text" placeholder="Farbname, z.B. Weiß" value="${(c.name||'').replace(/"/g,'&quot;')}"
+               style="flex:1;font-weight:700" onchange="setColorName(${i}, this.value)">
+        <button type="button" class="btn-sm btn-sm--outline" onclick="removeColorVariant(${i})">Farbe entfernen</button>
       </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        ${CAP_VIEWS.map(v => `
+      ${labels.length ? `<div style="display:flex;gap:10px;flex-wrap:wrap;">
+        ${labels.map(lbl => `
           <div style="flex:1;min-width:120px;text-align:center;">
-            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">${v}</div>
-            ${c.photos[v] ? `<img src="${c.photos[v]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;">` : ''}
+            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">${lbl}</div>
+            ${c.photos[lbl] ? `<img src="${c.photos[lbl]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;">` : ''}
             <div class="dropzone dropzone--row" tabindex="0" role="button"
-                 aria-label="${v}-Foto hochladen"
+                 aria-label="Foto für ${lbl} hochladen"
                  onclick="this.querySelector('input[type=file]').click()"
                  onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
                  ondragover="event.preventDefault();this.classList.add('dropzone--over')"
                  ondragleave="this.classList.remove('dropzone--over')"
-                 ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleCapPhoto(${i}, '${v}', event.dataTransfer.files[0])">
-              ${c.photos[v] ? 'Ersetzen' : 'Foto ziehen / klicken'}
+                 ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleVariantPhoto(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')}, event.dataTransfer.files[0])">
+              ${c.photos[lbl] ? 'Ersetzen' : 'Foto ziehen / klicken'}
               <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden
-                     onchange="handleCapPhoto(${i}, '${v}', this.files[0]); this.value=''">
+                     onchange="handleVariantPhoto(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')}, this.files[0]); this.value=''">
             </div>
           </div>
         `).join('')}
-      </div>
-    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Kappenfarben. Klick „+ Kappenfarbe hinzufügen".</p>';
+      </div>` : '<p style="color:var(--color-muted);font-size:0.8rem;">Lege zuerst oben Stickstellen an — dann kannst du hier je Stelle ein Foto hochladen.</p>'}
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Farben. Klick „+ Farbe hinzufügen".</p>';
 }
 
 function addOptionRow(name = '', values = '') {
@@ -1400,30 +1433,35 @@ async function openProductModal(product = null) {
     modalImages = (imgs || []).map(r => ({ id: r.id, url: r.url, option_values: r.option_values || {} }));
   }
 
-  // Kappenfarben aus Produkt rekonstruieren (Kappenfarbe-Option + Ansicht-Tags)
-  capColors = [];
-  const capOpt = (product?.options || []).find(o => /kappe|farbe/i.test(o.name));
-  if (capOpt) {
-    capColors = (capOpt.values || []).map(name => {
-      const photos = { Vorne: '', Hinten: '', Seite: '' };
+  // Stickstellen aus Produkt laden
+  stitchPositions = (product?.positions || []).map(p => ({ label: p.label, price: p.price }));
+  const labelSet = new Set(stitchPositions.map(s => (s.label || '').trim()).filter(Boolean));
+
+  // Farben & Fotos rekonstruieren (Farbe-Option + Stelle-Tags)
+  colorVariants = [];
+  const colorOpt = (product?.options || []).find(o => /kappe|farbe/i.test(o.name));
+  if (colorOpt) {
+    colorVariants = (colorOpt.values || []).map(name => {
+      const photos = {};
       modalImages.forEach(im => {
         const ov = im.option_values || {};
         if (Object.values(ov).includes(name)) {
-          CAP_VIEWS.forEach(v => { if (Object.values(ov).includes(v)) photos[v] = im.url; });
+          Object.values(ov).forEach(v => { if (labelSet.has(v)) photos[v] = im.url; });
         }
       });
       return { name, photos };
     });
   }
-  renderCapColors();
+  renderStitchPos();
+  renderColorVariants();
 
-  // Erweiterte Optionen befüllen (ohne die Kappenfarbe, die der Kappen-Bereich verwaltet)
+  // Erweiterte Optionen befüllen (ohne die Farbe, die der Farben-Bereich verwaltet)
   document.getElementById('p-options').innerHTML = '';
   (product?.options || []).filter(o => !/kappe|farbe/i.test(o.name))
     .forEach(o => addOptionRow(o.name, (o.values || []).join(', ')));
 
-  // Erweiterte Bilder: nur solche ohne Ansicht-Tag (Kappen-Bilder verwaltet der Kappen-Bereich)
-  modalImages = modalImages.filter(m => !Object.values(m.option_values || {}).some(v => CAP_VIEWS.includes(v)));
+  // Erweiterte Bilder: nur solche ohne Stelle-Tag (Stellen-Fotos verwaltet der Farben-Bereich)
+  modalImages = modalImages.filter(m => !Object.values(m.option_values || {}).some(v => labelSet.has(v)));
   renderImagesEditor();
 
   openModal('product-modal');
@@ -1433,17 +1471,24 @@ async function saveProduct() {
   const id = document.getElementById('p-id').value;
   const tags = document.getElementById('p-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
 
-  // Optionen: erweiterte Optionen + (falls Kappenfarben angelegt) die Kappenfarbe-Option
-  const options = readOptionsFromDOM().filter(o => !/kappe|farbe/i.test(o.name));
-  const capNames = capColors.map(c => (c.name || '').trim()).filter(Boolean);
-  if (capNames.length) options.push({ name: 'Kappenfarbe', values: capNames });
+  // Stickstellen (Name + Aufpreis)
+  const positions = stitchPositions
+    .map(s => ({ label: (s.label || '').trim(), price: parseFloat(s.price) || 0 }))
+    .filter(s => s.label);
+  const labelSet = new Set(positions.map(p => p.label));
 
-  // Hauptbild ggf. automatisch aus dem ersten Front-Foto setzen
+  // Optionen: erweiterte Optionen + (falls Farben angelegt) die Farbe-Option
+  const options = readOptionsFromDOM().filter(o => !/kappe|farbe/i.test(o.name));
+  const colorNames = colorVariants.map(c => (c.name || '').trim()).filter(Boolean);
+  if (colorNames.length) options.push({ name: 'Farbe', values: colorNames });
+
+  // Hauptbild ggf. automatisch aus dem ersten vorhandenen Farb-/Stellen-Foto setzen
   let mainImage = document.getElementById('p-image').value || null;
   if (!mainImage) {
-    const firstFront = capColors.find(c => c.photos.Vorne)?.photos.Vorne
-      || capColors.find(c => c.photos.Hinten || c.photos.Seite)?.photos.Seite;
-    if (firstFront) mainImage = firstFront;
+    for (const c of colorVariants) {
+      const first = Object.values(c.photos || {}).find(Boolean);
+      if (first) { mainImage = first; break; }
+    }
   }
 
   const data = {
@@ -1459,6 +1504,7 @@ async function saveProduct() {
     category_id:     document.getElementById('p-category').value || null,
     tags,
     options,
+    positions,
     active:          document.getElementById('p-active').checked,
   };
 
@@ -1474,15 +1520,16 @@ async function saveProduct() {
     return;
   }
 
-  // Bilder synchronisieren: erweiterte Bilder + aus Kappenfarben erzeugte (Kappenfarbe + Ansicht getaggt)
+  // Bilder synchronisieren: erweiterte Bilder + aus Farben/Stellen erzeugte (Farbe + Stelle getaggt)
   const productId = saved[0].id;
   const imgs = modalImages.filter(m => m.url.trim())
     .map(m => ({ url: m.url.trim(), option_values: m.option_values || {} }));
-  capColors.forEach(c => {
+  colorVariants.forEach(c => {
     const nm = (c.name || '').trim();
     if (!nm) return;
-    CAP_VIEWS.forEach(v => {
-      if (c.photos[v]) imgs.push({ url: c.photos[v], option_values: { Kappenfarbe: nm, Ansicht: v } });
+    positions.forEach(pos => {
+      const url = c.photos[pos.label];
+      if (url) imgs.push({ url, option_values: { Farbe: nm, Stelle: pos.label } });
     });
   });
 
