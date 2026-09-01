@@ -175,6 +175,9 @@
     .filter-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
     .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 
+    /* Anker-Ziele unter dem fixierten Header */
+    #products { scroll-margin-top: 88px; }
+
     /* ── RICH FOOTER ── */
     .footer2 { background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 56px 0 28px; margin-top: 72px; }
     .footer2__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 32px; }
@@ -224,11 +227,12 @@
       <a href="/index.html" class="navbar__logo">made2meant</a>
 
       <ul class="navbar__links">
-        <li><a href="#products">Geschenke</a></li>
-        <li><a href="#products">Baby &amp; Kind</a></li>
-        <li><a href="#products">Für die Familie</a></li>
-        <li><a href="#products">Personalisieren</a></li>
+        <li><a href="#products" onclick="showCat('all');return false">Geschenke</a></li>
+        <li><a href="#products" onclick="showCat('baby');return false">Baby &amp; Kind</a></li>
+        <li><a href="#products" onclick="showCat('familie');return false">Für die Familie</a></li>
+        <li><a href="#products" onclick="showCat('all');return false">Personalisieren</a></li>
         <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
       </ul>
 
       <div class="nav-icons">
@@ -345,15 +349,17 @@
     <!-- ===== SHOP (alle Produkte, mit Filter) ===== -->
     <section class="section reveal" id="products">
       <div class="container">
-        <div class="sec-head"><h2>Alle Produkte</h2></div>
+        <div class="sec-head"><h2 id="shop-title">Alle Produkte</h2></div>
         <div class="shop-toolbar">
           <div class="search-box">
             <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
             <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
           </div>
           <div class="filter-tabs" id="filter-tabs" role="group" aria-label="Produkte filtern">
-            <button class="filter-tab active" aria-pressed="true" data-filter="all" onclick="setFilter('all', this)">Alle</button>
-            <button class="filter-tab" aria-pressed="false" data-filter="bestseller" onclick="setFilter('bestseller', this)">Bestseller</button>
+            <button class="filter-tab active" aria-pressed="true" data-cat="all" onclick="showCat('all')">Alle</button>
+            <button class="filter-tab" aria-pressed="false" data-cat="baby" onclick="showCat('baby')">Baby &amp; Kind</button>
+            <button class="filter-tab" aria-pressed="false" data-cat="familie" onclick="showCat('familie')">Für die Familie</button>
+            <button class="filter-tab" aria-pressed="false" data-cat="bestseller" onclick="showCat('bestseller')">Bestseller</button>
           </div>
         </div>
         <p class="shop-result-count" id="result-count" aria-live="polite" style="color:var(--color-muted);font-size:0.85rem;margin-bottom:20px"></p>
@@ -444,17 +450,33 @@
       grid.innerHTML = products.map(shopCard).join('');
     }
 
-    function setFilter(filter, btn) {
-      activeFilter = filter;
-      document.querySelectorAll('.filter-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-pressed', 'false'); });
-      btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
+    // Kategorien: passen Nav-Links UND Filter-Chips zusammen
+    function haystack(p) {
+      return (p.name + ' ' + (p.description || '') + ' ' + (p.tags || []).join(' ') + ' ' + (p.category_name || '')).toLowerCase();
+    }
+    const CATS = {
+      all:        { label: 'Alle Produkte',   match: () => true },
+      bestseller: { label: 'Bestseller',       match: p => p.bestseller },
+      baby:       { label: 'Baby & Kind',      match: p => /baby|kind|kinder|body|strampler|l[aä]tzchen|m[uü]tze|kappe|handtuch|decke|nuschi|spucktuch|schnuller|geburt|taufe/.test(haystack(p)) },
+      familie:    { label: 'Für die Familie',  match: p => /mama|papa|eltern|familie|erwachsen|paar|polster|kissen|bademantel|beutel|tasche/.test(haystack(p)) },
+    };
+
+    // Nav-Link oder Chip: filtern + zum Shop scrollen (Header-Offset berücksichtigt)
+    function showCat(cat) {
+      activeFilter = cat;
+      document.querySelectorAll('.filter-tab').forEach(t => {
+        const on = t.dataset.cat === cat;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      document.getElementById('shop-title').textContent = (CATS[cat] || CATS.all).label;
       filterProducts();
+      document.getElementById('products').scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     function filterProducts() {
       const q = document.getElementById('search-input').value.toLowerCase().trim();
-      let list = allProducts;
-      if (activeFilter === 'bestseller') list = list.filter(p => p.bestseller);
+      let list = allProducts.filter((CATS[activeFilter] || CATS.all).match);
       if (q) list = list.filter(p =>
         p.name.toLowerCase().includes(q) ||
         (p.description || '').toLowerCase().includes(q) ||
