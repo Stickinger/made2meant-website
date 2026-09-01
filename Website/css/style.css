@@ -133,6 +133,13 @@ h3 { font-size: 1.35rem; }
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: box-shadow var(--transition), background var(--transition);
+}
+.navbar.scrolled {
+  box-shadow: 0 2px 20px rgba(28,28,28,0.07);
+  background: rgba(246,243,238,0.88);
+  backdrop-filter: saturate(1.1) blur(10px);
+  -webkit-backdrop-filter: saturate(1.1) blur(10px);
 }
 
 .navbar__inner {
