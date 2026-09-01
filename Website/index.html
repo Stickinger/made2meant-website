@@ -3,210 +3,383 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MADE2MEANT — Made personal. Meant forever.</title>
-  <meta name="description" content="Personalisierte Stickereien. Made personal. Meant forever.">
+  <title>made2meant — Für kleine Menschen. Für große Erinnerungen.</title>
+  <meta name="description" content="Personalisierte Textilien und Geschenke, die Geborgenheit schenken und Geschichten bewahren. Mit Sorgfalt in Österreich bestickt.">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    /* ── SHOP FILTER ── */
-    .shop-toolbar {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 32px;
-      flex-wrap: wrap;
-    }
-
-    .search-box {
-      position: relative;
-      flex: 1;
-      min-width: 220px;
-      max-width: 360px;
-    }
-    .search-box input {
-      width: 100%;
-      background: white;
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 10px 16px 10px 40px;
-      font-family: var(--font-main);
-      font-size: 0.9rem;
-      color: var(--color-text);
-      transition: border-color 0.2s;
-    }
-    .search-box input:focus {
-      border-color: var(--color-primary);
-    }
-    .search-box__icon {
-      position: absolute;
-      left: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--color-muted);
-      font-size: 0.9rem;
-      pointer-events: none;
-    }
-
-    .filter-tabs {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .filter-tab {
-      padding: 8px 16px;
-      border: 1px solid var(--color-border);
-      border-radius: 99px;
-      background: white;
-      color: var(--color-text);
-      font-family: var(--font-main);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .filter-tab:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-    }
-    .filter-tab.active {
-      background: var(--color-text);
-      border-color: var(--color-text);
-      color: #F2EDDC;
-    }
-    .filter-tab--bestseller.active {
-      background: var(--color-primary);
-      border-color: var(--color-primary);
-    }
-
-    .shop-result-count {
+    /* ── ANKÜNDIGUNGSLEISTE ── */
+    .announcebar {
+      background: var(--color-surface-2);
       color: var(--color-muted);
       font-size: 0.8rem;
-      margin-bottom: 20px;
+      border-bottom: 1px solid var(--color-border);
     }
+    .announcebar__inner {
+      display: flex; justify-content: center; gap: 28px; flex-wrap: wrap;
+      padding: 9px 24px; text-align: center;
+    }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
 
-    .no-results {
-      text-align: center;
-      padding: 64px 24px;
-      color: var(--color-muted);
+    /* ── NAV-ICONS ── */
+    .navbar { border-bottom: 1px solid var(--color-border); }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
+
+    /* ── HERO ── */
+    .hero2 { padding: 56px 0 24px; }
+    .hero2__grid {
+      display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center;
     }
-    .no-results__icon { font-size: 2.5rem; margin-bottom: 12px; }
-    .no-results p { font-size: 0.9rem; }
+    .hero2__title { font-size: clamp(2.3rem, 4.6vw, 3.5rem); line-height: 1.1; margin-bottom: 20px; }
+    .hero2__text { font-size: 1.08rem; color: var(--color-muted); max-width: 420px; margin-bottom: 28px; }
+    .hero2__cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    .hero2__visual {
+      position: relative; aspect-ratio: 4/3.2; border-radius: var(--radius-lg); overflow: hidden;
+      background: linear-gradient(140deg, #EFE7DA 0%, #E4D3BE 55%, #D8C3A8 100%);
+      box-shadow: var(--shadow-lg);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .hero2__visual::after {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 60% 55% at 25% 20%, rgba(255,255,255,0.5), transparent 60%);
+    }
+    .stitch-name {
+      font-family: 'Caveat', cursive; font-size: clamp(3rem, 6vw, 5rem); font-weight: 700;
+      color: #9c6a4a; position: relative; z-index: 1; transform: rotate(-4deg);
+      text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+    }
+    .stitch-name small { display: block; text-align: center; font-size: 0.4em; margin-top: -0.2em; }
+
+    /* ── TRUST-LEISTE ── */
+    .trust {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+      background: var(--color-surface); border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg); padding: 26px 32px; box-shadow: var(--shadow);
+      margin: 8px auto 0;
+    }
+    .trust__item { display: flex; align-items: center; gap: 14px; }
+    .trust__item svg { width: 30px; height: 30px; color: var(--color-accent); flex: 0 0 auto; }
+    .trust__item strong { display: block; font-size: 0.92rem; font-weight: 700; color: var(--color-text); }
+    .trust__item span { font-size: 0.82rem; color: var(--color-muted); }
+    @media (max-width: 900px) { .trust { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 560px) { .trust { grid-template-columns: 1fr; } }
+
+    /* ── SEKTIONS-KOPF ── */
+    .sec-head { text-align: center; margin-bottom: 36px; }
+    .sec-head .label-style { display: block; margin-bottom: 10px; }
+    .sec-head--row { display: flex; align-items: baseline; justify-content: space-between; }
+
+    /* ── KATEGORIE-KACHELN ── */
+    .cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+    .cat-tile {
+      position: relative; aspect-ratio: 3/3.6; border-radius: var(--radius-lg); overflow: hidden;
+      display: flex; align-items: flex-end; padding: 16px;
+      color: #fff; transition: transform var(--transition);
+    }
+    .cat-tile:hover { transform: translateY(-4px); text-decoration: none; }
+    .cat-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(40,30,22,0.42), transparent 55%); }
+    .cat-tile__label {
+      position: relative; z-index: 1; display: flex; align-items: center; gap: 8px;
+      font-weight: 700; font-size: 0.92rem;
+    }
+    .cat-tile__label svg { width: 16px; height: 16px; }
+    @media (max-width: 900px) { .cat-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .cat-grid { grid-template-columns: 1fr 1fr; } }
+
+    /* ── PRODUKTKARTEN (Homepage) ── */
+    .pgrid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
+    @media (max-width: 900px) { .pgrid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 560px) { .pgrid { grid-template-columns: 1fr 1fr; } }
+    .pcard { display: block; }
+    .pcard:hover { text-decoration: none; transform: translateY(-4px); }
+    .pcard { transition: transform var(--transition); }
+    .pcard__img {
+      aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden;
+      background: linear-gradient(140deg, #EFE7DA, #E1CDB2); background-size: cover; background-position: center;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+      transition: box-shadow var(--transition);
+    }
+    .pcard:hover .pcard__img { box-shadow: var(--shadow-lg); }
+    .pcard__img .stitch-name { font-size: 2.2rem; }
+    .pcard__name { font-weight: 600; color: var(--color-text); font-size: 0.98rem; }
+    .pcard__price { color: var(--color-text); font-weight: 700; margin-top: 2px; }
+
+    /* ── QUALITÄT ── */
+    .quality { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+    .quality__img {
+      aspect-ratio: 4/3.4; border-radius: var(--radius-lg);
+      background: linear-gradient(140deg, #EDE4D6, #DFCDB4); box-shadow: var(--shadow);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .quality__badges { display: flex; gap: 12px; margin: 20px 0 24px; flex-wrap: wrap; }
+    .badge-cert {
+      display: inline-flex; align-items: center; gap: 8px; font-size: 0.78rem; font-weight: 700;
+      color: var(--color-accent); border: 1.5px solid var(--color-accent); border-radius: 99px; padding: 6px 14px;
+    }
+    @media (max-width: 800px) { .quality { grid-template-columns: 1fr; } }
+
+    /* ── BEWERTUNGEN ── */
+    .revgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+    @media (max-width: 800px) { .revgrid { grid-template-columns: 1fr; } }
+    .revcard { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 26px; }
+    .revcard__stars { color: var(--color-primary); letter-spacing: 2px; margin-bottom: 12px; font-size: 0.9rem; }
+    .revcard__text { font-style: italic; color: var(--color-text); line-height: 1.7; margin-bottom: 16px; }
+    .revcard__who { font-size: 0.85rem; color: var(--color-muted); font-weight: 700; }
+
+    /* ── NEWSLETTER ── */
+    .newsletter { background: var(--color-surface-2); border-radius: var(--radius-lg); padding: 44px; text-align: center; }
+    .newsletter form { display: flex; gap: 10px; max-width: 440px; margin: 18px auto 0; }
+    .newsletter input {
+      flex: 1; padding: 13px 16px; border: 1px solid var(--color-border); border-radius: var(--radius);
+      font-family: var(--font-main); font-size: 0.95rem; background: #fff; color: var(--color-text);
+    }
+    .newsletter input:focus { border-color: var(--color-primary); }
+    @media (max-width: 480px) { .newsletter form { flex-direction: column; } }
+
+    /* ── SHOP-GRID (Filter) ── */
+    .shop-toolbar { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .search-box { position: relative; flex: 1; min-width: 220px; max-width: 340px; }
+    .search-box input {
+      width: 100%; background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius);
+      padding: 11px 16px 11px 40px; font-family: var(--font-main); font-size: 0.92rem; color: var(--color-text);
+    }
+    .search-box input:focus { border-color: var(--color-primary); }
+    .search-box__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-muted); pointer-events: none; display: flex; }
+    .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-tab {
+      padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff;
+      color: var(--color-text); font-family: var(--font-main); font-size: 0.8rem; font-weight: 700; cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+
+    /* ── RICH FOOTER ── */
+    .footer2 { background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 56px 0 28px; margin-top: 72px; }
+    .footer2__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 32px; }
+    .footer2__brand-logo { display: block; width: 130px; height: 44px; background: url('/assets/images/logo-terracotta.png') left center/contain no-repeat; text-indent: -9999px; overflow: hidden; margin-bottom: 14px; }
+    .footer2__brand p { font-size: 0.86rem; color: var(--color-muted); max-width: 240px; }
+    .footer2__socials { display: flex; gap: 12px; margin-top: 16px; }
+    .footer2__socials a { color: var(--color-muted); }
+    .footer2__socials a:hover { color: var(--color-primary); }
+    .footer2 h4 { font-family: var(--font-main); font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text); margin-bottom: 14px; }
+    .footer2 ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer2 ul a { color: var(--color-muted); font-size: 0.88rem; }
+    .footer2 ul a:hover { color: var(--color-primary); text-decoration: none; }
+    .footer2__bottom { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+      border-top: 1px solid var(--color-border); margin-top: 40px; padding-top: 20px; font-size: 0.82rem; color: var(--color-muted); }
+    .footer2__bottom a { color: var(--color-muted); }
+    @media (max-width: 860px) { .footer2__top { grid-template-columns: 1fr 1fr; } }
+
+    /* Reveal */
+    .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.is-visible { opacity: 1; transform: none; }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
   </style>
 </head>
 <body>
 
-
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <!-- ===== ANKÜNDIGUNGSLEISTE ===== -->
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
   <!-- ===== NAVIGATION ===== -->
   <nav class="navbar">
     <div class="container navbar__inner">
-      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <a href="/index.html" class="navbar__logo">made2meant</a>
 
       <ul class="navbar__links">
-        <li><a href="/index.html">Shop</a></li>
+        <li><a href="#products">Geschenke</a></li>
+        <li><a href="#products">Baby &amp; Kind</a></li>
+        <li><a href="#products">Für die Familie</a></li>
+        <li><a href="#products">Personalisieren</a></li>
         <li><a href="/ueber-uns.html">Über uns</a></li>
-        <!-- Admin nur direkt über /admin erreichbar, kein Link hier -->
-        <li><a href="/qualitaet.html">Qualität</a></li>
-        <li><a href="/login.html" id="nav-login">Login</a></li>
-        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
-        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li>
-          <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
-            <span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span>
-          </a>
-        </li>
       </ul>
+
+      <div class="nav-icons">
+        <a href="#products" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
     </div>
   </nav>
 
-  <!-- ===== HERO ===== -->
-  <section class="hero">
-    <div class="container">
-      <p class="hero__eyebrow">Zeitlos elegant. Modern gedacht.</p>
-      <h1 class="hero__title">
-        Made personal.<br>
-        <span>Meant forever.</span>
-      </h1>
-      <p class="hero__subtitle">
-        Personalisierte Stickereien für Erinnerungen, die bleiben.
-      </p>
-      <a href="#products" class="btn btn--primary" style="width:auto">Shop jetzt</a>
-    </div>
-  </section>
-
-  <!-- ===== SHOP ===== -->
   <main id="main">
-    <section class="section" id="products">
-      <div class="container">
 
-        <!-- Toolbar: Suche + Filter -->
+    <!-- ===== HERO ===== -->
+    <section class="hero2">
+      <div class="container">
+        <div class="hero2__grid">
+          <div class="reveal is-visible">
+            <h1 class="hero2__title">Für kleine Menschen.<br>Für große Erinnerungen.</h1>
+            <p class="hero2__text">Hochwertige Textilien und Geschenke — persönlich für euch bestickt. Mit Liebe gemacht, für jeden Moment.</p>
+            <div class="hero2__cta">
+              <a href="#products" class="btn btn--primary">Geschenke entdecken</a>
+              <a href="#products" class="btn btn--ghost">Eigenes Stück gestalten →</a>
+            </div>
+          </div>
+          <div class="hero2__visual reveal is-visible">
+            <span class="stitch-name">Lina<small>♥</small></span>
+          </div>
+        </div>
+
+        <!-- Trust-Leiste -->
+        <div class="trust reveal">
+          <div class="trust__item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>
+            <div><strong>Ausgewählte Materialien</strong><span>für Babys &amp; Kinder</span></div>
+          </div>
+          <div class="trust__item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.5 7.5"/><circle cx="11" cy="11" r="2"/></svg>
+            <div><strong>Persönlich bestickt</strong><span>mit Liebe zum Detail</span></div>
+          </div>
+          <div class="trust__item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7S9 7 8 5.5 9 3 12 5c3-2 5-1 4 .5S12 7 12 7z"/></svg>
+            <div><strong>Für besondere Momente</strong><span>und für die Ewigkeit</span></div>
+          </div>
+          <div class="trust__item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
+            <div><strong>Mit Sorgfalt veredelt</strong><span>in Österreich</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== KATEGORIEN ===== -->
+    <section class="section reveal">
+      <div class="container">
+        <div class="sec-head"><h2>Wonach suchst du?</h2></div>
+        <div class="cat-grid">
+          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E9DDCB,#D4BE9F)"><span class="cat-tile__label">Zur Geburt →</span></a>
+          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe →</span></a>
+          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag →</span></a>
+          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa →</span></a>
+          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Kleine Aufmerksamkeit →</span></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BESTSELLER ===== -->
+    <section class="section reveal" style="padding-top:24px">
+      <div class="container">
+        <div class="sec-head sec-head--row">
+          <div>
+            <span class="label-style">Beliebt</span>
+            <h2>Besonders gern verschenkt.</h2>
+          </div>
+          <a href="#products" class="btn btn--ghost">Alle Produkte ansehen →</a>
+        </div>
+        <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
+      </div>
+    </section>
+
+    <!-- ===== QUALITÄT ===== -->
+    <section class="section reveal">
+      <div class="container">
+        <div class="quality">
+          <div class="quality__img"><span class="stitch-name" style="font-size:3.4rem;color:#9c6a4a">Emma<small>♥</small></span></div>
+          <div>
+            <span class="label-style">Qualität</span>
+            <h2 style="margin:8px 0 16px">Was Babys berührt,<br>wählen wir besonders sorgfältig.</h2>
+            <p style="color:var(--color-muted)">Wir verwenden Materialien, die sich gut anfühlen, langlebig sind und den Alltag mitmachen. Zertifiziert, transparent und mit Liebe ausgewählt.</p>
+            <div class="quality__badges">
+              <span class="badge-cert">OEKO-TEX® Standard 100</span>
+              <span class="badge-cert">GOTS Organic</span>
+            </div>
+            <a href="/qualitaet.html" class="btn btn--ghost" style="padding-left:0">Mehr über unsere Materialien →</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== BEWERTUNGEN ===== -->
+    <section class="section reveal">
+      <div class="container">
+        <div class="sec-head"><span class="label-style">Von Familien empfohlen</span><h2>Echte Erfahrungen mit made2meant.</h2></div>
+        <div class="revgrid">
+          <div class="revcard"><div class="revcard__stars">★★★★★</div><p class="revcard__text">„Das Handtuch ist so weich und die Stickerei einfach wunderschön. Ein Geschenk, das bleibt."</p><div class="revcard__who">— Platzhalter, bald echte Stimmen</div></div>
+          <div class="revcard"><div class="revcard__stars">★★★★★</div><p class="revcard__text">„Die Decke begleitet uns seit der Geburt — jeden Tag. Weich, hochwertig, perfekt."</p><div class="revcard__who">— Platzhalter, bald echte Stimmen</div></div>
+          <div class="revcard"><div class="revcard__stars">★★★★★</div><p class="revcard__text">„Mit so viel Liebe verpackt. Man spürt die Sorgfalt bis ins Detail."</p><div class="revcard__who">— Platzhalter, bald echte Stimmen</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SHOP (alle Produkte, mit Filter) ===== -->
+    <section class="section reveal" id="products">
+      <div class="container">
+        <div class="sec-head"><h2>Alle Produkte</h2></div>
         <div class="shop-toolbar">
           <div class="search-box">
-            <span class="search-box__icon" aria-hidden="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
-            <input type="text" id="search-input" placeholder="Suchen..." aria-label="Produkte durchsuchen" oninput="filterProducts()">
+            <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+            <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
           </div>
           <div class="filter-tabs" id="filter-tabs" role="group" aria-label="Produkte filtern">
             <button class="filter-tab active" aria-pressed="true" data-filter="all" onclick="setFilter('all', this)">Alle</button>
-            <button class="filter-tab filter-tab--bestseller" aria-pressed="false" data-filter="bestseller" onclick="setFilter('bestseller', this)">Bestseller</button>
-            <!-- Kategorien werden per JS geladen -->
+            <button class="filter-tab" aria-pressed="false" data-filter="bestseller" onclick="setFilter('bestseller', this)">Bestseller</button>
           </div>
         </div>
-
-        <p class="shop-result-count" id="result-count" aria-live="polite"></p>
-
-        <div class="product-grid" id="product-grid">
-          <p class="loading">Produkte werden geladen...</p>
-        </div>
-
+        <p class="shop-result-count" id="result-count" aria-live="polite" style="color:var(--color-muted);font-size:0.85rem;margin-bottom:20px"></p>
+        <div class="pgrid" id="product-grid"><p class="loading">Produkte werden geladen…</p></div>
       </div>
     </section>
+
+    <!-- ===== NEWSLETTER ===== -->
+    <section class="section reveal" style="padding-top:0">
+      <div class="container">
+        <div class="newsletter">
+          <span class="label-style">Bleib verbunden</span>
+          <h2 style="margin:8px 0 6px">Neue Produkte &amp; kleine Geschichten.</h2>
+          <p style="color:var(--color-muted)">Rund um besondere Momente — kein Spam, versprochen.</p>
+          <form onsubmit="handleNewsletter(event)">
+            <input type="email" id="nl-email" placeholder="Deine E-Mail" required aria-label="E-Mail-Adresse">
+            <button type="submit" class="btn btn--primary">Anmelden</button>
+          </form>
+          <p id="nl-msg" style="margin-top:12px;font-size:0.85rem;color:var(--color-accent);min-height:1em"></p>
+        </div>
+      </div>
+    </section>
+
   </main>
 
-  <!-- ===== TESTIMONIALS (Platzhalter — echte Kundenstimmen später hier eintragen) ===== -->
-  <section class="section section--dark reveal">
-    <div class="container">
-      <p class="section-eyebrow">Was unsere Kund:innen sagen</p>
-      <h2 class="section-title">Genäht mit Sorgfalt, geliebt für immer.</h2>
-    </div>
-    <div class="testimonial-row">
-      <div class="testimonial-card testimonial-card--side">
-        <div class="testimonial-card__quote">&ldquo;</div>
-        <p class="testimonial-card__text">Hier erscheint bald eine echte Kundenstimme.</p>
-        <div class="testimonial-card__author"><strong>Name</strong>Ort</div>
-      </div>
-      <div class="testimonial-card">
-        <div class="testimonial-card__quote">&ldquo;</div>
-        <p class="testimonial-card__text">Hier erscheint bald eine echte Kundenstimme.</p>
-        <div class="testimonial-card__author"><strong>Name</strong>Ort</div>
-      </div>
-      <div class="testimonial-card testimonial-card--side">
-        <div class="testimonial-card__quote">&ldquo;</div>
-        <p class="testimonial-card__text">Hier erscheint bald eine echte Kundenstimme.</p>
-        <div class="testimonial-card__author"><strong>Name</strong>Ort</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== CTA ===== -->
-  <section class="section--dark section--glow cta-dark reveal">
-    <div class="container">
-      <h2 class="cta-dark__title">Mach's persönlich mit<br><span class="highlight">MADE2MEANT</span></h2>
-      <a href="#products" class="btn--pill">Jetzt gestalten</a>
-    </div>
-  </section>
-
   <!-- ===== FOOTER ===== -->
-  <footer class="footer">
-    <div class="container footer__inner">
-      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
-      <ul class="footer__links">
-        <li><a href="/impressum.html">Impressum</a></li>
-        <li><a href="/datenschutz.html">Datenschutz</a></li>
-        <li><a href="/agb.html">AGB</a></li>
-      </ul>
+  <footer class="footer2">
+    <div class="container">
+      <div class="footer2__top">
+        <div class="footer2__brand">
+          <a href="/index.html" class="footer2__brand-logo">made2meant</a>
+          <p>Personalisierte Lieblingsstücke für kleine Menschen und große Erinnerungen. Mit Sorgfalt in Österreich bestickt.</p>
+          <div class="footer2__socials">
+            <a href="#" aria-label="Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+            <a href="#" aria-label="Pinterest"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M9 20c-.5-2 1-6 1.5-8 .5-2 3.5-2.5 4.5-.5s.5 5-1.5 5.5-3-1-3-1"/></svg></a>
+            <a href="#" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h-3a4 4 0 0 0-4 4v3H5v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+          </div>
+        </div>
+        <div><h4>Shop</h4><ul><li><a href="#products">Alle Produkte</a></li><li><a href="#products">Baby &amp; Kind</a></li><li><a href="#products">Für die Familie</a></li><li><a href="#products">Bestseller</a></li></ul></div>
+        <div><h4>Anlässe</h4><ul><li><a href="#products">Zur Geburt</a></li><li><a href="#products">Zur Taufe</a></li><li><a href="#products">Geburtstag</a></li><li><a href="#products">Für Großeltern</a></li></ul></div>
+        <div><h4>Service</h4><ul><li><a href="#products">Personalisierung</a></li><li><a href="#">Versand &amp; Lieferung</a></li><li><a href="#">Rückgabe</a></li><li><a href="#">FAQ</a></li></ul></div>
+        <div><h4>Über uns</h4><ul><li><a href="/ueber-uns.html">Unsere Geschichte</a></li><li><a href="/qualitaet.html">Materialien</a></li><li><a href="/qualitaet.html">Nachhaltigkeit</a></li><li><a href="#">Kontakt</a></li></ul></div>
+      </div>
+      <div class="footer2__bottom">
+        <span>© 2026 made2meant · Made personal. Meant forever.</span>
+        <span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="/agb.html">AGB</a></span>
+      </div>
     </div>
   </footer>
 
@@ -222,81 +395,81 @@
     let allProducts = [];
     let activeFilter = 'all';
 
-    // Kategorien als Filter-Tabs laden
-    async function loadCategoryFilters() {
-      try {
-        const { data } = await db.from('categories').select('*').eq('active', true).order('sort_order');
-        if (!data) return;
-        const tabs = document.getElementById('filter-tabs');
-        data.forEach(cat => {
-          const btn = document.createElement('button');
-          btn.className = 'filter-tab';
-          btn.dataset.filter = cat.id;
-          btn.textContent = cat.name;
-          btn.setAttribute('aria-pressed', 'false');
-          btn.onclick = () => setFilter(cat.id, btn);
-          tabs.appendChild(btn);
-        });
-      } catch (_) {}
+    function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
+    function firstName(p) {
+      const m = (p.name || '').match(/[A-Za-zÄÖÜäöüß]+/);
+      return m ? m[0] : 'made2meant';
+    }
+
+    function shopCard(p) {
+      const img = p.image_url
+        ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>`
+        : `<div class="pcard__img"><span class="stitch-name">${firstName(p)}</span></div>`;
+      return `<a class="pcard" href="/product.html?slug=${p.slug}">
+        ${img}
+        <div class="pcard__name">${p.name}</div>
+        <div class="pcard__price">${euro(p.price)}</div>
+      </a>`;
+    }
+
+    function renderGrid(products) {
+      const grid = document.getElementById('product-grid');
+      const count = document.getElementById('result-count');
+      if (!products.length) {
+        grid.innerHTML = '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Keine Produkte gefunden.</p>';
+        count.textContent = ''; return;
+      }
+      count.textContent = products.length + ' Produkt' + (products.length !== 1 ? 'e' : '');
+      grid.innerHTML = products.map(shopCard).join('');
     }
 
     function setFilter(filter, btn) {
       activeFilter = filter;
-      document.querySelectorAll('.filter-tab').forEach(t => {
-        t.classList.remove('active');
-        t.setAttribute('aria-pressed', 'false');
-      });
-      btn.classList.add('active');
-      btn.setAttribute('aria-pressed', 'true');
+      document.querySelectorAll('.filter-tab').forEach(t => { t.classList.remove('active'); t.setAttribute('aria-pressed', 'false'); });
+      btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true');
       filterProducts();
     }
 
     function filterProducts() {
       const q = document.getElementById('search-input').value.toLowerCase().trim();
-      let filtered = allProducts;
-
-      if (activeFilter === 'bestseller') {
-        filtered = filtered.filter(p => p.bestseller);
-      } else if (activeFilter !== 'all') {
-        filtered = filtered.filter(p => p.category_id === activeFilter);
-      }
-
-      if (q) {
-        filtered = filtered.filter(p =>
-          p.name.toLowerCase().includes(q) ||
-          (p.description || '').toLowerCase().includes(q) ||
-          (p.tags || []).some(t => t.toLowerCase().includes(q))
-        );
-      }
-
-      renderGrid(filtered);
+      let list = allProducts;
+      if (activeFilter === 'bestseller') list = list.filter(p => p.bestseller);
+      if (q) list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.description || '').toLowerCase().includes(q) ||
+        (p.tags || []).some(t => t.toLowerCase().includes(q)));
+      renderGrid(list);
     }
 
-    function renderGrid(products) {
-      const container = document.getElementById('product-grid');
-      const count = document.getElementById('result-count');
-
-      if (products.length === 0) {
-        container.innerHTML = `
-          <div class="no-results" style="grid-column:1/-1">
-            <p>Keine Produkte gefunden.</p>
-          </div>`;
-        count.textContent = '';
-        return;
+    async function handleNewsletter(e) {
+      e.preventDefault();
+      const email = document.getElementById('nl-email').value;
+      const msg = document.getElementById('nl-msg');
+      try {
+        await db.from('newsletter_subscribers').insert({ email });
+        msg.style.color = 'var(--color-accent)';
+        msg.textContent = 'Danke! Du bist dabei. 🤍';
+        document.getElementById('nl-email').value = '';
+      } catch (err) {
+        msg.style.color = 'var(--color-primary)';
+        msg.textContent = 'Das hat nicht geklappt — bitte später erneut versuchen.';
       }
-
-      count.textContent = products.length + ' Produkt' + (products.length !== 1 ? 'e' : '');
-      container.innerHTML = products.map(renderProductCard).join('');
     }
 
     async function init() {
       updateNav();
       updateCartBadge();
-      loadCategoryFilters();
 
       let products = await loadProducts();
-      if (products.length === 0) products = DEMO_PRODUCTS;
+      if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
       allProducts = products;
+
+      // Bestseller (Flag, sonst die ersten)
+      const best = products.filter(p => p.bestseller);
+      const bestList = (best.length ? best : products).slice(0, 5);
+      const bg = document.getElementById('bestseller-grid');
+      bg.innerHTML = bestList.length ? bestList.map(shopCard).join('') : '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Bald verfügbar.</p>';
+
       filterProducts();
     }
 

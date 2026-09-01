@@ -1,42 +1,49 @@
 /* ============================================================
-   FONTS — Source Sans (lokal + Google Fonts Fallback)
+   FONTS — Nunito (UI/Body) + Fraunces (Display-Headlines)
    ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Caveat:wght@500;600;700&display=swap');
 
 /* ============================================================
-   DESIGN-VARIABLEN
+   DESIGN-SYSTEM — made2meant (Creme · Terrakotta · Salbei · Moos)
    ============================================================ */
 :root {
   /* Hauptfarben */
-  --color-bg:         #F2EDDC;   /* Creme */
-  --color-surface:    #FBF8EF;   /* warmes Off-White statt Reinweiß */
-  --color-border:     #e4dfd2;   /* Stein */
-  --color-text:       #2C2C2A;   /* Schwarz */
-  --color-muted:      #7d6558;   /* warmes Taupe — WCAG-AA-lesbar auf Creme; Ton (#d6b3ac) nur dekorativ */
+  --color-bg:         #F6F3EE;   /* Creme */
+  --color-surface:    #FFFFFF;
+  --color-surface-2:  #F1ECE3;   /* warme Panel-Fläche */
+  --color-border:     #E7E0D5;
+  --color-text:       #2A2724;   /* warmes Graphit für Text */
+  --color-heading:    #1C1C1C;   /* Graphit */
+  --color-muted:      #837A6F;   /* warmes Taupe für Sekundärtext */
 
   /* Akzentfarben */
-  --color-primary:       #a85d4f;   /* Terracotta */
-  --color-primary-hover: #8f4d41;
-  --color-accent:        #42553d;   /* Moos */
-  --color-accent-hover:  #334430;
+  --color-primary:       #C56A47;   /* Terrakotta */
+  --color-primary-hover: #AE5A3A;
+  --color-accent:        #6E8D7A;   /* Salbei */
+  --color-accent-hover:  #5C7A68;
+  --color-moss:          #8DA190;   /* Moos */
+  --color-taupe:         #B7B1A8;
+  --color-sand:          #E7DCCB;
 
-  /* Schattierungen */
-  --color-stein:      #e4dfd2;
-  --color-ton:        #d6b3ac;
-  --color-salbei:     #99a497;
-
-  /* Status */
-  --color-success:    #42553d;   /* Moos */
-  --color-danger:     #a85d4f;   /* Terracotta */
+  /* Kompatibilität mit bestehenden Komponenten */
+  --color-stein:      #E7E0D5;
+  --color-ton:        #E7DCCB;
+  --color-salbei:     #8DA190;
+  --color-success:    #6E8D7A;
+  --color-danger:     #C56A47;
 
   /* Typographie */
-  --font-main:        'Source Sans 3', 'Source Sans Pro', system-ui, sans-serif;
-  --letter-spacing-nav:  0.2em;
-  --letter-spacing-head: 0.2em;
+  --font-main:  'Nunito', system-ui, -apple-system, sans-serif;
+  --font-head:  'Fraunces', Georgia, 'Times New Roman', serif;
+  --letter-spacing-nav:  0.06em;
+  --letter-spacing-head: 0;
 
-  --radius:           6px;
-  --max-width:        1200px;
-  --transition:       0.2s ease;
+  --radius:      8px;
+  --radius-lg:   16px;
+  --max-width:   1200px;
+  --shadow:      0 4px 16px rgba(28,28,28,0.06);
+  --shadow-lg:   0 14px 36px rgba(28,28,28,0.10);
+  --transition:  0.2s ease-in-out;
 }
 
 /* ============================================================
@@ -55,22 +62,12 @@ body {
   color: var(--color-text);
   font-family: var(--font-main);
   font-size: 16px;
-  font-weight: 500;
-  line-height: 1.5;   /* 150% laut Brand Guide (Fließtext) */
+  font-weight: 400;
+  line-height: 1.65;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-}
-
-/* Dezente Leinen-Körnung über der ganzen Seite (Moodboard: Stoff/Sand-Textur) */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
-  opacity: 0.05;
-  pointer-events: none;
-  z-index: 1;
+  -webkit-font-smoothing: antialiased;
 }
 
 main { flex: 1; }
@@ -87,30 +84,26 @@ img {
   height: auto;
 }
 
+/* Headlines: warme Serifenschrift (Fraunces), Satz-Schreibweise */
 h1, h2, h3, h4 {
-  line-height: 1.5;   /* 150% laut Brand Guide */
-  font-weight: 800;
+  font-family: var(--font-head);
+  color: var(--color-heading);
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
+h1 { font-size: clamp(2.2rem, 4.5vw, 3.4rem); }
+h2 { font-size: clamp(1.7rem, 3vw, 2.2rem); }
+h3 { font-size: 1.35rem; }
 
-/* Headline: Extra Bold, Letter-Spacing 200, Uppercase */
-h1 {
-  font-weight: 900;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-}
-
-/* Subline: Bold */
-h2, h3 {
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-/* Navigation & Produkte: Bold, Letter-Spacing 200, Uppercase */
+/* Kleine Label (Eyebrows) */
 .label-style {
+  font-family: var(--font-main);
   font-weight: 700;
-  font-size: 0.75rem;
-  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--color-primary);
 }
 
 /* ============================================================
@@ -128,7 +121,7 @@ h2, h3 {
 }
 
 .section-title {
-  font-size: 2rem;
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
   margin-bottom: 40px;
 }
 
@@ -146,17 +139,22 @@ h2, h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 64px;
+  height: 72px;
 }
 
+/* Logo: handschriftliches made2meant als Bild */
 .navbar__logo {
-  font-size: 1.3rem;
-  font-weight: 900;
-  color: var(--color-text);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  display: block;
+  width: 132px;
+  height: 44px;
+  background: url('/assets/images/logo-terracotta.png') left center / contain no-repeat;
+  text-indent: -9999px;
+  overflow: hidden;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
-.navbar__logo span { color: var(--color-primary); }
+.navbar__logo span { display: none; }
+.navbar__logo:hover { text-decoration: none; }
 
 .navbar__links {
   display: flex;
@@ -167,10 +165,10 @@ h2, h3 {
 
 .navbar__links a {
   color: var(--color-text);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: var(--letter-spacing-nav);
-  text-transform: uppercase;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
   transition: color var(--transition);
 }
 .navbar__links a:hover { color: var(--color-primary); text-decoration: none; }
@@ -179,7 +177,10 @@ h2, h3 {
   position: relative;
   cursor: pointer;
   font-size: 1.3rem;
+  color: var(--color-text);
+  display: inline-flex;
 }
+.cart-icon:hover { color: var(--color-primary); }
 
 #cart-badge {
   position: absolute;
@@ -256,45 +257,40 @@ h2, h3 {
    BUTTONS
    ============================================================ */
 .btn {
-  display: inline-block;
-  padding: 12px 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 26px;
   border-radius: var(--radius);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-size: 0.92rem;
+  font-weight: 700;
   cursor: pointer;
   border: none;
-  transition: background var(--transition), transform var(--transition);
+  transition: background var(--transition), border-color var(--transition), color var(--transition), transform var(--transition);
   font-family: var(--font-main);
+  text-align: center;
 }
 
-.btn:active { transform: scale(0.98); }
+.btn:active { transform: translateY(1px); }
 
 .btn--primary {
   background: var(--color-primary);
-  color: #F2EDDC;
-  width: 100%;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  color: #fff;
 }
 .btn--primary:hover { background: var(--color-primary-hover); text-decoration: none; }
 
 .btn--secondary {
-  background: var(--color-accent);
-  color: #F2EDDC;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
 }
-.btn--secondary:hover { background: var(--color-accent-hover); text-decoration: none; }
+.btn--secondary:hover { background: var(--color-primary); color: #fff; text-decoration: none; }
 
 .btn--outline {
   background: transparent;
   color: var(--color-text);
-  border: 2px solid var(--color-text);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-size: 0.8rem;
+  border: 1.5px solid var(--color-border);
 }
 .btn--outline:hover { border-color: var(--color-primary); color: var(--color-primary); text-decoration: none; }
 
@@ -302,20 +298,21 @@ h2, h3 {
   background: transparent;
   color: var(--color-primary);
   padding: 8px 16px;
-  letter-spacing: 0.05em;
 }
 
 .btn--danger {
   background: var(--color-danger);
-  color: #F2EDDC;
+  color: #fff;
 }
 
 .btn--disabled {
   background: var(--color-border);
   color: var(--color-muted);
   cursor: not-allowed;
-  width: 100%;
 }
+
+/* Buttons in Formular-Karten füllen die Breite */
+.form-card .btn { width: 100%; }
 
 /* ============================================================
    PRODUKT-GRID & KARTEN
@@ -327,48 +324,45 @@ h2, h3 {
 }
 
 .product-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  background: transparent;
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: box-shadow var(--transition), transform var(--transition);
+  transition: transform var(--transition);
 }
 
-.product-card:hover {
-  box-shadow: 0 10px 28px rgba(107,63,47,0.18);   /* warmer Terracotta-Schatten */
-  transform: translateY(-3px);
-}
+.product-card:hover { transform: translateY(-4px); }
+.product-card:hover .product-card__image { box-shadow: var(--shadow-lg); }
 
 .product-card__image {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
-  background: var(--color-border);
+  background: var(--color-surface-2);
+  border-radius: var(--radius-lg);
+  transition: box-shadow var(--transition);
 }
 
 .product-card__body {
-  padding: 16px;
+  padding: 14px 4px 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
 }
 
 .product-card__name {
-  font-size: 1rem;
+  font-family: var(--font-main);
+  font-size: 0.98rem;
   font-weight: 600;
-}
-.product-card__name {
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 .product-card__name a { color: var(--color-text); }
+.product-card__name a:hover { color: var(--color-primary); text-decoration: none; }
 
 .product-card__price {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-primary);
+  color: var(--color-text);
 }
 
 /* ============================================================
@@ -684,13 +678,14 @@ h2, h3 {
    FOOTER
    ============================================================ */
 .footer {
-  background: var(--color-text);
+  background: var(--color-surface-2);
+  border-top: 1px solid var(--color-border);
   padding: 40px 0;
-  margin-top: auto;
+  margin-top: 72px;
 }
 
-.footer .footer__copy { color: var(--color-ton); }   /* heller Ton auf dunklem Footer */
-.footer .footer__links a { color: #e4dfd2; }
+.footer .footer__copy { color: var(--color-muted); }
+.footer .footer__links a { color: var(--color-muted); }
 .footer .footer__links a:hover { color: var(--color-primary); }
 
 .footer__inner {
