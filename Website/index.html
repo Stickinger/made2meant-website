@@ -30,30 +30,46 @@
     .nav-icons a:hover { color: var(--color-primary); }
     .nav-icons svg { width: 21px; height: 21px; }
 
-    /* ── HERO ── */
-    .hero2 { padding: 56px 0 24px; }
-    .hero2__grid {
-      display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: center;
+    /* ── HERO (randloses Foto + Text-Overlay links) ── */
+    .herofull {
+      position: relative; min-height: clamp(440px, 60vh, 620px);
+      display: flex; align-items: center; overflow: hidden;
     }
-    .hero2__title { font-size: clamp(2.3rem, 4.6vw, 3.5rem); line-height: 1.1; margin-bottom: 20px; }
-    .hero2__text { font-size: 1.08rem; color: var(--color-muted); max-width: 420px; margin-bottom: 28px; }
-    .hero2__cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .hero2__visual {
-      position: relative; aspect-ratio: 4/3.2; border-radius: var(--radius-lg); overflow: hidden;
-      background: linear-gradient(140deg, #EFE7DA 0%, #E4D3BE 55%, #D8C3A8 100%);
-      box-shadow: var(--shadow-lg);
-      display: flex; align-items: center; justify-content: center;
+    .herofull__bg {
+      position: absolute; inset: 0;
+      background: linear-gradient(120deg, #EFE7DA 0%, #E4D3BE 60%, #D8C3A8 100%);
     }
-    .hero2__visual::after {
-      content: ''; position: absolute; inset: 0;
-      background: radial-gradient(ellipse 60% 55% at 25% 20%, rgba(255,255,255,0.5), transparent 60%);
+    .herofull__photo {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; object-position: 68% center;
     }
+    .herofull__scrim {
+      position: absolute; inset: 0;
+      background: linear-gradient(90deg,
+        rgba(246,243,238,0.96) 0%, rgba(246,243,238,0.88) 24%,
+        rgba(246,243,238,0.45) 46%, rgba(246,243,238,0) 64%);
+    }
+    .herofull__content { position: relative; z-index: 2; max-width: 560px; padding: 48px 0; }
+    .herofull__title { font-size: clamp(2.1rem, 4.2vw, 3.3rem); line-height: 1.14; margin-bottom: 16px; }
+    .herofull__text { font-size: 1.08rem; color: var(--color-text); max-width: 370px; margin-bottom: 26px; }
+    .herofull__cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    @media (max-width: 700px) {
+      .herofull { min-height: 78vh; align-items: flex-end; }
+      .herofull__photo { object-position: 62% top; }
+      .herofull__scrim { background: linear-gradient(180deg, rgba(246,243,238,0.5) 0%, rgba(246,243,238,0.2) 30%, rgba(246,243,238,0.85) 72%, rgba(246,243,238,0.98) 100%); }
+      .herofull__content { padding: 24px 0 40px; }
+    }
+
     .stitch-name {
       font-family: 'Caveat', cursive; font-size: clamp(3rem, 6vw, 5rem); font-weight: 700;
       color: #9c6a4a; position: relative; z-index: 1; transform: rotate(-4deg);
       text-shadow: 0 1px 0 rgba(255,255,255,0.4);
     }
     .stitch-name small { display: block; text-align: center; font-size: 0.4em; margin-top: -0.2em; }
+
+    /* Trust-Leiste überlappt den Hero-Unterrand */
+    .trust.trust-wrap { position: relative; z-index: 3; margin-top: -44px; }
+    @media (max-width: 700px) { .trust.trust-wrap { margin-top: 20px; } }
 
     /* ── TRUST-LEISTE ── */
     .trust {
@@ -230,44 +246,42 @@
 
   <main id="main">
 
-    <!-- ===== HERO ===== -->
-    <section class="hero2">
-      <div class="container">
-        <div class="hero2__grid">
-          <div class="reveal is-visible">
-            <h1 class="hero2__title">Für kleine Menschen.<br>Für große Erinnerungen.</h1>
-            <p class="hero2__text">Hochwertige Textilien und Geschenke — persönlich für euch bestickt. Mit Liebe gemacht, für jeden Moment.</p>
-            <div class="hero2__cta">
-              <a href="#products" class="btn btn--primary">Geschenke entdecken</a>
-              <a href="#products" class="btn btn--ghost">Eigenes Stück gestalten →</a>
-            </div>
-          </div>
-          <div class="hero2__visual reveal is-visible">
-            <span class="stitch-name">Lina<small>♥</small></span>
-          </div>
-        </div>
-
-        <!-- Trust-Leiste -->
-        <div class="trust reveal">
-          <div class="trust__item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>
-            <div><strong>Ausgewählte Materialien</strong><span>für Babys &amp; Kinder</span></div>
-          </div>
-          <div class="trust__item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.5 7.5"/><circle cx="11" cy="11" r="2"/></svg>
-            <div><strong>Persönlich bestickt</strong><span>mit Liebe zum Detail</span></div>
-          </div>
-          <div class="trust__item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7S9 7 8 5.5 9 3 12 5c3-2 5-1 4 .5S12 7 12 7z"/></svg>
-            <div><strong>Für besondere Momente</strong><span>und für die Ewigkeit</span></div>
-          </div>
-          <div class="trust__item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
-            <div><strong>Mit Sorgfalt veredelt</strong><span>in Österreich</span></div>
-          </div>
+    <!-- ===== HERO (randloses Foto + Text-Overlay) ===== -->
+    <section class="herofull">
+      <div class="herofull__bg"></div>
+      <img class="herofull__photo" src="/assets/images/hero.jpg" alt="Personalisierte Babydecke mit gesticktem Namen im Körbchen" onerror="this.remove()">
+      <div class="herofull__scrim"></div>
+      <div class="container herofull__content">
+        <h1 class="herofull__title">Für kleine Menschen.<br>Für große Erinnerungen.</h1>
+        <p class="herofull__text">Hochwertige Textilien und Geschenke – persönlich für euch bestickt.</p>
+        <div class="herofull__cta">
+          <a href="#products" class="btn btn--primary">Geschenke entdecken</a>
+          <a href="#products" class="btn btn--ghost">Eigenes Stück gestalten →</a>
         </div>
       </div>
     </section>
+
+    <!-- Trust-Leiste (überlappt den Hero) -->
+    <div class="container">
+      <div class="trust trust-wrap reveal is-visible">
+        <div class="trust__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>
+          <div><strong>Ausgewählte Materialien</strong><span>für Babys &amp; Kinder</span></div>
+        </div>
+        <div class="trust__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.5 7.5"/><circle cx="11" cy="11" r="2"/></svg>
+          <div><strong>Persönlich bestickt</strong><span>mit Liebe zum Detail</span></div>
+        </div>
+        <div class="trust__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7S9 7 8 5.5 9 3 12 5c3-2 5-1 4 .5S12 7 12 7z"/></svg>
+          <div><strong>Für besondere Momente</strong><span>und für die Ewigkeit</span></div>
+        </div>
+        <div class="trust__item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
+          <div><strong>Mit Sorgfalt veredelt</strong><span>in Österreich</span></div>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== KATEGORIEN ===== -->
     <section class="section reveal">
