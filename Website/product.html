@@ -3,151 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Produkt — MADE2MEANT</title>
+  <title>Produkt — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;900&display=swap" rel="stylesheet">
   <style>
-    .product-detail {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
-      padding: 60px 0 80px;
-      align-items: start;
-    }
+    .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
+    .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
 
-    /* LINKS: Live-Vorschau */
-    .product-visual { position: sticky; top: 90px; }
-    .preview-wrap {
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-    }
-    .preview-wrap canvas {
-      width: 100%; height: auto; display: block;
-      touch-action: none; cursor: grab;
-    }
-    .preview-wrap canvas:active { cursor: grabbing; }
-    .view-tabs { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .view-tab {
-      padding: 7px 14px; border: 1px solid var(--color-border); border-radius: 99px;
-      background: #fff; color: var(--color-text); font-family: var(--font-main);
-      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer;
-      transition: all 0.15s;
-    }
-    .view-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
-    .view-tab.active { background: var(--color-text); border-color: var(--color-text); color: #F2EDDC; }
-    .preview-hint {
-      text-align: center; font-size: 0.72rem; color: var(--color-muted);
-      font-weight: 600; letter-spacing: 0.06em; margin-top: 10px;
-    }
+    .breadcrumb { font-size: 0.82rem; color: var(--color-muted); padding: 22px 0 6px; }
+    .breadcrumb a { color: var(--color-muted); }
+    .breadcrumb a:hover { color: var(--color-primary); }
+    .breadcrumb span { color: var(--color-text); }
 
-    /* RECHTS: Info + Konfigurator */
-    .product-info { display: flex; flex-direction: column; }
-    .product-info__category {
-      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.2em;
-      text-transform: uppercase; color: var(--color-primary); margin-bottom: 8px;
-    }
-    .product-info__title { font-size: 2rem; margin-bottom: 10px; line-height: 1.2; }
-    .product-info__desc { color: var(--color-muted); line-height: 1.8; font-size: 0.95rem; margin-bottom: 8px; }
-    .product-info__stock { font-size: 0.82rem; color: var(--color-muted); }
-    .product-info__stock.low { color: #e07b2a; }
+    .pd { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; padding: 12px 0 70px; align-items: start; }
+    @media (max-width: 880px) { .pd { grid-template-columns: 1fr; gap: 32px; } }
 
-    .cfg { margin-top: 28px; border-top: 1px solid var(--color-border); padding-top: 28px; }
-    .cfg-block { margin-bottom: 26px; }
-    .cfg-block__title {
-      font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
-      text-transform: uppercase; color: var(--color-text); margin-bottom: 6px;
-    }
-    .cfg-block__hint { font-size: 0.78rem; color: var(--color-muted); margin-bottom: 12px; }
+    /* GALERIE */
+    .gallery { position: sticky; top: 92px; }
+    .gallery__main { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow); }
+    .gallery__main canvas { width: 100%; height: auto; display: block; touch-action: none; cursor: grab; }
+    .gallery__main canvas:active { cursor: grabbing; }
+    .gallery__badge { position: absolute; top: 14px; left: 14px; background: var(--color-surface); color: var(--color-text); font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; box-shadow: var(--shadow); z-index: 2; }
+    .gallery__wish { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--color-surface); border: none; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-muted); z-index: 2; transition: color var(--transition); }
+    .gallery__wish:hover { color: var(--color-primary); }
+    .gallery__wish.on { color: var(--color-primary); }
+    .gallery__wish.on svg { fill: var(--color-primary); }
+    .gallery__hint { text-align: center; font-size: 0.72rem; color: var(--color-muted); margin-top: 10px; }
+    .thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .thumb { width: 74px; height: 74px; border-radius: var(--radius); overflow: hidden; border: 2px solid transparent; background: var(--color-surface-2); cursor: pointer; padding: 0; }
+    .thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .thumb.active { border-color: var(--color-primary); }
 
-    .cfg-select {
-      width: 100%; padding: 11px 14px;
-      border: 1px solid var(--color-border); border-radius: var(--radius);
-      font-family: var(--font-main); font-size: 0.95rem;
-      color: var(--color-text); background: #fff; cursor: pointer;
-    }
-    .cfg-select:focus { border-color: var(--color-primary); }
-    .thread-row { display: flex; align-items: center; gap: 12px; }
-    .thread-row .cfg-select { flex: 1; }
-    .thread-dot {
-      width: 26px; height: 26px; border-radius: 50%;
-      border: 1px solid rgba(0,0,0,0.15); flex: 0 0 auto; background: transparent;
-    }
+    /* INFO */
+    .pinfo__eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-primary); margin-bottom: 8px; }
+    .pinfo__title { font-size: clamp(1.9rem, 3.4vw, 2.5rem); line-height: 1.12; margin-bottom: 10px; }
+    .pinfo__tag { color: var(--color-muted); margin-bottom: 18px; }
+    .pinfo__price { font-size: 1.9rem; font-weight: 800; font-family: var(--font-main); color: var(--color-text); }
+    .pinfo__pricenote { font-size: 0.8rem; color: var(--color-muted); margin: 2px 0 18px; }
+    .pinfo__chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
+    .chip { display: inline-flex; align-items: center; gap: 7px; font-size: 0.78rem; font-weight: 600; color: var(--color-accent); border: 1px solid var(--color-border); background: var(--color-surface); border-radius: 99px; padding: 7px 13px; }
+    .chip svg { width: 15px; height: 15px; }
 
+    .divide { border-top: 1px solid var(--color-border); margin: 4px 0 22px; }
+    .fld { margin-bottom: 22px; }
+    .fld__label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-text); margin-bottom: 10px; display: block; }
+    .fld__hint { font-size: 0.8rem; color: var(--color-muted); margin: -4px 0 12px; }
+
+    /* Farb-Pills (Produktfarbe) */
+    .cpills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .cpill { padding: 9px 18px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); font-family: var(--font-main); font-weight: 600; font-size: 0.88rem; color: var(--color-text); cursor: pointer; transition: all 0.15s; }
+    .cpill:hover { border-color: var(--color-primary); }
+    .cpill.selected { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
+
+    /* Garnfarbe-Swatches */
+    .tswatches { display: flex; gap: 10px; flex-wrap: wrap; }
+    .tswatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); transition: transform 0.12s; position: relative; }
+    .tswatch:hover { transform: scale(1.1); }
+    .tswatch.selected { border-color: var(--color-text); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text); }
+
+    /* Stickstellen */
     .pos-list { display: flex; flex-direction: column; gap: 10px; }
-    .pos-card {
-      border: 1.5px solid var(--color-border); border-radius: var(--radius);
-      padding: 14px 16px; transition: border-color 0.15s, background 0.15s;
-    }
-    .pos-card.active { border-color: var(--color-primary); background: #fdf8f7; }
+    .pos-card { border: 1.5px solid var(--color-border); border-radius: var(--radius); padding: 13px 15px; transition: border-color 0.15s, background 0.15s; }
+    .pos-card.active { border-color: var(--color-primary); background: #fbf1ec; }
     .pos-card__head { display: flex; align-items: center; gap: 12px; cursor: pointer; }
     .pos-card__head input { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
-    .pos-card__name { font-weight: 700; flex: 1; font-size: 0.92rem; }
-    .pos-card__price { color: var(--color-primary); font-weight: 700; font-size: 0.9rem; white-space: nowrap; }
-    .pos-text { margin-top: 12px; display: none; }
-    .pos-text label { display: block; font-size: 0.78rem; color: var(--color-muted); margin-bottom: 5px; }
-    .pos-text input {
-      width: 100%; padding: 10px 12px;
-      border: 1px solid var(--color-border); border-radius: var(--radius);
-      font-family: var(--font-main); font-size: 0.95rem; color: var(--color-text); background: #fff;
-    }
+    .pos-card__name { font-weight: 700; flex: 1; font-size: 0.9rem; }
+    .pos-card__price { color: var(--color-primary); font-weight: 700; font-size: 0.88rem; }
+    .pos-text { margin-top: 11px; display: none; }
+    .pos-text label { display: block; font-size: 0.76rem; color: var(--color-muted); margin-bottom: 5px; }
+    .pos-text input { width: 100%; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); font-family: var(--font-main); font-size: 0.95rem; color: var(--color-text); background: var(--color-surface); }
     .pos-text input:focus { border-color: var(--color-primary); }
 
-    .price-summary { display: flex; align-items: baseline; gap: 12px; margin: 8px 0 18px; flex-wrap: wrap; }
-    .price-display { font-size: 1.8rem; font-weight: 900; color: var(--color-primary); }
-    .price-note { font-size: 0.8rem; color: var(--color-muted); }
-    .personalize-hint {
-      font-size: 0.82rem; color: var(--color-muted);
-      padding: 10px 14px; background: #fdf8f7; border: 1px solid #f0e4e2;
-      border-radius: var(--radius); margin-bottom: 12px;
-    }
-    .personalize-hint.complete { background: #f0f7f2; border-color: #c8dece; color: var(--color-accent); }
-    .qty-selector { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .qty-btn {
-      width: 34px; height: 34px; border-radius: 50%;
-      background: #fff; border: 1px solid var(--color-border);
-      color: var(--color-text); font-size: 1.1rem; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-    }
-    .qty-btn:hover { border-color: var(--color-primary); }
-    #qty-display { font-size: 1.05rem; font-weight: 600; min-width: 22px; text-align: center; }
+    .personalize-hint { font-size: 0.82rem; color: var(--color-muted); padding: 10px 14px; background: #fbf1ec; border: 1px solid #f0ddd4; border-radius: var(--radius); margin-bottom: 14px; }
+    .personalize-hint.complete { background: #eef4ef; border-color: #cfe0d4; color: var(--color-accent); }
 
-    @media (max-width: 768px) {
-      .product-detail { grid-template-columns: 1fr; gap: 32px; }
-      .product-visual { position: static; }
-    }
+    .buy-row { display: flex; gap: 12px; align-items: stretch; }
+    .qty-selector { display: flex; align-items: center; gap: 6px; border: 1.5px solid var(--color-border); border-radius: var(--radius); padding: 2px; }
+    .qty-btn { width: 38px; height: 42px; border-radius: 6px; background: transparent; border: none; color: var(--color-text); font-size: 1.1rem; cursor: pointer; }
+    .qty-btn:hover { background: var(--color-surface-2); }
+    #qty-display { min-width: 22px; text-align: center; font-weight: 700; }
+    .buy-row .btn--primary { flex: 1; padding: 15px; font-size: 0.98rem; }
+
+    /* Trust-Leiste unten */
+    .ptrust { border-top: 1px solid var(--color-border); }
+    .ptrust__inner { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; padding: 26px 0; }
+    .ptrust__item { display: flex; align-items: center; gap: 12px; font-size: 0.85rem; }
+    .ptrust__item svg { width: 26px; height: 26px; color: var(--color-accent); flex: 0 0 auto; }
+    .ptrust__item strong { display: block; color: var(--color-text); }
+    .ptrust__item span { color: var(--color-muted); font-size: 0.8rem; }
+    @media (max-width: 720px) { .ptrust__inner { grid-template-columns: 1fr; gap: 14px; } }
   </style>
 </head>
 <body>
 
-
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
   <nav class="navbar">
     <div class="container navbar__inner">
-      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <a href="/index.html" class="navbar__logo">made2meant</a>
       <ul class="navbar__links">
-        <li><a href="/index.html">← Shop</a></li>
-        <li><a href="/login.html" id="nav-login">Login</a></li>
-        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
-        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/index.html#products">Geschenke</a></li>
+        <li><a href="/index.html#products">Baby &amp; Kind</a></li>
+        <li><a href="/index.html#products">Personalisieren</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
       </ul>
+      <div class="nav-icons">
+        <a href="/index.html#products" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
     </div>
   </nav>
 
   <main id="main">
     <div class="container">
-      <div id="product-detail" class="product-detail">
-        <p class="loading">Produkt wird geladen...</p>
+      <nav class="breadcrumb" id="breadcrumb"></nav>
+      <div id="product-detail" class="pd">
+        <p class="loading">Produkt wird geladen…</p>
       </div>
     </div>
+
+    <section class="ptrust">
+      <div class="container ptrust__inner">
+        <div class="ptrust__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg><div><strong>Mit Liebe personalisiert</strong><span>In 2–4 Werktagen bei dir</span></div></div>
+        <div class="ptrust__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg><div><strong>Kostenloser Versand</strong><span>ab 69 € Bestellwert</span></div></div>
+        <div class="ptrust__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg><div><strong>30 Tage Rückgabe</strong><span>auf nicht personalisierte Artikel</span></div></div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
     <div class="container footer__inner">
-      <span class="footer__copy">© 2026 MADE2MEANT. Alle Rechte vorbehalten.</span>
+      <span class="footer__copy">© 2026 made2meant · Made personal. Meant forever.</span>
       <ul class="footer__links">
         <li><a href="/impressum.html">Impressum</a></li>
         <li><a href="/datenschutz.html">Datenschutz</a></li>
@@ -166,45 +173,38 @@
     updateNav();
     updateCartBadge();
 
-    // ── DATEN ─────────────────────────────────────────────────
+    const _nav = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
+
     const THREAD_COLORS = [
       { name: 'Weiß', hex: '#F0EDE8' }, { name: 'Schwarz', hex: '#1a1a1a' },
       { name: 'Navy', hex: '#1B2A4A' }, { name: 'Bordeaux', hex: '#7B1C2E' },
-      { name: 'Terracotta', hex: '#a85d4f' }, { name: 'Moosgrün', hex: '#42553d' },
+      { name: 'Terracotta', hex: '#C56A47' }, { name: 'Moosgrün', hex: '#42553d' },
       { name: 'Gold', hex: '#C9A84C' }, { name: 'Silber', hex: '#A8A9AD' },
       { name: 'Rosa', hex: '#D4789E' }, { name: 'Hellblau', hex: '#5B9EC9' },
-      { name: 'Beige', hex: '#C4A882' }, { name: 'Lila', hex: '#7B5EA7' },
+      { name: 'Beige', hex: '#C4A882' }, { name: 'Salbei', hex: '#8DA190' },
     ];
 
-    // Stickstellen werden pro Produkt im Admin definiert (product.positions)
     let POSITIONS = [];
-
-    // ── STATE ─────────────────────────────────────────────────
     let currentProduct = null;
     let productImages = [];
     let capOption = null;
     let qty = 1;
 
-    const cfg = {
-      capColor: null,
-      threadColor: null,          // {name,hex}
-      positions: {},              // id -> { text, pos:{x,y} }
-      previewPos: null,           // aktuell gezeigte Stelle (id)
-    };
+    const cfg = { capColor: null, threadColor: null, positions: {}, previewPos: null };
 
     const imgCache = {};
     function getImg(url) {
       if (!url) return null;
       if (url in imgCache) return imgCache[url];
       const im = new Image();
-      im.onload = () => renderCanvas();
+      im.onload = () => { renderCanvas(); renderThumbs(); };
       im.onerror = () => { imgCache[url] = null; };
       im.src = url;
       imgCache[url] = im;
       return im;
     }
 
-    // ── INIT ──────────────────────────────────────────────────
     async function init() {
       const slug = new URLSearchParams(window.location.search).get('slug');
       if (!slug) { window.location.href = '/index.html'; return; }
@@ -214,43 +214,36 @@
         document.getElementById('product-detail').innerHTML = '<p class="empty">Produkt nicht gefunden.</p>';
         return;
       }
-      document.title = currentProduct.name + ' — MADE2MEANT';
+      document.title = currentProduct.name + ' — made2meant';
 
       const { data: imgs } = await db.from('product_images')
-        .select('url, option_values, sort_order')
-        .eq('product_id', currentProduct.id)
-        .order('sort_order');
+        .select('url, option_values, sort_order').eq('product_id', currentProduct.id).order('sort_order');
       productImages = imgs || [];
 
       const opts = currentProduct.options || [];
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
       if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
 
-      // Stickstellen aus dem Produkt laden
       POSITIONS = (currentProduct.positions || []).map((p, i) => ({
-        id: 'p' + i, label: p.label, view: p.label,
-        price: Number(p.price) || 0, def: { x: 0.5, y: 0.45 },
+        id: 'p' + i, label: p.label, view: p.label, price: Number(p.price) || 0, def: { x: 0.5, y: 0.45 },
       }));
       cfg.previewPos = POSITIONS[0]?.id || null;
+
+      document.getElementById('breadcrumb').innerHTML =
+        `<a href="/index.html">Startseite</a> / <a href="/index.html#products">Shop</a> / <span>${currentProduct.name}</span>`;
 
       renderPage();
     }
 
-    // ── HELFER ────────────────────────────────────────────────
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
 
-    // Foto für eine Ansicht (view) + aktuelle Kappenfarbe finden
     function photoFor(positionId) {
       const p = POSITIONS.find(x => x.id === positionId);
       const view = p ? p.view : null;
       const hasColor = (ov) => !cfg.capColor || Object.values(ov || {}).includes(cfg.capColor);
       const hasView  = (ov) => Object.values(ov || {}).includes(view);
-
-      // 1. exakt: passende Ansicht + Farbe
       let m = productImages.find(img => hasView(img.option_values) && hasColor(img.option_values));
-      // 2. nur passende Farbe (ein Foto der Farbe)
       if (!m) m = productImages.find(img => hasColor(img.option_values));
-      // 3. irgendein Foto / Hauptbild
       return m?.url || currentProduct.image_url || '/assets/images/placeholder.png';
     }
 
@@ -260,27 +253,28 @@
       return base + add;
     }
 
-    // ── RENDER SEITE ──────────────────────────────────────────
+    function isNew() {
+      if (!currentProduct.created_at) return false;
+      return (Date.now() - new Date(currentProduct.created_at).getTime()) < 28 * 864e5;
+    }
+
     function renderPage() {
       const p = currentProduct;
-      const stockLabel = p.stock <= 5
-        ? `<span class="product-info__stock low">Nur noch ${p.stock} verfügbar</span>`
-        : `<span class="product-info__stock">${p.stock} auf Lager</span>`;
-
       const personalizable = POSITIONS.length > 0;
+      const wished = localStorage.getItem('wish-' + p.slug) === '1';
 
       const capBlock = (capOption && capOption.values?.length) ? `
-        <div class="cfg-block">
-          <div class="cfg-block__title">Farbe</div>
-          <select class="cfg-select" id="cap-select" onchange="selectCap(this.value)" aria-label="Farbe wählen">
-            ${capOption.values.map(v => `<option value="${v}" ${v === cfg.capColor ? 'selected' : ''}>${v}</option>`).join('')}
-          </select>
+        <div class="fld">
+          <span class="fld__label">Farbe${cfg.capColor ? ': ' + cfg.capColor : ''}</span>
+          <div class="cpills" id="cap-pills">
+            ${capOption.values.map(v => `<button type="button" class="cpill ${v === cfg.capColor ? 'selected' : ''}" data-val="${v}" onclick="selectCap('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+          </div>
         </div>` : '';
 
       const posBlock = !personalizable ? '' : `
-        <div class="cfg-block">
-          <div class="cfg-block__title">Stickstellen</div>
-          <div class="cfg-block__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>
+        <div class="fld">
+          <span class="fld__label">Personalisierung</span>
+          <div class="fld__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>
           <div class="pos-list">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -290,81 +284,81 @@
                   <span class="pos-card__price">+ ${euro(pos.price)}</span>
                 </label>
                 <div class="pos-text" id="postext-${pos.id}">
-                  <label for="posinput-${pos.id}">Dein Text für diese Stelle</label>
-                  <input type="text" id="posinput-${pos.id}" maxlength="24"
-                         placeholder="z.B. Emma, 2026, Kleiner Schatz"
-                         onfocus="setPreview('${pos.id}')"
-                         oninput="setPositionText('${pos.id}', this.value)">
+                  <label for="posinput-${pos.id}">Dein Text</label>
+                  <input type="text" id="posinput-${pos.id}" maxlength="24" placeholder="z.B. Emma, 2026, Kleiner Schatz"
+                         onfocus="setPreview('${pos.id}')" oninput="setPositionText('${pos.id}', this.value)">
                 </div>
-              </div>
-            `).join('')}
+              </div>`).join('')}
           </div>
         </div>`;
 
       const threadBlock = !personalizable ? '' : `
-        <div class="cfg-block">
-          <div class="cfg-block__title">Fadenfarbe</div>
-          <div class="thread-row">
-            <select class="cfg-select" id="thread-select" onchange="selectThread(this.value)" aria-label="Fadenfarbe wählen">
-              <option value="">Bitte wählen…</option>
-              ${THREAD_COLORS.map(c => `<option value="${c.name}">${c.name}</option>`).join('')}
-            </select>
-            <span class="thread-dot" id="thread-dot"></span>
+        <div class="fld">
+          <span class="fld__label">Garnfarbe</span>
+          <div class="tswatches" id="thread-swatches">
+            ${THREAD_COLORS.map(c => `<button type="button" class="tswatch" style="--c:${c.hex}" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('')}
           </div>
         </div>`;
 
-      const priceNote = personalizable
-        ? `Grundpreis${p.price ? ' ' + euro(p.price) : ''} + gewählte Stickstellen`
-        : '';
-      const startHint = personalizable
-        ? 'Wähle mindestens eine Stickstelle mit Text und eine Fadenfarbe.'
-        : '';
+      const priceNote = personalizable ? 'inkl. MwSt. · Grundpreis + gewählte Stickstellen' : 'inkl. MwSt. zzgl. Versand';
 
       document.getElementById('product-detail').innerHTML = `
-        <div class="product-visual">
-          <div class="preview-wrap">
-            <canvas id="cfg-canvas" width="560" height="560" role="img" aria-label="Live-Vorschau des Produkts"></canvas>
+        <div class="gallery">
+          <div class="gallery__main">
+            ${isNew() ? '<span class="gallery__badge">Neu</span>' : ''}
+            <button class="gallery__wish ${wished ? 'on' : ''}" id="wish-btn" aria-label="Merken" onclick="toggleWish(this)">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
+            </button>
+            <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Live-Vorschau des Produkts"></canvas>
           </div>
-          <div class="view-tabs" id="view-tabs"></div>
-          ${personalizable ? '<div class="preview-hint" id="preview-hint">Wähle eine Stickstelle und tippe deinen Text.</div>' : ''}
+          <div class="thumbs" id="thumbs"></div>
+          ${personalizable ? '<div class="gallery__hint">Tipp: Zieh deinen Text auf dem Bild an die gewünschte Stelle.</div>' : ''}
         </div>
 
-        <div class="product-info">
-          <div class="product-info__category">${personalizable ? 'Individuell bestickt' : 'Produkt'}</div>
-          <h1 class="product-info__title">${p.name}</h1>
-          <p class="product-info__desc">${p.description || ''}</p>
-          ${stockLabel}
+        <div class="pinfo">
+          <div class="pinfo__eyebrow">${personalizable ? 'Individuell bestickt' : 'made2meant'}</div>
+          <h1 class="pinfo__title">${p.name}</h1>
+          ${p.description ? `<p class="pinfo__tag">${p.description}</p>` : ''}
+          <div class="pinfo__price" id="price-display">${euro(currentPrice())}</div>
+          <div class="pinfo__pricenote" id="price-note">${priceNote}</div>
+          <div class="pinfo__chips">
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>Hochwertige Materialien</span>
+            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>Persönlich in Österreich bestickt</span>
+          </div>
 
-          <div class="cfg">
-            ${capBlock}
-            ${posBlock}
-            ${threadBlock}
+          <div class="divide"></div>
+          ${capBlock}
+          ${posBlock}
+          ${threadBlock}
 
-            <div class="price-summary">
-              <span class="price-display" id="price-display">${euro(currentPrice())}</span>
-              <span class="price-note" id="price-note">${priceNote}</span>
-            </div>
+          ${personalizable ? '<div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Garnfarbe.</div>' : '<div id="hint"></div>'}
 
-            ${personalizable ? `<div class="personalize-hint" id="hint" role="status">${startHint}</div>` : '<div id="hint"></div>'}
-
+          <div class="buy-row">
             <div class="qty-selector">
               <button class="qty-btn" aria-label="Menge verringern" onclick="changeQty(-1)">−</button>
               <span id="qty-display" aria-live="polite">1</span>
               <button class="qty-btn" aria-label="Menge erhöhen" onclick="changeQty(1)">+</button>
             </div>
-            <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()"
-                    style="width:auto;padding:15px 32px;" ${personalizable ? 'disabled' : ''}>
-              ${personalizable ? 'Personalisiert in den Warenkorb' : 'In den Warenkorb'}
+            <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()" ${personalizable ? 'disabled' : ''}>
+              ${personalizable ? 'Mein Stück personalisieren' : 'In den Warenkorb'}
             </button>
           </div>
         </div>
       `;
 
-      renderViewTabs();
+      renderThumbs();
       requestAnimationFrame(() => { renderCanvas(); setupCanvasDrag(); });
     }
 
-    // ── VORSCHAU (Canvas) ─────────────────────────────────────
+    function renderThumbs() {
+      const el = document.getElementById('thumbs');
+      if (!el) return;
+      if (POSITIONS.length <= 1) { el.innerHTML = ''; return; }
+      el.innerHTML = POSITIONS.map(p =>
+        `<button class="thumb ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')" aria-label="${p.view}"><img src="${photoFor(p.id)}" alt="${p.view}"></button>`
+      ).join('');
+    }
+
     function renderCanvas() {
       const canvas = document.getElementById('cfg-canvas');
       if (!canvas) return;
@@ -378,133 +372,88 @@
         const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
         ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
       } else {
-        ctx.fillStyle = '#EDE8DF'; ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#b0a898';
-        ctx.font = `600 ${W * 0.03}px 'Source Sans 3', sans-serif`;
+        ctx.fillStyle = '#EFE7DA'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = '#b0a898'; ctx.font = `600 ${W * 0.03}px Nunito, sans-serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('Foto wird geladen…', W / 2, H / 2);
       }
 
       const data = cfg.positions[view];
       if (data && data.text && cfg.threadColor) {
-        const px = data.pos.x * W, py = data.pos.y * H;
-        const t = data.text;
+        const px = data.pos.x * W, py = data.pos.y * H, t = data.text;
         const fontSize = t.length <= 3 ? W * 0.1 : t.length <= 8 ? W * 0.07 : W * 0.05;
-        ctx.font = `700 ${fontSize}px 'Source Sans 3', sans-serif`;
+        ctx.font = `700 ${fontSize}px Nunito, sans-serif`;
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        // heller Rand für Lesbarkeit
-        ctx.save();
-        ctx.lineWidth = fontSize * 0.14; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineJoin = 'round';
-        ctx.strokeText(t, px, py); ctx.restore();
-        // Text in Garnfarbe
-        ctx.save();
-        ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-        ctx.fillStyle = cfg.threadColor.hex; ctx.fillText(t, px, py); ctx.restore();
+        ctx.save(); ctx.lineWidth = fontSize * 0.14; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineJoin = 'round'; ctx.strokeText(t, px, py); ctx.restore();
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; ctx.fillStyle = cfg.threadColor.hex; ctx.fillText(t, px, py); ctx.restore();
       } else if (data) {
         const px = data.pos.x * W, py = data.pos.y * H;
-        ctx.save();
-        ctx.setLineDash([6, 5]); ctx.strokeStyle = 'rgba(168,93,79,0.9)'; ctx.lineWidth = 2;
-        ctx.strokeRect(px - W * 0.16, py - H * 0.06, W * 0.32, H * 0.12); ctx.restore();
-        ctx.fillStyle = '#a85d4f'; ctx.font = `700 ${W * 0.026}px 'Source Sans 3', sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = 'rgba(197,106,71,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(px - W * 0.16, py - H * 0.06, W * 0.32, H * 0.12); ctx.restore();
+        ctx.fillStyle = '#C56A47'; ctx.font = `700 ${W * 0.026}px Nunito, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.fillText('Hier kommt dein Text', px, py);
       }
     }
 
-    function renderViewTabs() {
-      const tabs = document.getElementById('view-tabs');
-      if (!tabs) return;
-      const active = POSITIONS.filter(p => p.id in cfg.positions);
-      if (active.length <= 1) { tabs.innerHTML = ''; return; }
-      tabs.innerHTML = active.map(p =>
-        `<button class="view-tab ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')">${p.view}</button>`
-      ).join('');
-    }
-
-    // Drag: Text auf dem Foto verschieben
     let dragging = false;
     function normPoint(canvas, cx, cy) {
       const r = canvas.getBoundingClientRect();
-      return {
-        x: Math.min(0.9, Math.max(0.1, (cx - r.left) / r.width)),
-        y: Math.min(0.92, Math.max(0.08, (cy - r.top) / r.height)),
-      };
+      return { x: Math.min(0.9, Math.max(0.1, (cx - r.left) / r.width)), y: Math.min(0.92, Math.max(0.08, (cy - r.top) / r.height)) };
     }
     function setupCanvasDrag() {
       const canvas = document.getElementById('cfg-canvas');
       if (!canvas || canvas.dataset.wired) return;
       canvas.dataset.wired = '1';
-      const apply = (e) => {
-        const d = cfg.positions[cfg.previewPos];
-        if (!d) return;
-        d.pos = normPoint(canvas, e.clientX, e.clientY);
-        renderCanvas();
-      };
-      canvas.addEventListener('pointerdown', (e) => {
-        if (!cfg.positions[cfg.previewPos]) return;
-        dragging = true; canvas.setPointerCapture(e.pointerId); apply(e);
-      });
+      const apply = (e) => { const d = cfg.positions[cfg.previewPos]; if (!d) return; d.pos = normPoint(canvas, e.clientX, e.clientY); renderCanvas(); };
+      canvas.addEventListener('pointerdown', (e) => { if (!cfg.positions[cfg.previewPos]) return; dragging = true; canvas.setPointerCapture(e.pointerId); apply(e); });
       canvas.addEventListener('pointermove', (e) => { if (dragging) { e.preventDefault(); apply(e); } });
       canvas.addEventListener('pointerup', () => { dragging = false; });
       canvas.addEventListener('pointercancel', () => { dragging = false; });
     }
 
-    // ── AUSWAHL ───────────────────────────────────────────────
-    function selectCap(value) { cfg.capColor = value; renderCanvas(); }
+    function selectCap(value) {
+      cfg.capColor = value;
+      document.querySelectorAll('.cpill').forEach(el => el.classList.toggle('selected', el.dataset.val === value));
+      const lbl = document.querySelector('.fld__label'); if (lbl && /Farbe/.test(lbl.textContent)) lbl.textContent = 'Farbe: ' + value;
+      renderCanvas(); renderThumbs();
+    }
 
     function selectThread(name) {
       cfg.threadColor = THREAD_COLORS.find(t => t.name === name) || null;
-      document.getElementById('thread-dot').style.background = cfg.threadColor ? cfg.threadColor.hex : 'transparent';
+      document.querySelectorAll('.tswatch').forEach(s => s.classList.toggle('selected', s.dataset.name === name));
       renderCanvas(); checkReady();
     }
 
-    function setPreview(id) {
-      cfg.previewPos = id;
-      renderViewTabs();
-      renderCanvas();
-    }
+    function setPreview(id) { cfg.previewPos = id; renderThumbs(); renderCanvas(); }
 
     function togglePosition(id, on) {
       if (on) {
-        if (!(id in cfg.positions)) {
-          const def = POSITIONS.find(p => p.id === id).def;
-          cfg.positions[id] = { text: '', pos: { x: def.x, y: def.y } };
-        }
+        if (!(id in cfg.positions)) { const def = POSITIONS.find(p => p.id === id).def; cfg.positions[id] = { text: '', pos: { x: def.x, y: def.y } }; }
         cfg.previewPos = id;
       } else {
         delete cfg.positions[id];
-        if (cfg.previewPos === id) {
-          const remaining = POSITIONS.find(p => p.id in cfg.positions);
-          cfg.previewPos = remaining ? remaining.id : (POSITIONS[0]?.id || null);
-        }
+        if (cfg.previewPos === id) { const rem = POSITIONS.find(p => p.id in cfg.positions); cfg.previewPos = rem ? rem.id : (POSITIONS[0]?.id || null); }
       }
       document.getElementById('poscard-' + id).classList.toggle('active', on);
       document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
       if (on) { const inp = document.getElementById('posinput-' + id); if (inp) inp.focus(); }
-      renderViewTabs(); renderCanvas(); updatePrice(); checkReady();
+      renderThumbs(); renderCanvas(); updatePrice(); checkReady();
     }
 
-    function setPositionText(id, val) {
-      if (cfg.positions[id]) cfg.positions[id].text = val;
-      renderCanvas(); checkReady();
+    function setPositionText(id, val) { if (cfg.positions[id]) cfg.positions[id].text = val; renderCanvas(); checkReady(); }
+    function updatePrice() { document.getElementById('price-display').textContent = euro(currentPrice()); }
+    function changeQty(delta) { qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99)); document.getElementById('qty-display').textContent = qty; }
+
+    function toggleWish(btn) {
+      const k = 'wish-' + currentProduct.slug;
+      const on = localStorage.getItem(k) !== '1';
+      localStorage.setItem(k, on ? '1' : '0');
+      btn.classList.toggle('on', on);
     }
 
-    function updatePrice() {
-      document.getElementById('price-display').textContent = euro(currentPrice());
-    }
-
-    function changeQty(delta) {
-      qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99));
-      document.getElementById('qty-display').textContent = qty;
-    }
-
-    // ── VALIDIERUNG ───────────────────────────────────────────
     function checkReady() {
       const btn = document.getElementById('add-btn');
       const hint = document.getElementById('hint');
       const capOk = !capOption || !!cfg.capColor;
-
-      // Produkt ohne Stickstellen: einfaches Produkt, immer kaufbar (Farbe ggf. nötig)
       if (POSITIONS.length === 0) { if (btn) btn.disabled = !capOk; return; }
 
       const active = Object.keys(cfg.positions);
@@ -516,33 +465,29 @@
       if (ready) {
         const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${cfg.positions[id].text}"`);
         hint.className = 'personalize-hint complete';
-        hint.textContent = `Bereit — ${parts.join(' · ')} · Faden: ${cfg.threadColor.name}`;
+        hint.textContent = `Bereit — ${parts.join(' · ')} · Garn: ${cfg.threadColor.name}`;
       } else {
         hint.className = 'personalize-hint';
         const missing = [];
         if (!active.length) missing.push('mindestens eine Stickstelle');
         else if (!allFilled) missing.push('Text für jede gewählte Stelle');
-        if (!cfg.threadColor) missing.push('Fadenfarbe');
+        if (!cfg.threadColor) missing.push('Garnfarbe');
         if (capOption && !cfg.capColor) missing.push('Farbe');
         hint.textContent = `Noch offen: ${missing.join(', ')}.`;
       }
     }
 
-    // ── WARENKORB ─────────────────────────────────────────────
     function handleAddToCart() {
       const options = {};
       if (capOption) options[capOption.name] = cfg.capColor;
-
       if (POSITIONS.length > 0) {
         const active = Object.keys(cfg.positions);
         if (!active.length || !cfg.threadColor) return;
-        options['Fadenfarbe'] = cfg.threadColor.name;
+        options['Garnfarbe'] = cfg.threadColor.name;
         POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
       }
-
       let previewUrl = photoFor(cfg.previewPos);
       try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}
-
       const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
       for (let i = 0; i < qty; i++) addToCart(base, options);
     }
