@@ -3,147 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kasse — MADE2MEANT</title>
+  <title>Kasse — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
-    .checkout-layout {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 48px;
-      padding: 60px 0;
-      align-items: start;
-    }
-    .checkout-section {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius);
-      padding: 28px;
-      margin-bottom: 24px;
-    }
-    .checkout-section h3 {
-      margin-bottom: 20px;
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--color-muted);
-    }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-    .order-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--color-border);
-      font-size: 0.9rem;
-    }
-    .order-item:last-child { border-bottom: none; }
-    @media (max-width: 768px) {
-      .checkout-layout { grid-template-columns: 1fr; }
-      .form-row { grid-template-columns: 1fr; }
-    }
+    .co-layout { display: grid; grid-template-columns: 1fr 380px; gap: 48px; padding: 36px 0 70px; align-items: start; }
+    @media (max-width: 860px) { .co-layout { grid-template-columns: 1fr; } }
+    .co-section { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 20px; }
+    .co-section h3 { font-family: var(--font-main); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 18px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
+
+    .pay-opt { display: flex; align-items: flex-start; gap: 12px; border: 1.5px solid var(--color-border); border-radius: var(--radius); padding: 15px 16px; margin-bottom: 12px; cursor: pointer; transition: border-color var(--transition), background var(--transition); }
+    .pay-opt:hover { border-color: var(--color-primary); }
+    .pay-opt.sel { border-color: var(--color-primary); background: #fbf1ec; }
+    .pay-opt input { margin-top: 3px; accent-color: var(--color-primary); }
+    .pay-opt__body strong { display: block; font-size: 0.95rem; }
+    .pay-opt__body span { font-size: 0.82rem; color: var(--color-muted); }
+
+    .summary { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 24px; position: sticky; top: 88px; }
+    .summary__item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.9rem; }
+    .summary__item:last-of-type { border-bottom: none; }
+    .summary__opts { color: var(--color-muted); font-size: 0.8rem; }
+    .summary__row { display: flex; justify-content: space-between; margin-top: 10px; font-size: 0.92rem; }
+    .summary__row--total { font-weight: 800; font-size: 1.1rem; border-top: 1px solid var(--color-border); padding-top: 12px; margin-top: 12px; }
+    .co-secure { display: flex; align-items: center; gap: 8px; justify-content: center; color: var(--color-muted); font-size: 0.82rem; margin-top: 14px; }
+    .co-secure svg { width: 15px; height: 15px; }
   </style>
 </head>
 <body>
 
-
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
   <nav class="navbar">
     <div class="container navbar__inner">
-      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
-      <ul class="navbar__links">
-        <li><a href="/cart.html">← Warenkorb</a></li>
-      </ul>
+      <a href="/index.html" class="navbar__logo">made2meant</a>
+      <ul class="navbar__links"><li><a href="/cart.html">← Warenkorb</a></li></ul>
     </div>
   </nav>
 
   <main id="main">
     <div class="container">
-      <div class="checkout-layout">
+      <h1 style="margin:8px 0 24px;">Kasse</h1>
+      <div class="co-layout">
+        <form id="checkout-form">
+          <div class="co-section">
+            <h3>Kontakt</h3>
+            <div class="form-group"><label for="email">E-Mail</label><input type="email" id="email" placeholder="deine@email.com" required></div>
+          </div>
 
-        <!-- Linke Seite: Formular -->
+          <div class="co-section">
+            <h3>Lieferadresse</h3>
+            <div class="form-row">
+              <div class="form-group"><label for="first-name">Vorname</label><input type="text" id="first-name" placeholder="Max" required></div>
+              <div class="form-group"><label for="last-name">Nachname</label><input type="text" id="last-name" placeholder="Mustermann" required></div>
+            </div>
+            <div class="form-group"><label for="address">Straße & Hausnummer</label><input type="text" id="address" placeholder="Musterstraße 1" required></div>
+            <div class="form-row">
+              <div class="form-group"><label for="zip">PLZ</label><input type="text" id="zip" placeholder="1010" required></div>
+              <div class="form-group"><label for="city">Stadt</label><input type="text" id="city" placeholder="Wien" required></div>
+            </div>
+            <div class="form-group"><label for="country">Land</label><select id="country" required><option value="AT">Österreich</option><option value="DE">Deutschland</option><option value="CH">Schweiz</option></select></div>
+          </div>
+
+          <div class="co-section">
+            <h3>Zahlung</h3>
+            <label class="pay-opt sel" id="opt-stripe">
+              <input type="radio" name="pay" value="stripe" checked onchange="selectPay('stripe')">
+              <span class="pay-opt__body"><strong>Kredit-/Debitkarte · Klarna · Apple Pay</strong><span>Sichere Zahlung über Stripe — du wirst zur Bezahlseite weitergeleitet.</span></span>
+            </label>
+            <label class="pay-opt" id="opt-transfer">
+              <input type="radio" name="pay" value="transfer" onchange="selectPay('transfer')">
+              <span class="pay-opt__body"><strong>Überweisung (Vorkasse)</strong><span>Du erhältst die Bankdaten nach der Bestellung. Wir starten, sobald die Zahlung da ist.</span></span>
+            </label>
+          </div>
+
+          <div class="form-error" id="error-msg"></div>
+          <button type="submit" class="btn btn--primary" style="width:100%; padding:16px; font-size:1rem;" id="submit-btn">
+            Weiter zur Bezahlung →
+          </button>
+          <div class="co-secure">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            Sichere, verschlüsselte Bezahlung
+          </div>
+        </form>
+
         <div>
-          <h1 style="margin-bottom:32px;">Kasse</h1>
-
-          <form id="checkout-form">
-
-            <!-- Kontakt -->
-            <div class="checkout-section">
-              <h3>Kontakt</h3>
-              <div class="form-group">
-                <label for="email">E-Mail</label>
-                <input type="email" id="email" placeholder="deine@email.com" required>
-              </div>
-            </div>
-
-            <!-- Lieferadresse -->
-            <div class="checkout-section">
-              <h3>Lieferadresse</h3>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="first-name">Vorname</label>
-                  <input type="text" id="first-name" placeholder="Max" required>
-                </div>
-                <div class="form-group">
-                  <label for="last-name">Nachname</label>
-                  <input type="text" id="last-name" placeholder="Mustermann" required>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="address">Straße & Hausnummer</label>
-                <input type="text" id="address" placeholder="Musterstraße 1" required>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="zip">PLZ</label>
-                  <input type="text" id="zip" placeholder="1010" required>
-                </div>
-                <div class="form-group">
-                  <label for="city">Stadt</label>
-                  <input type="text" id="city" placeholder="Wien" required>
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="country">Land</label>
-                <select id="country" required>
-                  <option value="AT">Österreich</option>
-                  <option value="DE">Deutschland</option>
-                  <option value="CH">Schweiz</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Zahlung -->
-            <div class="checkout-section">
-              <h3>Zahlung</h3>
-              <p style="color:var(--color-muted); font-size:0.9rem; text-align:center; padding:20px 0;">
-                Sichere Zahlung folgt in Kürze.<br>
-                <small>Kreditkarte, SEPA, PayPal — alles möglich.</small>
-              </p>
-            </div>
-
-            <div class="form-error" id="error-msg"></div>
-
-            <button type="submit" class="btn btn--primary" style="width:100%; padding:16px; font-size:1rem;">
-              Bestellung aufgeben →
-            </button>
-          </form>
-        </div>
-
-        <!-- Rechte Seite: Bestellübersicht -->
-        <div>
-          <div class="cart-summary" style="position:sticky; top:80px;">
-            <h3 style="margin-bottom:20px;">Deine Bestellung</h3>
-            <div id="order-items"></div>
-            <div id="order-totals"></div>
+          <div class="summary">
+            <h3 style="margin-bottom:16px;">Deine Bestellung</h3>
+            <div id="summary-items"></div>
+            <div id="summary-totals"></div>
           </div>
         </div>
-
       </div>
     </div>
   </main>
@@ -154,124 +104,109 @@
   <script src="/js/cart.js"></script>
   <script>
     const cart = getCart();
-
-    // Leerer Warenkorb → zurück zum Shop
     if (cart.length === 0) window.location.href = '/cart.html';
+    let payMethod = 'stripe';
 
-    // Bestellübersicht befüllen
-    function renderOrderSummary() {
-      const items = cart.map(item => `
-        <div class="order-item">
-          <span>${item.name}${item.options && Object.keys(item.options).length
-            ? ' <small style="color:var(--color-muted)">(' + Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(', ') + ')</small>'
-            : ''} × ${item.quantity}</span>
-          <span>€${(item.price * item.quantity).toFixed(2)}</span>
-        </div>
-      `).join('');
+    function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
 
-      const total    = getCartTotal();
-      const shipping = total >= 50 ? 0 : 3.90;
-      const grand    = total + shipping;
-
-      document.getElementById('order-items').innerHTML = items;
-      document.getElementById('order-totals').innerHTML = `
-        <div class="cart-summary__row" style="margin-top:16px;">
-          <span>Versand</span>
-          <span>${shipping === 0 ? 'Kostenlos' : '€' + shipping.toFixed(2)}</span>
-        </div>
-        <div class="cart-summary__row cart-summary__row--total">
-          <span>Gesamt</span>
-          <span>€${grand.toFixed(2)}</span>
-        </div>
-      `;
+    function selectPay(m) {
+      payMethod = m;
+      document.getElementById('opt-stripe').classList.toggle('sel', m === 'stripe');
+      document.getElementById('opt-transfer').classList.toggle('sel', m === 'transfer');
+      document.getElementById('submit-btn').textContent = m === 'stripe' ? 'Weiter zur Bezahlung →' : 'Bestellung aufgeben →';
     }
 
-    // E-Mail vorausfüllen wenn eingeloggt
+    function renderSummary() {
+      const items = cart.map(item => `
+        <div class="summary__item">
+          <span>${item.name}${item.options && Object.keys(item.options).length ? '<br><span class="summary__opts">' + Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(' · ') + '</span>' : ''} × ${item.quantity}</span>
+          <span>${euro(item.price * item.quantity)}</span>
+        </div>`).join('');
+      const total = getCartTotal();
+      const shipping = total >= 69 ? 0 : 3.90;
+      document.getElementById('summary-items').innerHTML = items;
+      document.getElementById('summary-totals').innerHTML = `
+        <div class="summary__row"><span>Zwischensumme</span><span>${euro(total)}</span></div>
+        <div class="summary__row"><span>Versand</span><span>${shipping === 0 ? 'Kostenlos' : euro(shipping)}</span></div>
+        <div class="summary__row summary__row--total"><span>Gesamt</span><span>${euro(total + shipping)}</span></div>`;
+    }
+
     async function prefillUser() {
       const user = await getUser();
-      if (user) {
-        document.getElementById('email').value = user.email;
-      }
+      if (user) document.getElementById('email').value = user.email;
     }
 
-    // Bestellung in Supabase speichern
-    async function placeOrder(formData) {
+    async function placeOrder(f) {
       const user = await getUser();
-      const total    = getCartTotal();
-      const shipping = total >= 50 ? 0 : 3.90;
+      const total = getCartTotal();
+      const shipping = total >= 69 ? 0 : 3.90;
+      const { data: order, error } = await db.from('orders').insert({
+        user_id: user?.id || null,
+        email: f.email, first_name: f.firstName, last_name: f.lastName,
+        address: f.address, zip: f.zip, city: f.city, country: f.country,
+        subtotal: total, shipping, total: total + shipping,
+        status: 'pending',
+        notes: payMethod === 'stripe' ? 'Zahlung: Stripe' : 'Zahlung: Überweisung',
+      }).select().single();
+      if (error) throw error;
 
-      // 1. Bestellung anlegen
-      const { data: order, error: orderError } = await db
-        .from('orders')
-        .insert({
-          user_id:          user?.id || null,
-          email:            formData.email,
-          first_name:       formData.firstName,
-          last_name:        formData.lastName,
-          address:          formData.address,
-          zip:              formData.zip,
-          city:             formData.city,
-          country:          formData.country,
-          subtotal:         total,
-          shipping:         shipping,
-          total:            total + shipping,
-          status:           'pending',
-        })
-        .select()
-        .single();
-
-      if (orderError) throw orderError;
-
-      // 2. Bestellpositionen speichern
-      const items = cart.map(item => ({
-        order_id:   order.id,
-        product_id: item.id,
-        name:       item.name,
-        price:      item.price,
-        quantity:   item.quantity,
-        options:    item.options || {},
+      const items = cart.map(i => ({
+        order_id: order.id, product_id: (typeof i.id === 'string' && i.id.length === 36) ? i.id : null,
+        name: i.name, price: i.price, quantity: i.quantity, options: i.options || {},
       }));
-
-      const { error: itemsError } = await db.from('order_items').insert(items);
-      if (itemsError) throw itemsError;
-
+      const { error: e2 } = await db.from('order_items').insert(items);
+      if (e2) throw e2;
       return order;
     }
 
     document.getElementById('checkout-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const errorMsg = document.getElementById('error-msg');
-      errorMsg.classList.remove('visible');
+      const err = document.getElementById('error-msg');
+      err.classList.remove('visible');
+      const btn = document.getElementById('submit-btn');
+      const orig = btn.textContent;
+      btn.textContent = 'Bitte warten…'; btn.disabled = true;
 
-      const btn = e.target.querySelector('button[type="submit"]');
-      btn.textContent = 'Bestellung wird aufgegeben...';
-      btn.disabled = true;
-
-      const formData = {
-        email:     document.getElementById('email').value,
+      const f = {
+        email: document.getElementById('email').value,
         firstName: document.getElementById('first-name').value,
-        lastName:  document.getElementById('last-name').value,
-        address:   document.getElementById('address').value,
-        zip:       document.getElementById('zip').value,
-        city:      document.getElementById('city').value,
-        country:   document.getElementById('country').value,
+        lastName: document.getElementById('last-name').value,
+        address: document.getElementById('address').value,
+        zip: document.getElementById('zip').value,
+        city: document.getElementById('city').value,
+        country: document.getElementById('country').value,
       };
 
       try {
-        const order = await placeOrder(formData);
-        clearCart();
-        window.location.href = `/order-success.html?id=${order.id}`;
-      } catch (err) {
-        console.error(err);
-        errorMsg.textContent = 'Fehler beim Aufgeben der Bestellung. Bitte versuche es erneut.';
-        errorMsg.classList.add('visible');
-        btn.textContent = 'Bestellung aufgeben →';
-        btn.disabled = false;
+        const order = await placeOrder(f);
+
+        if (payMethod === 'stripe') {
+          const { data, error } = await db.functions.invoke('create-checkout-session', {
+            body: {
+              order_id: order.id,
+              success_url: location.origin + '/order-success.html?id=' + order.id,
+              cancel_url: location.origin + '/checkout.html',
+            },
+          });
+          if (error || !data?.url) {
+            throw new Error('Die Kartenzahlung ist noch nicht eingerichtet. Bitte wähle „Überweisung" oder versuch es später.');
+          }
+          clearCart();
+          window.location.href = data.url;
+        } else {
+          clearCart();
+          window.location.href = '/order-success.html?id=' + order.id;
+        }
+      } catch (ex) {
+        console.error(ex);
+        err.textContent = ex.message || 'Fehler beim Aufgeben der Bestellung. Bitte versuch es erneut.';
+        err.classList.add('visible');
+        btn.textContent = orig; btn.disabled = false;
       }
     });
 
     prefillUser();
-    renderOrderSummary();
+    renderSummary();
   </script>
 
 </body>

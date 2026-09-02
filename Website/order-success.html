@@ -3,41 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bestellung erfolgreich — MADE2MEANT</title>
+  <title>Bestellung erfolgreich — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    .success-wrap { max-width: 640px; margin: 0 auto; padding: 50px 0 70px; }
+    .success-hero { text-align: center; margin-bottom: 34px; }
+    .success-hero .icon { color: var(--color-accent); margin-bottom: 18px; }
+    .success-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 20px; }
+    .success-card h3 { font-family: var(--font-main); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 16px; }
+    .s-item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.92rem; }
+    .s-item:last-child { border-bottom: none; }
+    .s-item__opts { color: var(--color-muted); font-size: 0.8rem; }
+    .s-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.92rem; }
+    .s-row--total { font-weight: 800; font-size: 1.05rem; border-top: 1px solid var(--color-border); padding-top: 10px; margin-top: 10px; }
+    .bank-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--color-border); font-size: 0.92rem; }
+    .bank-row:last-child { border-bottom: none; }
+    .paybox { background: #fbf1ec; border: 1px solid #f0ddd4; border-radius: var(--radius); padding: 20px; margin-bottom: 20px; }
+    .paidbox { background: #eef4ef; border: 1px solid #cfe0d4; border-radius: var(--radius); padding: 18px; margin-bottom: 20px; color: var(--color-accent); font-weight: 600; }
+  </style>
 </head>
 <body>
 
-
-  <a class="skip-link" href="#main">Zum Inhalt springen</a>
   <nav class="navbar">
     <div class="container navbar__inner">
-      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <a href="/index.html" class="navbar__logo">made2meant</a>
+      <ul class="navbar__links"><li><a href="/shop.html">Weiter shoppen</a></li></ul>
     </div>
   </nav>
 
   <main id="main">
-    <div class="container" style="text-align:center; padding: 100px 24px;">
-      <div style="margin-bottom:24px; color:var(--color-primary);"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div>
-      <h1 style="font-size:2.5rem; margin-bottom:16px;">Danke für deine Bestellung!</h1>
-      <p style="color:var(--color-muted); max-width:480px; margin:0 auto 12px;">
-        Wir haben deine Bestellung erhalten und bearbeiten sie so schnell wie möglich.
-      </p>
-      <p style="color:var(--color-muted); font-size:0.9rem; margin-bottom:40px;">
-        Bestell-Nr.: <strong id="order-id" style="color:var(--color-text);">—</strong>
-      </p>
-      <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
-        <a href="/account.html" class="btn btn--outline">Meine Bestellungen</a>
-        <a href="/index.html" class="btn btn--primary" style="width:auto;">Weiter shoppen</a>
+    <div class="container">
+      <div class="success-wrap" id="success-wrap">
+        <p class="loading">Bestellung wird geladen…</p>
       </div>
     </div>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/cart.js"></script>
   <script>
-    const id = new URLSearchParams(window.location.search).get('id');
-    if (id) document.getElementById('order-id').textContent = '#' + id.slice(0, 8).toUpperCase();
+    // Deine echten Bankdaten für Vorkasse hier eintragen:
+    const BANK = { empfaenger: 'made2meant', iban: '', bic: '', bank: '' };
+
+    function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
+    function shortId(id) { return '#' + id.slice(0, 8).toUpperCase(); }
+    function esc(s) { return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    async function init() {
+      updateCartBadge();
+      const id = new URLSearchParams(location.search).get('id');
+      const wrap = document.getElementById('success-wrap');
+      if (!id) { wrap.innerHTML = '<p class="empty">Keine Bestellung gefunden.</p>'; return; }
+
+      const { data: o } = await db.from('orders').select('*, order_items(*)').eq('id', id).single();
+      if (!o) {
+        wrap.innerHTML = `<div class="success-hero"><h1>Danke für deine Bestellung!</h1><p style="color:var(--color-muted)">Wir haben deine Bestellung erhalten.</p><a href="/shop.html" class="btn btn--primary" style="margin-top:20px">Weiter shoppen</a></div>`;
+        return;
+      }
+
+      const paid = ['processing','shipped','delivered'].includes(o.status);
+      const isTransfer = (o.notes || '').includes('Überweisung');
+
+      const items = o.order_items.map(i => `
+        <div class="s-item">
+          <div><strong>${esc(i.name)}</strong> × ${i.quantity}${i.options && Object.keys(i.options).length ? `<div class="s-item__opts">${Object.entries(i.options).map(([k,v]) => esc(k)+': '+esc(String(v))).join(' · ')}</div>` : ''}</div>
+          <div>${euro(i.price * i.quantity)}</div>
+        </div>`).join('');
+
+      let payHtml = '';
+      if (paid) {
+        payHtml = `<div class="paidbox">✓ Zahlung erhalten — wir legen mit deiner Bestellung los.</div>`;
+      } else if (isTransfer) {
+        const ref = shortId(o.id);
+        const rows = BANK.iban
+          ? `<div class="bank-row"><span>Empfänger</span><strong>${esc(BANK.empfaenger)}</strong></div>
+             <div class="bank-row"><span>IBAN</span><strong>${esc(BANK.iban)}</strong></div>
+             ${BANK.bic ? `<div class="bank-row"><span>BIC</span><strong>${esc(BANK.bic)}</strong></div>` : ''}
+             <div class="bank-row"><span>Betrag</span><strong>${euro(o.total)}</strong></div>
+             <div class="bank-row"><span>Verwendungszweck</span><strong>${ref}</strong></div>`
+          : `<p style="color:var(--color-muted);font-size:0.9rem;">Die Zahlungsdetails senden wir dir per E-Mail. Bitte gib bei der Überweisung <strong>${ref}</strong> als Verwendungszweck an.</p>`;
+        payHtml = `<div class="paybox"><h3 style="margin-bottom:12px">Bitte überweise den Betrag</h3>${rows}</div>`;
+      } else {
+        payHtml = `<div class="paybox">Deine Zahlung wird noch bearbeitet. Du kannst sie jederzeit in deinem Konto abschließen.</div>`;
+      }
+
+      wrap.innerHTML = `
+        <div class="success-hero">
+          <div class="icon"><svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m8 12 3 3 5-6"/></svg></div>
+          <h1>Danke für deine Bestellung!</h1>
+          <p style="color:var(--color-muted); margin-top:8px;">Bestellnummer <strong>${shortId(o.id)}</strong> · eine Bestätigung geht an ${esc(o.email || 'deine E-Mail')}.</p>
+        </div>
+
+        ${payHtml}
+
+        <div class="success-card">
+          <h3>Bestellübersicht</h3>
+          ${items}
+          <div class="s-row"><span>Zwischensumme</span><span>${euro(o.subtotal)}</span></div>
+          <div class="s-row"><span>Versand</span><span>${o.shipping > 0 ? euro(o.shipping) : 'Kostenlos'}</span></div>
+          <div class="s-row s-row--total"><span>Gesamt</span><span>${euro(o.total)}</span></div>
+        </div>
+
+        <div class="success-card">
+          <h3>Lieferadresse</h3>
+          <div style="font-size:0.92rem; line-height:1.6;">${esc(o.first_name||'')} ${esc(o.last_name||'')}<br>${esc(o.address||'')}<br>${esc(o.zip||'')} ${esc(o.city||'')}<br>${esc(o.country||'')}</div>
+        </div>
+
+        <div style="text-align:center; margin-top:24px;">
+          <a href="/account.html" class="btn btn--secondary">Meine Bestellungen</a>
+          <a href="/shop.html" class="btn btn--primary" style="margin-left:8px;">Weiter shoppen</a>
+        </div>
+      `;
+    }
+
+    init();
   </script>
 
 </body>
