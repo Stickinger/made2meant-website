@@ -175,9 +175,6 @@
     .filter-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
     .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
 
-    /* Anker-Ziele unter dem fixierten Header */
-    #products { scroll-margin-top: 88px; }
-
     /* ── RICH FOOTER ── */
     .footer2 { background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 56px 0 28px; margin-top: 72px; }
     .footer2__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 32px; }
@@ -227,16 +224,16 @@
       <a href="/index.html" class="navbar__logo">made2meant</a>
 
       <ul class="navbar__links">
-        <li><a href="#products" onclick="showCat('all');return false">Geschenke</a></li>
-        <li><a href="#products" onclick="showCat('baby');return false">Baby &amp; Kind</a></li>
-        <li><a href="#products" onclick="showCat('familie');return false">Für die Familie</a></li>
-        <li><a href="#products" onclick="showCat('all');return false">Personalisieren</a></li>
+        <li><a href="/shop.html">Geschenke</a></li>
+        <li><a href="/shop.html?cat=baby">Baby &amp; Kind</a></li>
+        <li><a href="/shop.html?cat=familie">Für die Familie</a></li>
+        <li><a href="/shop.html">Personalisieren</a></li>
         <li><a href="/ueber-uns.html">Über uns</a></li>
         <li><a href="/qualitaet.html">Qualität</a></li>
       </ul>
 
       <div class="nav-icons">
-        <a href="#products" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/shop.html" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
         <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
         <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
         <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
@@ -259,8 +256,8 @@
         <h1 class="herofull__title">Für kleine Menschen.<br>Für große Erinnerungen.</h1>
         <p class="herofull__text">Hochwertige Textilien und Geschenke – persönlich für euch bestickt.</p>
         <div class="herofull__cta">
-          <a href="#products" class="btn btn--primary">Geschenke entdecken</a>
-          <a href="#products" class="btn btn--ghost">Eigenes Stück gestalten →</a>
+          <a href="/shop.html" class="btn btn--primary">Geschenke entdecken</a>
+          <a href="/shop.html" class="btn btn--ghost">Eigenes Stück gestalten →</a>
         </div>
       </div>
     </section>
@@ -292,11 +289,11 @@
       <div class="container">
         <div class="sec-head"><h2>Wonach suchst du?</h2></div>
         <div class="cat-grid">
-          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E9DDCB,#D4BE9F)"><span class="cat-tile__label">Zur Geburt →</span></a>
-          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe →</span></a>
-          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag →</span></a>
-          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa →</span></a>
-          <a class="cat-tile" href="#products" style="background:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Kleine Aufmerksamkeit →</span></a>
+          <a class="cat-tile" href="/shop.html?q=geburt" style="background:linear-gradient(140deg,#E9DDCB,#D4BE9F)"><span class="cat-tile__label">Zur Geburt →</span></a>
+          <a class="cat-tile" href="/shop.html?q=taufe" style="background:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe →</span></a>
+          <a class="cat-tile" href="/shop.html?q=geburtstag" style="background:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag →</span></a>
+          <a class="cat-tile" href="/shop.html?cat=familie" style="background:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa →</span></a>
+          <a class="cat-tile" href="/shop.html" style="background:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Kleine Aufmerksamkeit →</span></a>
         </div>
       </div>
     </section>
@@ -309,7 +306,7 @@
             <span class="label-style">Beliebt</span>
             <h2>Besonders gern verschenkt.</h2>
           </div>
-          <a href="#products" class="btn btn--ghost">Alle Produkte ansehen →</a>
+          <a href="/shop.html" class="btn btn--ghost">Alle Produkte ansehen →</a>
         </div>
         <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
       </div>
@@ -346,26 +343,6 @@
       </div>
     </section>
 
-    <!-- ===== SHOP (alle Produkte, mit Filter) ===== -->
-    <section class="section reveal" id="products">
-      <div class="container">
-        <div class="sec-head"><h2 id="shop-title">Alle Produkte</h2></div>
-        <div class="shop-toolbar">
-          <div class="search-box">
-            <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
-            <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
-          </div>
-          <div class="filter-tabs" id="filter-tabs" role="group" aria-label="Produkte filtern">
-            <button class="filter-tab active" aria-pressed="true" data-cat="all" onclick="showCat('all')">Alle</button>
-            <button class="filter-tab" aria-pressed="false" data-cat="baby" onclick="showCat('baby')">Baby &amp; Kind</button>
-            <button class="filter-tab" aria-pressed="false" data-cat="familie" onclick="showCat('familie')">Für die Familie</button>
-            <button class="filter-tab" aria-pressed="false" data-cat="bestseller" onclick="showCat('bestseller')">Bestseller</button>
-          </div>
-        </div>
-        <p class="shop-result-count" id="result-count" aria-live="polite" style="color:var(--color-muted);font-size:0.85rem;margin-bottom:20px"></p>
-        <div class="pgrid" id="product-grid"><p class="loading">Produkte werden geladen…</p></div>
-      </div>
-    </section>
 
     <!-- ===== NEWSLETTER ===== -->
     <section class="section reveal" style="padding-top:0">
@@ -398,9 +375,9 @@
             <a href="#" aria-label="Facebook"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M15 3h-3a4 4 0 0 0-4 4v3H5v4h3v7h4v-7h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
           </div>
         </div>
-        <div><h4>Shop</h4><ul><li><a href="#products">Alle Produkte</a></li><li><a href="#products">Baby &amp; Kind</a></li><li><a href="#products">Für die Familie</a></li><li><a href="#products">Bestseller</a></li></ul></div>
-        <div><h4>Anlässe</h4><ul><li><a href="#products">Zur Geburt</a></li><li><a href="#products">Zur Taufe</a></li><li><a href="#products">Geburtstag</a></li><li><a href="#products">Für Großeltern</a></li></ul></div>
-        <div><h4>Service</h4><ul><li><a href="#products">Personalisierung</a></li><li><a href="#">Versand &amp; Lieferung</a></li><li><a href="#">Rückgabe</a></li><li><a href="#">FAQ</a></li></ul></div>
+        <div><h4>Shop</h4><ul><li><a href="/shop.html">Alle Produkte</a></li><li><a href="/shop.html?cat=baby">Baby &amp; Kind</a></li><li><a href="/shop.html?cat=familie">Für die Familie</a></li><li><a href="/shop.html?cat=bestseller">Bestseller</a></li></ul></div>
+        <div><h4>Anlässe</h4><ul><li><a href="/shop.html?q=geburt">Zur Geburt</a></li><li><a href="/shop.html?q=taufe">Zur Taufe</a></li><li><a href="/shop.html?q=geburtstag">Geburtstag</a></li><li><a href="/shop.html">Für Großeltern</a></li></ul></div>
+        <div><h4>Service</h4><ul><li><a href="/shop.html">Personalisierung</a></li><li><a href="#">Versand &amp; Lieferung</a></li><li><a href="#">Rückgabe</a></li><li><a href="#">FAQ</a></li></ul></div>
         <div><h4>Über uns</h4><ul><li><a href="/ueber-uns.html">Unsere Geschichte</a></li><li><a href="/qualitaet.html">Materialien</a></li><li><a href="/qualitaet.html">Nachhaltigkeit</a></li><li><a href="#">Kontakt</a></li></ul></div>
       </div>
       <div class="footer2__bottom">
@@ -419,9 +396,6 @@
   <script src="/js/reveal.js"></script>
 
   <script>
-    let allProducts = [];
-    let activeFilter = 'all';
-
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
     function firstName(p) {
       const m = (p.name || '').match(/[A-Za-zÄÖÜäöüß]+/);
@@ -437,51 +411,6 @@
         <div class="pcard__name">${p.name}</div>
         <div class="pcard__price">${euro(p.price)}</div>
       </a>`;
-    }
-
-    function renderGrid(products) {
-      const grid = document.getElementById('product-grid');
-      const count = document.getElementById('result-count');
-      if (!products.length) {
-        grid.innerHTML = '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Keine Produkte gefunden.</p>';
-        count.textContent = ''; return;
-      }
-      count.textContent = products.length + ' Produkt' + (products.length !== 1 ? 'e' : '');
-      grid.innerHTML = products.map(shopCard).join('');
-    }
-
-    // Kategorien: passen Nav-Links UND Filter-Chips zusammen
-    function haystack(p) {
-      return (p.name + ' ' + (p.description || '') + ' ' + (p.tags || []).join(' ') + ' ' + (p.category_name || '')).toLowerCase();
-    }
-    const CATS = {
-      all:        { label: 'Alle Produkte',   match: () => true },
-      bestseller: { label: 'Bestseller',       match: p => p.bestseller },
-      baby:       { label: 'Baby & Kind',      match: p => /baby|kind|kinder|body|strampler|l[aä]tzchen|m[uü]tze|kappe|handtuch|decke|nuschi|spucktuch|schnuller|geburt|taufe/.test(haystack(p)) },
-      familie:    { label: 'Für die Familie',  match: p => /mama|papa|eltern|familie|erwachsen|paar|polster|kissen|bademantel|beutel|tasche/.test(haystack(p)) },
-    };
-
-    // Nav-Link oder Chip: filtern + zum Shop scrollen (Header-Offset berücksichtigt)
-    function showCat(cat) {
-      activeFilter = cat;
-      document.querySelectorAll('.filter-tab').forEach(t => {
-        const on = t.dataset.cat === cat;
-        t.classList.toggle('active', on);
-        t.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      document.getElementById('shop-title').textContent = (CATS[cat] || CATS.all).label;
-      filterProducts();
-      document.getElementById('products').scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-
-    function filterProducts() {
-      const q = document.getElementById('search-input').value.toLowerCase().trim();
-      let list = allProducts.filter((CATS[activeFilter] || CATS.all).match);
-      if (q) list = list.filter(p =>
-        p.name.toLowerCase().includes(q) ||
-        (p.description || '').toLowerCase().includes(q) ||
-        (p.tags || []).some(t => t.toLowerCase().includes(q)));
-      renderGrid(list);
     }
 
     async function handleNewsletter(e) {
@@ -511,15 +440,12 @@
 
       let products = await loadProducts();
       if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
-      allProducts = products;
 
       // Bestseller (Flag, sonst die ersten)
       const best = products.filter(p => p.bestseller);
       const bestList = (best.length ? best : products).slice(0, 5);
       const bg = document.getElementById('bestseller-grid');
       bg.innerHTML = bestList.length ? bestList.map(shopCard).join('') : '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Bald verfügbar.</p>';
-
-      filterProducts();
     }
 
     init();

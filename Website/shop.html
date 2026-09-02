@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shop — made2meant</title>
+  <meta name="description" content="Alle personalisierten Lieblingsstücke von made2meant — mit Liebe für euch bestickt.">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <style>
+    .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
+    .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
+
+    .breadcrumb { font-size: 0.82rem; color: var(--color-muted); padding: 22px 0 0; }
+    .breadcrumb a { color: var(--color-muted); }
+    .breadcrumb a:hover { color: var(--color-primary); }
+    .breadcrumb span { color: var(--color-text); }
+
+    .shop-hero { padding: 26px 0 8px; }
+    .shop-hero .label-style { display: block; margin-bottom: 8px; }
+    .shop-hero h1 { margin-bottom: 8px; }
+    .shop-hero__sub { color: var(--color-muted); max-width: 520px; }
+
+    .shop-toolbar { display: flex; align-items: center; gap: 16px; margin: 26px 0 22px; flex-wrap: wrap; }
+    .search-box { position: relative; flex: 1; min-width: 220px; max-width: 340px; }
+    .search-box input { width: 100%; background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 11px 16px 11px 40px; font-family: var(--font-main); font-size: 0.92rem; color: var(--color-text); }
+    .search-box input:focus { border-color: var(--color-primary); }
+    .search-box__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-muted); pointer-events: none; display: flex; }
+    .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-tab { padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff; color: var(--color-text); font-family: var(--font-main); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
+    .filter-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
+    .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+    .shop-count { color: var(--color-muted); font-size: 0.85rem; margin-bottom: 22px; }
+
+    .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; padding-bottom: 40px; }
+    @media (max-width: 1000px) { .pgrid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 720px) { .pgrid { grid-template-columns: 1fr 1fr; } }
+    .pcard { display: block; transition: transform var(--transition); }
+    .pcard:hover { text-decoration: none; transform: translateY(-4px); }
+    .pcard__img { aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden; background: linear-gradient(140deg, #EFE7DA, #E1CDB2); background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; box-shadow: inset 0 0 50px rgba(40,30,22,0.04); transition: box-shadow var(--transition), background-size 0.5s ease; }
+    .pcard:hover .pcard__img { background-size: 108%; box-shadow: var(--shadow-lg); }
+    .pcard__img .stitch-name { font-size: 2.2rem; }
+    .pcard__name { font-weight: 600; color: var(--color-text); font-size: 0.98rem; }
+    .pcard__price { color: var(--color-text); font-weight: 700; margin-top: 2px; }
+    .stitch-name { font-family: 'Caveat', cursive; font-weight: 700; color: #9c6a4a; transform: rotate(-4deg); }
+
+    .footer2 { background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 56px 0 28px; margin-top: 56px; }
+    .footer2__top { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 32px; }
+    .footer2__brand-logo { display: block; width: 130px; height: 44px; background: url('/assets/images/logo-terracotta.png') left center/contain no-repeat; text-indent: -9999px; overflow: hidden; margin-bottom: 14px; }
+    .footer2__brand p { font-size: 0.86rem; color: var(--color-muted); max-width: 240px; }
+    .footer2 h4 { font-family: var(--font-main); font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text); margin-bottom: 14px; }
+    .footer2 ul { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+    .footer2 ul a { color: var(--color-muted); font-size: 0.88rem; }
+    .footer2 ul a:hover { color: var(--color-primary); text-decoration: none; }
+    .footer2__bottom { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--color-border); margin-top: 40px; padding-top: 20px; font-size: 0.82rem; color: var(--color-muted); }
+    .footer2__bottom a { color: var(--color-muted); }
+    @media (max-width: 860px) { .footer2__top { grid-template-columns: 1fr 1fr; } }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">made2meant</a>
+      <ul class="navbar__links">
+        <li><a href="/shop.html" onclick="showCat('all');return false">Geschenke</a></li>
+        <li><a href="/shop.html?cat=baby" onclick="showCat('baby');return false">Baby &amp; Kind</a></li>
+        <li><a href="/shop.html?cat=familie" onclick="showCat('familie');return false">Für die Familie</a></li>
+        <li><a href="/shop.html" onclick="showCat('all');return false">Personalisieren</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+      </ul>
+      <div class="nav-icons">
+        <a href="#" aria-label="Suchen" onclick="document.getElementById('search-input').focus();return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="container">
+      <nav class="breadcrumb"><a href="/index.html">Startseite</a> / <span id="crumb">Shop</span></nav>
+
+      <section class="shop-hero">
+        <span class="label-style">Shop</span>
+        <h1 id="shop-title">Alle Produkte</h1>
+        <p class="shop-hero__sub" id="shop-sub">Personalisierte Lieblingsstücke – mit Liebe für euch bestickt.</p>
+      </section>
+
+      <div class="shop-toolbar">
+        <div class="search-box">
+          <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
+          <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
+        </div>
+        <div class="filter-tabs" id="filter-tabs" role="group" aria-label="Produkte filtern">
+          <button class="filter-tab active" aria-pressed="true" data-cat="all" onclick="showCat('all')">Alle</button>
+          <button class="filter-tab" aria-pressed="false" data-cat="baby" onclick="showCat('baby')">Baby &amp; Kind</button>
+          <button class="filter-tab" aria-pressed="false" data-cat="familie" onclick="showCat('familie')">Für die Familie</button>
+          <button class="filter-tab" aria-pressed="false" data-cat="bestseller" onclick="showCat('bestseller')">Bestseller</button>
+        </div>
+      </div>
+      <p class="shop-count" id="shop-count" aria-live="polite"></p>
+      <div class="pgrid" id="product-grid"><p class="loading">Produkte werden geladen…</p></div>
+    </div>
+  </main>
+
+  <footer class="footer2">
+    <div class="container">
+      <div class="footer2__top">
+        <div class="footer2__brand">
+          <a href="/index.html" class="footer2__brand-logo">made2meant</a>
+          <p>Personalisierte Lieblingsstücke für kleine Menschen und große Erinnerungen. Mit Sorgfalt in Österreich bestickt.</p>
+        </div>
+        <div><h4>Shop</h4><ul><li><a href="/shop.html">Alle Produkte</a></li><li><a href="/shop.html?cat=baby">Baby &amp; Kind</a></li><li><a href="/shop.html?cat=familie">Für die Familie</a></li><li><a href="/shop.html?cat=bestseller">Bestseller</a></li></ul></div>
+        <div><h4>Anlässe</h4><ul><li><a href="/shop.html?q=geburt">Zur Geburt</a></li><li><a href="/shop.html?q=taufe">Zur Taufe</a></li><li><a href="/shop.html?q=geburtstag">Geburtstag</a></li><li><a href="/shop.html">Für Großeltern</a></li></ul></div>
+        <div><h4>Service</h4><ul><li><a href="/shop.html">Personalisierung</a></li><li><a href="#">Versand &amp; Lieferung</a></li><li><a href="#">Rückgabe</a></li><li><a href="#">FAQ</a></li></ul></div>
+        <div><h4>Über uns</h4><ul><li><a href="/ueber-uns.html">Unsere Geschichte</a></li><li><a href="/qualitaet.html">Materialien</a></li><li><a href="/qualitaet.html">Nachhaltigkeit</a></li><li><a href="#">Kontakt</a></li></ul></div>
+      </div>
+      <div class="footer2__bottom">
+        <span>© 2026 made2meant · Made personal. Meant forever.</span>
+        <span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="/agb.html">AGB</a></span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script src="/js/products.js"></script>
+  <script src="/js/track.js"></script>
+
+  <script>
+    updateNav();
+    updateCartBadge();
+    const _nav = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
+
+    let allProducts = [];
+    let activeFilter = 'all';
+
+    function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
+    function firstName(p) { const m = (p.name || '').match(/[A-Za-zÄÖÜäöüß]+/); return m ? m[0] : 'made2meant'; }
+    function haystack(p) { return (p.name + ' ' + (p.description || '') + ' ' + (p.tags || []).join(' ') + ' ' + (p.category_name || '')).toLowerCase(); }
+
+    const CATS = {
+      all:        { label: 'Alle Produkte',  sub: 'Personalisierte Lieblingsstücke – mit Liebe für euch bestickt.', match: () => true },
+      bestseller: { label: 'Bestseller',      sub: 'Unsere beliebtesten Stücke.', match: p => p.bestseller },
+      baby:       { label: 'Baby & Kind',     sub: 'Für die Kleinsten – weich, sicher und persönlich.', match: p => /baby|kind|kinder|body|strampler|l[aä]tzchen|m[uü]tze|kappe|handtuch|decke|nuschi|spucktuch|schnuller|geburt|taufe/.test(haystack(p)) },
+      familie:    { label: 'Für die Familie', sub: 'Passende Lieblingsstücke für die ganze Familie.', match: p => /mama|papa|eltern|familie|erwachsen|paar|polster|kissen|bademantel|beutel|tasche/.test(haystack(p)) },
+    };
+
+    function shopCard(p) {
+      const img = p.image_url
+        ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>`
+        : `<div class="pcard__img"><span class="stitch-name">${firstName(p)}</span></div>`;
+      return `<a class="pcard" href="/product.html?slug=${p.slug}">${img}<div class="pcard__name">${p.name}</div><div class="pcard__price">${euro(p.price)}</div></a>`;
+    }
+
+    function renderGrid(list) {
+      const grid = document.getElementById('product-grid');
+      const count = document.getElementById('shop-count');
+      if (!list.length) { grid.innerHTML = '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Keine Produkte gefunden.</p>'; count.textContent = ''; return; }
+      count.textContent = list.length + ' Produkt' + (list.length !== 1 ? 'e' : '');
+      grid.innerHTML = list.map(shopCard).join('');
+    }
+
+    function showCat(cat) {
+      activeFilter = cat;
+      document.querySelectorAll('.filter-tab').forEach(t => {
+        const on = t.dataset.cat === cat;
+        t.classList.toggle('active', on); t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      const c = CATS[cat] || CATS.all;
+      document.getElementById('shop-title').textContent = c.label;
+      document.getElementById('shop-sub').textContent = c.sub;
+      document.getElementById('crumb').textContent = c.label;
+      const url = new URL(location); url.searchParams.set('cat', cat); url.searchParams.delete('q'); history.replaceState(null, '', url);
+      filterProducts();
+    }
+
+    function filterProducts() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      let list = allProducts.filter((CATS[activeFilter] || CATS.all).match);
+      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q)));
+      renderGrid(list);
+    }
+
+    async function init() {
+      let products = await loadProducts();
+      if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
+      allProducts = products;
+
+      const params = new URLSearchParams(location.search);
+      const cat = params.get('cat');
+      const q = params.get('q');
+      if (q) { document.getElementById('search-input').value = q; document.getElementById('crumb').textContent = 'Suche'; }
+      if (cat && CATS[cat]) showCat(cat);
+      else filterProducts();
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
