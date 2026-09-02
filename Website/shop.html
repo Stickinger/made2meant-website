@@ -80,12 +80,22 @@
     <div class="container navbar__inner">
       <a href="/index.html" class="navbar__logo">made2meant</a>
       <ul class="navbar__links">
-        <li><a href="/shop.html" onclick="showCat('all');return false">Geschenke</a></li>
-        <li><a href="/shop.html?cat=baby" onclick="showCat('baby');return false">Baby &amp; Kind</a></li>
-        <li><a href="/shop.html?cat=familie" onclick="showCat('familie');return false">Für die Familie</a></li>
-        <li><a href="/shop.html" onclick="showCat('all');return false">Personalisieren</a></li>
-        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li><a href="/index.html">Homepage</a></li>
+        <li class="has-drop">
+          <a href="/shop.html">Geschenke</a>
+          <div class="dropdown"><div class="dropdown__inner">
+            <a href="/shop.html?q=geburt">Zur Geburt</a>
+            <a href="/shop.html?q=taufe">Zur Taufe</a>
+            <a href="/shop.html?q=geburtstag">Geburtstag</a>
+            <a href="/shop.html?cat=familie">Für Mama &amp; Papa</a>
+            <a href="/shop.html?q=grosseltern">Für Großeltern</a>
+            <a href="/shop.html">Kleine Aufmerksamkeit</a>
+          </div></div>
+        </li>
+        <li><a href="/shop.html">Alle Produkte</a></li>
+        <li><a href="/shop.html">Personalisieren</a></li>
         <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
       </ul>
       <div class="nav-icons">
         <a href="#" aria-label="Suchen" onclick="document.getElementById('search-input').focus();return false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>

@@ -166,11 +166,11 @@ h3 { font-size: 1.35rem; }
 .navbar__links {
   display: flex;
   align-items: center;
-  gap: 32px;
+  gap: 28px;
   list-style: none;
 }
 
-.navbar__links a {
+.navbar__links > li > a {
   color: var(--color-text);
   font-size: 0.95rem;
   font-weight: 600;
@@ -178,7 +178,33 @@ h3 { font-size: 1.35rem; }
   text-transform: none;
   transition: color var(--transition);
 }
-.navbar__links a:hover { color: var(--color-primary); text-decoration: none; }
+.navbar__links > li > a:hover { color: var(--color-primary); text-decoration: none; }
+
+/* Dropdown (Geschenke → Anlässe) */
+.has-drop { position: relative; }
+.has-drop > a { display: inline-flex; align-items: center; }
+.has-drop > a::after {
+  content: ''; display: inline-block; width: 6px; height: 6px; margin-left: 7px;
+  border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor;
+  transform: rotate(45deg) translateY(-1px); transition: transform var(--transition);
+}
+.has-drop:hover > a::after { transform: rotate(225deg) translateY(2px); }
+.dropdown {
+  position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  padding-top: 12px; min-width: 220px;
+  opacity: 0; visibility: hidden; transition: opacity var(--transition);
+  z-index: 200;
+}
+.has-drop:hover .dropdown, .has-drop:focus-within .dropdown { opacity: 1; visibility: visible; }
+.dropdown__inner {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); padding: 10px;
+}
+.dropdown a {
+  display: block; padding: 9px 14px; border-radius: var(--radius);
+  font-size: 0.9rem; color: var(--color-text); font-weight: 500;
+}
+.dropdown a:hover { background: var(--color-surface-2); color: var(--color-primary); text-decoration: none; }
 
 .cart-icon {
   position: relative;
