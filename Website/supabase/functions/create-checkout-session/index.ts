@@ -3,6 +3,10 @@
 // Deploy:  supabase functions deploy create-checkout-session
 // Secrets: supabase secrets set STRIPE_SECRET_KEY=sk_live_...
 // (SUPABASE_URL & SUPABASE_SERVICE_ROLE_KEY werden automatisch gesetzt)
+//
+// SICHERHEIT: Die Preise werden serverseitig aus den echten Produktdaten
+// nachgerechnet (Grundpreis + gewählte Stickstellen). Manipulierte Beträge
+// aus dem Browser werden ignoriert.
 // ============================================================
 import Stripe from 'https://esm.sh/stripe@16.9.0?target=denonext'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
@@ -25,27 +29,57 @@ Deno.serve(async (req) => {
     const { order_id, success_url, cancel_url } = await req.json()
     if (!order_id) return json({ error: 'order_id fehlt' }, 400)
 
-    // Preise IMMER aus der Datenbank lesen (nicht aus dem Browser) — mit Service-Role
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
     const { data: order, error } = await admin
       .from('orders').select('*, order_items(*)').eq('id', order_id).single()
     if (error || !order) return json({ error: 'Bestellung nicht gefunden' }, 404)
     if (order.status !== 'pending') return json({ error: 'Bestellung ist nicht offen' }, 400)
 
-    const line_items = (order.order_items || []).map((i: any) => ({
-      price_data: {
-        currency: 'eur',
-        product_data: { name: i.name },
-        unit_amount: Math.round(Number(i.price) * 100),
-      },
-      quantity: i.quantity,
-    }))
-    if (Number(order.shipping) > 0) {
+    // Echte Produktdaten laden (Preise + Stickstellen)
+    const productIds = [...new Set((order.order_items || []).map((i: any) => i.product_id).filter(Boolean))]
+    const productMap: Record<string, any> = {}
+    if (productIds.length) {
+      const { data: prods } = await admin.from('products').select('id, price, positions').in('id', productIds)
+      for (const p of prods || []) productMap[p.id] = p
+    }
+
+    // Pro Position den korrekten Stückpreis nachrechnen
+    function trueUnitPrice(item: any): number {
+      const p = item.product_id ? productMap[item.product_id] : null
+      if (!p) return Number(item.price) || 0 // kein Produktbezug → gespeicherten Preis nutzen
+      const opts = item.options || {}
+      const base = Number(p.price) || 0
+      const add = (p.positions || []).reduce(
+        (s: number, pos: any) => s + (Object.prototype.hasOwnProperty.call(opts, pos.label) ? (Number(pos.price) || 0) : 0),
+        0,
+      )
+      return base + add
+    }
+
+    let subtotal = 0
+    const line_items = (order.order_items || []).map((i: any) => {
+      const unit = trueUnitPrice(i)
+      const qty = Math.max(1, parseInt(i.quantity) || 1)
+      subtotal += unit * qty
+      return {
+        price_data: { currency: 'eur', product_data: { name: i.name }, unit_amount: Math.round(unit * 100) },
+        quantity: qty,
+      }
+    })
+
+    // Versand serverseitig bestimmen (frei ab 69 €)
+    const shipping = subtotal >= 69 ? 0 : 3.90
+    if (shipping > 0) {
       line_items.push({
-        price_data: { currency: 'eur', product_data: { name: 'Versand' }, unit_amount: Math.round(Number(order.shipping) * 100) },
+        price_data: { currency: 'eur', product_data: { name: 'Versand' }, unit_amount: Math.round(shipping * 100) },
         quantity: 1,
       })
     }
+
+    // Bestellung auf die geprüften Beträge korrigieren
+    await admin.from('orders')
+      .update({ subtotal, shipping, total: subtotal + shipping })
+      .eq('id', order_id)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
