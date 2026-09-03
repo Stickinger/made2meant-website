@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     if (orderId) {
       const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
       await admin.from('orders')
-        .update({ status: 'processing', stripe_session_id: session.id })
+        .update({ status: 'processing' })
         .eq('id', orderId)
     }
   }
