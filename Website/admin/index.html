@@ -968,6 +968,8 @@ const STATUS = {
 
 function fmt(n) { return '€' + (n || 0).toFixed(2); }
 function fmtDate(d) { return new Date(d).toLocaleDateString('de-AT'); }
+// Schützt vor XSS: Kunden-Eingaben immer durch esc() rendern
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
 function badge(status) {
   const s = STATUS[status] || { label: status, cls: 'badge--grey' };
   return `<span class="badge ${s.cls}">${s.label}</span>`;
@@ -1038,7 +1040,7 @@ async function loadDashboard() {
       <tbody>${recent.map(o=>`
         <tr>
           <td><code style="font-size:0.75rem;">#${o.id.slice(0,8).toUpperCase()}</code></td>
-          <td>${o.first_name ? o.first_name+' '+o.last_name : o.email||'—'}</td>
+          <td>${o.first_name ? esc(o.first_name+' '+o.last_name) : esc(o.email||'—')}</td>
           <td><strong>${fmt(o.total)}</strong></td>
           <td>${badge(o.status)}</td>
           <td style="color:var(--color-muted);">${fmtDate(o.created_at)}</td>
@@ -1634,8 +1636,8 @@ async function loadOrdersTable() {
         <tr>
           <td><code style="font-size:0.75rem;">#${o.id.slice(0,8).toUpperCase()}</code></td>
           <td>
-            <strong style="font-size:0.85rem;">${o.first_name ? o.first_name+' '+o.last_name : '—'}</strong><br>
-            <small style="color:var(--color-muted);">${o.email||''}</small>
+            <strong style="font-size:0.85rem;">${o.first_name ? esc(o.first_name+' '+o.last_name) : '—'}</strong><br>
+            <small style="color:var(--color-muted);">${esc(o.email||'')}</small>
           </td>
           <td><strong>${fmt(o.total)}</strong>${o.discount_amount ? `<br><small style="color:var(--color-accent);">- ${fmt(o.discount_amount)}</small>` : ''}</td>
           <td>
@@ -1664,12 +1666,12 @@ async function viewOrder(id) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
       <div>
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Kunde</div>
-        <div>${o.first_name} ${o.last_name}</div>
-        <div style="color:var(--color-muted);font-size:0.85rem;">${o.email}</div>
+        <div>${esc(o.first_name)} ${esc(o.last_name)}</div>
+        <div style="color:var(--color-muted);font-size:0.85rem;">${esc(o.email)}</div>
       </div>
       <div>
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Lieferadresse</div>
-        <div style="font-size:0.85rem;">${o.address}, ${o.zip} ${o.city}, ${o.country}</div>
+        <div style="font-size:0.85rem;">${esc(o.address)}, ${esc(o.zip)} ${esc(o.city)}, ${esc(o.country)}</div>
       </div>
     </div>
     <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:8px;">Bestellpositionen</div>
@@ -1677,7 +1679,7 @@ async function viewOrder(id) {
       <thead><tr><th>Produkt</th><th>Menge</th><th>Preis</th><th>Gesamt</th></tr></thead>
       <tbody>${(o.order_items||[]).map(i=>`
         <tr>
-          <td>${i.name}</td>
+          <td>${esc(i.name)}${i.options && Object.keys(i.options).length ? `<br><small style="color:var(--color-muted)">${Object.entries(i.options).map(([k,v]) => esc(k)+': '+esc(String(v))).join(' · ')}</small>` : ''}</td>
           <td>${i.quantity}</td>
           <td>${fmt(i.price)}</td>
           <td><strong>${fmt(i.price*i.quantity)}</strong></td>
