@@ -839,8 +839,32 @@ textarea:focus-visible,
 /* ============================================================
    RESPONSIVE (Handy)
    ============================================================ */
+
+/* Mobile-Nav: Logo + Icons oben, Links als scrollbare Zeile darunter.
+   Verhindert horizontales Überlaufen der ganzen Seite. */
+@media (max-width: 820px) {
+  .navbar__inner { flex-wrap: wrap; height: auto; padding: 12px 0; row-gap: 10px; }
+  .navbar__logo { order: 1; }
+  .nav-icons { order: 2; margin-left: auto; }
+  .navbar__links {
+    order: 3; width: 100%;
+    flex-wrap: nowrap; gap: 22px;
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px; scrollbar-width: none;
+  }
+  .navbar__links::-webkit-scrollbar { display: none; }
+  .navbar__links li { flex: 0 0 auto; }
+}
+
+/* Kein horizontales Scrollen der Seite auf schmalen Screens
+   (clip statt hidden — bricht sticky-Header nicht) */
+html, body { overflow-x: clip; max-width: 100%; }
+/* body ist ein Flex-Column-Container: Kinder dürfen schrumpfen,
+   damit kein zu breites Element die ganze Seite über den Rand schiebt */
+body > * { min-width: 0; }
+
 @media (max-width: 640px) {
-  .navbar__links { gap: 12px; }
+  .navbar__links { gap: 18px; }
   .section { padding: 40px 0; }
   .form-card { padding: 24px; margin: 40px auto; }
   .cart-table th:nth-child(2),

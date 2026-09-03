@@ -23,7 +23,15 @@
     .breadcrumb span { color: var(--color-text); }
 
     .pd { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: 56px; padding: 12px 0 70px; align-items: start; }
-    @media (max-width: 880px) { .pd { grid-template-columns: 1fr; gap: 32px; } }
+    .pd > * { min-width: 0; }   /* Grid-Items dürfen schrumpfen (kein Überlauf) */
+    .pinfo__title { overflow-wrap: anywhere; }
+    @media (max-width: 880px) {
+      .pd { grid-template-columns: 1fr; gap: 28px; }
+      .gallery { position: static; top: auto; }
+    }
+    @media (max-width: 440px) {
+      .buy-row .btn--primary { font-size: 0.9rem; padding: 15px 10px; }
+    }
 
     /* GALERIE */
     .gallery { position: sticky; top: 92px; }
