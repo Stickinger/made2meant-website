@@ -70,7 +70,34 @@ function getCartCount() {
 // Warenkorb leeren
 function clearCart() {
   localStorage.removeItem('cart');
+  localStorage.removeItem('discount_code');
   updateCartBadge();
+}
+
+// ── RABATTCODE (nur der Code wird gemerkt; der Betrag wird immer
+//    frisch & serverseitig anhand der aktuellen Summe berechnet) ──
+function getDiscountCode() { return localStorage.getItem('discount_code') || ''; }
+function setDiscountCode(code) {
+  if (code) localStorage.setItem('discount_code', String(code).toUpperCase());
+  else localStorage.removeItem('discount_code');
+}
+function clearDiscount() { localStorage.removeItem('discount_code'); }
+
+// Gespeicherten Code gegen die aktuelle Summe prüfen (per DB-Funktion).
+// Gibt { code, amount } zurück oder { amount:0, error } wenn ungültig.
+async function resolveDiscount(subtotal) {
+  const code = getDiscountCode();
+  if (!code) return { amount: 0 };
+  try {
+    const { data, error } = await db.rpc('validate_discount', { p_code: code, p_subtotal: subtotal });
+    if (error || !data || !data.valid) {
+      clearDiscount();
+      return { amount: 0, error: (data && data.message) || 'Rabattcode ist nicht mehr gültig.' };
+    }
+    return { code: data.code, amount: Number(data.amount) };
+  } catch (e) {
+    return { amount: 0 };
+  }
 }
 
 // Rotes Zähler-Badge auf dem Warenkorb-Icon updaten

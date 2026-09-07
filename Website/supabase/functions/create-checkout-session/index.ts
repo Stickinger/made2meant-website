@@ -76,15 +76,52 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Rabattcode serverseitig prüfen und anwenden (Browser-Angaben werden ignoriert)
+    let discountAmount = 0
+    let appliedCode: string | null = null
+    if (order.discount_code) {
+      const { data: dc } = await admin.from('discount_codes')
+        .select('*').eq('code', order.discount_code).eq('active', true).maybeSingle()
+      const today = new Date().toISOString().slice(0, 10)
+      const valid = dc
+        && (!dc.expires_at || String(dc.expires_at).slice(0, 10) >= today)
+        && (!dc.max_uses || (dc.used_count || 0) < dc.max_uses)
+        && subtotal >= (Number(dc.min_order) || 0)
+      if (valid) {
+        discountAmount = dc.type === 'percentage'
+          ? subtotal * (Number(dc.value) || 0) / 100
+          : Math.min(Number(dc.value) || 0, subtotal)
+        discountAmount = Math.round(discountAmount * 100) / 100
+        appliedCode = dc.code
+      }
+    }
+
+    let discounts: { coupon: string }[] | undefined
+    if (discountAmount > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: Math.round(discountAmount * 100),
+        currency: 'eur',
+        duration: 'once',
+        name: 'Rabatt ' + appliedCode,
+      })
+      discounts = [{ coupon: coupon.id }]
+    }
+
     // Bestellung auf die geprüften Beträge korrigieren
     await admin.from('orders')
-      .update({ subtotal, shipping, total: subtotal + shipping })
+      .update({
+        subtotal, shipping,
+        discount_code: appliedCode,
+        discount_amount: discountAmount,
+        total: Math.max(0, subtotal - discountAmount) + shipping,
+      })
       .eq('id', order_id)
 
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       customer_email: order.email || undefined,
       line_items,
+      discounts,
       success_url,
       cancel_url,
       metadata: { order_id: String(order_id) },

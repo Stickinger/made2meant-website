@@ -29,6 +29,12 @@
     .summary__row--total { font-weight: 800; font-size: 1.1rem; border-top: 1px solid var(--color-border); padding-top: 12px; margin-top: 12px; }
     .co-secure { display: flex; align-items: center; gap: 8px; justify-content: center; color: var(--color-muted); font-size: 0.82rem; margin-top: 14px; }
     .co-secure svg { width: 15px; height: 15px; }
+
+    .disc-box { display: flex; gap: 8px; margin: 16px 0 4px; }
+    .disc-box input { flex: 1; text-transform: uppercase; letter-spacing: 0.04em; }
+    .disc-box input::placeholder { text-transform: none; letter-spacing: normal; }
+    .disc-box button { padding: 0 16px; white-space: nowrap; font-size: 0.85rem; }
+    #disc-msg { font-size: 0.8rem; min-height: 1.1em; margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -91,6 +97,11 @@
           <div class="summary">
             <h3 style="margin-bottom:16px;">Deine Bestellung</h3>
             <div id="summary-items"></div>
+            <div class="disc-box">
+              <input type="text" id="disc-input" placeholder="Rabattcode" autocomplete="off" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter'){event.preventDefault();applyDiscount();}">
+              <button type="button" class="btn btn--ghost" id="disc-btn" onclick="applyDiscount()">Einlösen</button>
+            </div>
+            <div id="disc-msg"></div>
             <div id="summary-totals"></div>
           </div>
         </div>
@@ -106,8 +117,32 @@
     const cart = getCart();
     if (cart.length === 0) window.location.href = '/cart.html';
     let payMethod = 'stripe';
+    let appliedDiscount = null; // { code, amount }
 
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
+
+    async function applyDiscount() {
+      const msg = document.getElementById('disc-msg');
+      const btn = document.getElementById('disc-btn');
+      const code = document.getElementById('disc-input').value.trim().toUpperCase();
+      const setMsg = (t, c) => { msg.textContent = t; msg.style.color = c; };
+
+      if (!code) { appliedDiscount = null; clearDiscount(); setMsg('', ''); renderSummary(); return; }
+      btn.disabled = true; setMsg('Prüfe…', 'var(--color-muted)');
+
+      const total = getCartTotal();
+      const invalid = (t) => { appliedDiscount = null; clearDiscount(); setMsg(t, '#b23c17'); btn.disabled = false; renderSummary(); };
+
+      const { data, error } = await db.rpc('validate_discount', { p_code: code, p_subtotal: total });
+      if (error) return invalid('Prüfung fehlgeschlagen. Bitte später erneut versuchen.');
+      if (!data || !data.valid) return invalid(data?.message || 'Code ungültig.');
+
+      appliedDiscount = { code: data.code, amount: Number(data.amount) };
+      setDiscountCode(data.code);
+      setMsg('Code „' + data.code + '" angewendet: − ' + euro(data.amount), 'var(--color-accent)');
+      btn.disabled = false;
+      renderSummary();
+    }
 
     function selectPay(m) {
       payMethod = m;
@@ -124,11 +159,14 @@
         </div>`).join('');
       const total = getCartTotal();
       const shipping = total >= 69 ? 0 : 3.90;
+      const disc = appliedDiscount ? appliedDiscount.amount : 0;
+      const grand = Math.max(0, total - disc) + shipping;
       document.getElementById('summary-items').innerHTML = items;
       document.getElementById('summary-totals').innerHTML = `
         <div class="summary__row"><span>Zwischensumme</span><span>${euro(total)}</span></div>
+        ${disc > 0 ? `<div class="summary__row" style="color:var(--color-accent);"><span>Rabatt (${appliedDiscount.code})</span><span>− ${euro(disc)}</span></div>` : ''}
         <div class="summary__row"><span>Versand</span><span>${shipping === 0 ? 'Kostenlos' : euro(shipping)}</span></div>
-        <div class="summary__row summary__row--total"><span>Gesamt</span><span>${euro(total + shipping)}</span></div>`;
+        <div class="summary__row summary__row--total"><span>Gesamt</span><span>${euro(grand)}</span></div>`;
     }
 
     async function prefillUser() {
@@ -140,11 +178,15 @@
       const user = await getUser();
       const total = getCartTotal();
       const shipping = total >= 69 ? 0 : 3.90;
+      const disc = appliedDiscount ? appliedDiscount.amount : 0;
       const { data: order, error } = await db.from('orders').insert({
         user_id: user?.id || null,
         email: f.email, first_name: f.firstName, last_name: f.lastName,
         address: f.address, zip: f.zip, city: f.city, country: f.country,
-        subtotal: total, shipping, total: total + shipping,
+        subtotal: total, shipping,
+        discount_code: appliedDiscount?.code || null,
+        discount_amount: disc,
+        total: Math.max(0, total - disc) + shipping,
         status: 'pending',
         notes: payMethod === 'stripe' ? 'Zahlung: Stripe' : 'Zahlung: Überweisung',
       }).select().single();
@@ -191,10 +233,11 @@
           if (error || !data?.url) {
             throw new Error('Die Kartenzahlung ist noch nicht eingerichtet. Bitte wähle „Überweisung" oder versuch es später.');
           }
-          clearCart();
+          // Warenkorb NICHT hier leeren — erst auf der Danke-Seite, wenn die
+          // Bestellung wirklich abgeschlossen ist. So bleibt der Korb erhalten,
+          // falls der Kunde die Bezahlung bei Stripe abbricht und zurückgeht.
           window.location.href = data.url;
         } else {
-          clearCart();
           window.location.href = '/order-success.html?id=' + order.id;
         }
       } catch (ex) {
@@ -207,6 +250,15 @@
 
     prefillUser();
     renderSummary();
+
+    // Im Warenkorb eingegebenen Rabattcode automatisch übernehmen
+    (function initDiscount() {
+      const stored = getDiscountCode();
+      if (stored) {
+        document.getElementById('disc-input').value = stored;
+        applyDiscount();
+      }
+    })();
   </script>
 
 </body>

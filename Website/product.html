@@ -36,8 +36,7 @@
     /* GALERIE */
     .gallery { position: sticky; top: 92px; }
     .gallery__main { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow); }
-    .gallery__main canvas { width: 100%; height: auto; display: block; touch-action: none; cursor: grab; }
-    .gallery__main canvas:active { cursor: grabbing; }
+    .gallery__main canvas { width: 100%; height: auto; display: block; }
     .gallery__badge { position: absolute; top: 14px; left: 14px; background: var(--color-surface); color: var(--color-text); font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; box-shadow: var(--shadow); z-index: 2; }
     .gallery__wish { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--color-surface); border: none; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-muted); z-index: 2; transition: color var(--transition); }
     .gallery__wish:hover { color: var(--color-primary); }
@@ -75,6 +74,14 @@
     .tswatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); transition: transform 0.12s; position: relative; }
     .tswatch:hover { transform: scale(1.1); }
     .tswatch.selected { border-color: var(--color-text); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text); }
+
+    /* Schriftart-Auswahl */
+    .fonts { display: flex; gap: 10px; flex-wrap: wrap; }
+    .fontbtn { padding: 8px 18px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 1.35rem; line-height: 1; transition: all 0.15s; }
+    .fontbtn small { display: block; font-family: var(--font-main); font-size: 0.6rem; letter-spacing: 0.04em; color: var(--color-muted); margin-top: 3px; text-transform: uppercase; }
+    .fontbtn:hover { border-color: var(--color-primary); }
+    .fontbtn.selected { border-color: var(--color-primary); background: #fbf1ec; }
+    .fontbtn.selected small { color: var(--color-primary); }
 
     /* Stickstellen */
     .pos-list { display: flex; flex-direction: column; gap: 10px; }
@@ -205,13 +212,29 @@
       { name: 'Beige', hex: '#C4A882' }, { name: 'Salbei', hex: '#8DA190' },
     ];
 
+    // Schriftarten, die der Kunde wählen kann
+    const FONTS = [
+      { name: 'Schreibschrift', css: "'Dancing Script', cursive", weight: 700, sample: 'Aa' },
+      { name: 'Handschrift',    css: "'Caveat', cursive",         weight: 700, sample: 'Aa' },
+      { name: 'Klassisch',      css: "'Fraunces', serif",          weight: 600, sample: 'Aa' },
+      { name: 'Modern',         css: "'Nunito', sans-serif",       weight: 800, sample: 'Aa' },
+    ];
+
     let POSITIONS = [];
     let currentProduct = null;
     let productImages = [];
     let capOption = null;
     let qty = 1;
 
-    const cfg = { capColor: null, threadColor: null, positions: {}, previewPos: null };
+    // threadColor + font sind sinnvoll vorbelegt, damit die Vorschau sofort etwas zeigt.
+    // previewPos = null  →  schönes Titelfoto; eine Position-ID  →  leeres Foto mit Text
+    const cfg = {
+      capColor: null,
+      threadColor: THREAD_COLORS.find(t => t.name === 'Terracotta') || THREAD_COLORS[0],
+      font: FONTS[0],
+      positions: {},
+      previewPos: null,
+    };
 
     const imgCache = {};
     function getImg(url) {
@@ -244,10 +267,14 @@
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
       if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
 
+      // Feste Textposition kommt aus dem Admin (x/y/size, jeweils 0..1). Fallback: Mitte.
       POSITIONS = (currentProduct.positions || []).map((p, i) => ({
-        id: 'p' + i, label: p.label, view: p.label, price: Number(p.price) || 0, def: { x: 0.5, y: 0.45 },
+        id: 'p' + i, label: p.label, view: p.label, price: Number(p.price) || 0,
+        x: Number.isFinite(+p.x) ? +p.x : 0.5,
+        y: Number.isFinite(+p.y) ? +p.y : 0.45,
+        size: Number.isFinite(+p.size) ? +p.size : 0.11,
       }));
-      cfg.previewPos = POSITIONS[0]?.id || null;
+      cfg.previewPos = null;   // Start: schönes Titelfoto
 
       document.getElementById('breadcrumb').innerHTML =
         `<a href="/index.html">Startseite</a> / <a href="/index.html#products">Shop</a> / <span>${currentProduct.name}</span>`;
@@ -256,6 +283,19 @@
     }
 
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
+
+    // Das schöne Titelfoto (mit Beispiel-Stickerei) – bevorzugt farblich passend.
+    function displayImage() {
+      if (cfg.capColor) {
+        const m = productImages.find(img => {
+          const ov = img.option_values || {};
+          const vals = Object.values(ov);
+          return vals.includes(cfg.capColor) && !POSITIONS.some(p => vals.includes(p.view));
+        });
+        if (m) return m.url;
+      }
+      return currentProduct.image_url || '/assets/images/placeholder.png';
+    }
 
     function photoFor(positionId) {
       const p = POSITIONS.find(x => x.id === positionId);
@@ -314,9 +354,17 @@
 
       const threadBlock = !personalizable ? '' : `
         <div class="fld">
-          <span class="fld__label">Garnfarbe</span>
+          <span class="fld__label" id="thread-label">Garnfarbe${cfg.threadColor ? ': ' + cfg.threadColor.name : ''}</span>
           <div class="tswatches" id="thread-swatches">
-            ${THREAD_COLORS.map(c => `<button type="button" class="tswatch" style="--c:${c.hex}" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('')}
+            ${THREAD_COLORS.map(c => `<button type="button" class="tswatch ${cfg.threadColor && c.name === cfg.threadColor.name ? 'selected' : ''}" style="--c:${c.hex}" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('')}
+          </div>
+        </div>`;
+
+      const fontBlock = !personalizable ? '' : `
+        <div class="fld">
+          <span class="fld__label">Schriftart</span>
+          <div class="fonts" id="font-picker">
+            ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" style="font-family:${f.css}" onclick="selectFont(${i})">${f.sample}<small>${f.name}</small></button>`).join('')}
           </div>
         </div>`;
 
@@ -332,7 +380,7 @@
             <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Live-Vorschau des Produkts"></canvas>
           </div>
           <div class="thumbs" id="thumbs"></div>
-          ${personalizable ? '<div class="gallery__hint">Tipp: Zieh deinen Text auf dem Bild an die gewünschte Stelle.</div>' : ''}
+          ${personalizable ? '<div class="gallery__hint" id="gallery-hint">Wähle eine Stickstelle — dein Name erscheint an der vorgesehenen Stelle.</div>' : ''}
         </div>
 
         <div class="pinfo">
@@ -350,6 +398,7 @@
           ${capBlock}
           ${posBlock}
           ${threadBlock}
+          ${fontBlock}
 
           ${personalizable ? '<div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Garnfarbe.</div>' : '<div id="hint"></div>'}
 
@@ -367,16 +416,19 @@
       `;
 
       renderThumbs();
-      requestAnimationFrame(() => { renderCanvas(); setupCanvasDrag(); });
+      requestAnimationFrame(renderCanvas);
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(renderCanvas);
     }
 
     function renderThumbs() {
       const el = document.getElementById('thumbs');
       if (!el) return;
-      if (POSITIONS.length <= 1) { el.innerHTML = ''; return; }
-      el.innerHTML = POSITIONS.map(p =>
+      // Erstes Thumb = schönes Titelfoto (Vorschau ohne Text), dann je Stickstelle das leere Foto
+      const display = `<button class="thumb ${cfg.previewPos === null ? 'active' : ''}" onclick="setPreview(null)" aria-label="Produktansicht"><img src="${displayImage()}" alt="Produktansicht"></button>`;
+      const posThumbs = POSITIONS.map(p =>
         `<button class="thumb ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')" aria-label="${p.view}"><img src="${photoFor(p.id)}" alt="${p.view}"></button>`
       ).join('');
+      el.innerHTML = display + posThumbs;
     }
 
     function renderCanvas() {
@@ -385,8 +437,9 @@
       const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, W, H);
 
-      const view = cfg.previewPos;
-      const img = getImg(photoFor(view));
+      const view = cfg.previewPos;                       // null = Titelfoto, sonst leeres Positionsfoto
+      const url = view === null ? displayImage() : photoFor(view);
+      const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
         const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
         const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
@@ -398,36 +451,34 @@
         ctx.fillText('Foto wird geladen…', W / 2, H / 2);
       }
 
+      // Titelfoto: keinen Text zeichnen (zeigt Beispiel-Stickerei aus dem Foto)
+      if (view === null) return;
+
+      const pos = POSITIONS.find(p => p.id === view);
+      if (!pos) return;
       const data = cfg.positions[view];
-      if (data && data.text && cfg.threadColor) {
-        const px = data.pos.x * W, py = data.pos.y * H, t = data.text;
-        const fontSize = t.length <= 3 ? W * 0.1 : t.length <= 8 ? W * 0.07 : W * 0.05;
-        ctx.font = `700 ${fontSize}px Nunito, sans-serif`;
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      const t = (data && data.text || '').trim();
+      const px = pos.x * W, py = pos.y * H;
+      const fontSize = pos.size * W;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+      if (t) {
+        ctx.font = `${cfg.font.weight} ${fontSize}px ${cfg.font.css}`;
         ctx.save(); ctx.lineWidth = fontSize * 0.14; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineJoin = 'round'; ctx.strokeText(t, px, py); ctx.restore();
-        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.28)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1; ctx.fillStyle = cfg.threadColor.hex; ctx.fillText(t, px, py); ctx.restore();
-      } else if (data) {
-        const px = data.pos.x * W, py = data.pos.y * H;
-        ctx.save(); ctx.setLineDash([6, 5]); ctx.strokeStyle = 'rgba(197,106,71,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(px - W * 0.16, py - H * 0.06, W * 0.32, H * 0.12); ctx.restore();
-        ctx.fillStyle = '#C56A47'; ctx.font = `700 ${W * 0.026}px Nunito, sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText('Hier kommt dein Text', px, py);
+        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
+        ctx.fillStyle = (cfg.threadColor && cfg.threadColor.hex) || '#2A2724'; ctx.fillText(t, px, py); ctx.restore();
+      } else {
+        // Platzhalter an der fixen Stelle (nicht verschiebbar)
+        ctx.font = `${cfg.font.weight} ${fontSize}px ${cfg.font.css}`;
+        ctx.fillStyle = 'rgba(120,110,98,0.45)';
+        ctx.fillText('Dein Name', px, py);
       }
     }
 
-    let dragging = false;
-    function normPoint(canvas, cx, cy) {
-      const r = canvas.getBoundingClientRect();
-      return { x: Math.min(0.9, Math.max(0.1, (cx - r.left) / r.width)), y: Math.min(0.92, Math.max(0.08, (cy - r.top) / r.height)) };
-    }
-    function setupCanvasDrag() {
-      const canvas = document.getElementById('cfg-canvas');
-      if (!canvas || canvas.dataset.wired) return;
-      canvas.dataset.wired = '1';
-      const apply = (e) => { const d = cfg.positions[cfg.previewPos]; if (!d) return; d.pos = normPoint(canvas, e.clientX, e.clientY); renderCanvas(); };
-      canvas.addEventListener('pointerdown', (e) => { if (!cfg.positions[cfg.previewPos]) return; dragging = true; canvas.setPointerCapture(e.pointerId); apply(e); });
-      canvas.addEventListener('pointermove', (e) => { if (dragging) { e.preventDefault(); apply(e); } });
-      canvas.addEventListener('pointerup', () => { dragging = false; });
-      canvas.addEventListener('pointercancel', () => { dragging = false; });
+    function selectFont(i) {
+      cfg.font = FONTS[i] || FONTS[0];
+      document.querySelectorAll('.fontbtn').forEach(el => el.classList.toggle('selected', +el.dataset.i === i));
+      renderCanvas();
     }
 
     function selectCap(value) {
@@ -440,6 +491,8 @@
     function selectThread(name) {
       cfg.threadColor = THREAD_COLORS.find(t => t.name === name) || null;
       document.querySelectorAll('.tswatch').forEach(s => s.classList.toggle('selected', s.dataset.name === name));
+      const lbl = document.getElementById('thread-label');
+      if (lbl) lbl.textContent = 'Garnfarbe' + (cfg.threadColor ? ': ' + cfg.threadColor.name : '');
       renderCanvas(); checkReady();
     }
 
@@ -447,11 +500,11 @@
 
     function togglePosition(id, on) {
       if (on) {
-        if (!(id in cfg.positions)) { const def = POSITIONS.find(p => p.id === id).def; cfg.positions[id] = { text: '', pos: { x: def.x, y: def.y } }; }
-        cfg.previewPos = id;
+        if (!(id in cfg.positions)) cfg.positions[id] = { text: '' };
+        cfg.previewPos = id;                              // leeres Foto der Stelle ploppt auf
       } else {
         delete cfg.positions[id];
-        if (cfg.previewPos === id) { const rem = POSITIONS.find(p => p.id in cfg.positions); cfg.previewPos = rem ? rem.id : (POSITIONS[0]?.id || null); }
+        if (cfg.previewPos === id) { const rem = POSITIONS.find(p => p.id in cfg.positions); cfg.previewPos = rem ? rem.id : null; }
       }
       document.getElementById('poscard-' + id).classList.toggle('active', on);
       document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
@@ -459,7 +512,7 @@
       renderThumbs(); renderCanvas(); updatePrice(); checkReady();
     }
 
-    function setPositionText(id, val) { if (cfg.positions[id]) cfg.positions[id].text = val; renderCanvas(); checkReady(); }
+    function setPositionText(id, val) { if (cfg.positions[id]) cfg.positions[id].text = val; if (cfg.previewPos !== id) cfg.previewPos = id; renderThumbs(); renderCanvas(); checkReady(); }
     function updatePrice() { document.getElementById('price-display').textContent = euro(currentPrice()); }
     function changeQty(delta) { qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99)); document.getElementById('qty-display').textContent = qty; }
 
@@ -504,9 +557,10 @@
         const active = Object.keys(cfg.positions);
         if (!active.length || !cfg.threadColor) return;
         options['Garnfarbe'] = cfg.threadColor.name;
+        options['Schriftart'] = cfg.font.name;
         POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
       }
-      let previewUrl = photoFor(cfg.previewPos);
+      let previewUrl = cfg.previewPos ? photoFor(cfg.previewPos) : displayImage();
       try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}
       const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
       for (let i = 0; i < qty; i++) addToCart(base, options);

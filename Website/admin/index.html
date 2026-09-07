@@ -800,6 +800,14 @@
           <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addColorVariant()">+ Farbe hinzufügen</button>
         </div>
 
+        <div class="field form-full">
+          <label>Textposition festlegen <span style="font-weight:400;color:var(--color-muted)">— wo wird der Name gestickt</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Zieh den Beispielnamen auf dem leeren Foto genau an die Stelle, wo der Kundentext sitzen soll. Diese Position ist fix — der Kunde kann sie nicht verschieben.
+          </p>
+          <div id="p-placement"></div>
+        </div>
+
         <details class="field form-full" style="margin-top:8px">
           <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted)">Erweitert: eigene Optionen & Bilder (nicht nötig für Kappen)</summary>
           <div style="margin-top:14px">
@@ -1198,6 +1206,7 @@ function renderStitchPos() {
       </div>
       <button type="button" class="btn-sm btn-sm--outline" onclick="removeStitchPos(${i})">✕</button>
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Stickstellen. Klick „+ Stickstelle hinzufügen".</p>';
+  renderPlacement();
 }
 
 // ── FARBEN & FOTOS (je Farbe ein Foto pro Stickstelle) ───────
@@ -1242,6 +1251,84 @@ function renderColorVariants() {
         `).join('')}
       </div>` : '<p style="color:var(--color-muted);font-size:0.8rem;">Lege zuerst oben Stickstellen an — dann kannst du hier je Stelle ein Foto hochladen.</p>'}
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Farben. Klick „+ Farbe hinzufügen".</p>';
+  renderPlacement();
+}
+
+// ── TEXTPOSITION festlegen (fixe Stelle je Stickstelle) ──────
+function firstPhotoFor(label) {
+  for (const c of colorVariants) { if (c.photos && c.photos[label]) return c.photos[label]; }
+  return null;
+}
+
+function setStitchXY(i, x, y) {
+  stitchPositions[i].x = Math.max(0.04, Math.min(0.96, x));
+  stitchPositions[i].y = Math.max(0.04, Math.min(0.96, y));
+  const m = document.getElementById('place-marker-' + i);
+  if (m) { m.style.left = (stitchPositions[i].x * 100) + '%'; m.style.top = (stitchPositions[i].y * 100) + '%'; }
+}
+
+function setStitchSize(i, v) {
+  stitchPositions[i].size = Math.max(0.03, Math.min(0.25, parseFloat(v) || 0.11));
+  const m = document.getElementById('place-marker-' + i);
+  const b = document.getElementById('place-box-' + i);
+  if (m && b) m.style.fontSize = (stitchPositions[i].size * b.clientWidth) + 'px';
+}
+
+let _placeDrag = null;
+function startPlaceDrag(e, i) {
+  e.preventDefault();
+  _placeDrag = { i, box: document.getElementById('place-box-' + i) };
+  window.addEventListener('pointermove', movePlaceDrag);
+  window.addEventListener('pointerup', endPlaceDrag);
+  movePlaceDrag(e);
+}
+function movePlaceDrag(e) {
+  if (!_placeDrag || !_placeDrag.box) return;
+  const r = _placeDrag.box.getBoundingClientRect();
+  setStitchXY(_placeDrag.i, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+}
+function endPlaceDrag() {
+  _placeDrag = null;
+  window.removeEventListener('pointermove', movePlaceDrag);
+  window.removeEventListener('pointerup', endPlaceDrag);
+}
+
+function renderPlacement() {
+  const box = document.getElementById('p-placement');
+  if (!box) return;
+  const html = stitchPositions.map((s, i) => {
+    const label = (s.label || '').trim();
+    if (!label) return '';
+    const x = Number.isFinite(+s.x) ? +s.x : 0.5;
+    const y = Number.isFinite(+s.y) ? +s.y : 0.45;
+    const size = Number.isFinite(+s.size) ? +s.size : 0.11;
+    const photo = firstPhotoFor(label);
+    if (!photo) {
+      return `<div style="border:1px dashed var(--color-border);border-radius:var(--radius);padding:12px;margin-bottom:12px;color:var(--color-muted);font-size:0.82rem;">
+        <strong style="color:var(--color-text);">${label}:</strong> Lade oben bei „Farben &amp; Fotos" zuerst ein Foto für diese Stelle hoch — dann kannst du die Textposition festlegen.</div>`;
+    }
+    return `
+      <div style="margin-bottom:18px;">
+        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:8px;">${label}</div>
+        <div id="place-box-${i}" onpointerdown="startPlaceDrag(event, ${i})"
+             style="position:relative;max-width:280px;border-radius:8px;overflow:hidden;border:1px solid var(--color-border);cursor:crosshair;touch-action:none;user-select:none;">
+          <img src="${photo}" alt="" style="width:100%;display:block;pointer-events:none;">
+          <div id="place-marker-${i}"
+               style="position:absolute;left:${x*100}%;top:${y*100}%;transform:translate(-50%,-50%);font-family:'Dancing Script',cursive;font-weight:700;color:#2A2724;white-space:nowrap;text-shadow:0 1px 2px rgba(255,255,255,0.75);pointer-events:none;line-height:1;">Emma</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;max-width:280px;">
+          <span style="font-size:0.72rem;color:var(--color-muted);">Größe</span>
+          <input type="range" min="0.04" max="0.20" step="0.005" value="${size}" oninput="setStitchSize(${i}, this.value)" style="flex:1;">
+        </div>
+        <p style="font-size:0.75rem;color:var(--color-muted);margin-top:4px;">Zieh „Emma" an die gewünschte Stelle.</p>
+      </div>`;
+  }).join('');
+  box.innerHTML = html || '<p style="color:var(--color-muted);font-size:0.85rem;">Lege oben Stickstellen an und lade Fotos hoch — dann legst du hier die Textposition fest.</p>';
+  // Schriftgröße der Marker an die tatsächliche Bildbreite anpassen
+  requestAnimationFrame(() => stitchPositions.forEach((s, i) => {
+    const m = document.getElementById('place-marker-' + i), b = document.getElementById('place-box-' + i);
+    if (m && b) m.style.fontSize = ((Number.isFinite(+s.size) ? +s.size : 0.11) * b.clientWidth) + 'px';
+  }));
 }
 
 function addOptionRow(name = '', values = '') {
@@ -1436,7 +1523,12 @@ async function openProductModal(product = null) {
   }
 
   // Stickstellen aus Produkt laden
-  stitchPositions = (product?.positions || []).map(p => ({ label: p.label, price: p.price }));
+  stitchPositions = (product?.positions || []).map(p => ({
+    label: p.label, price: p.price,
+    x: Number.isFinite(+p.x) ? +p.x : 0.5,
+    y: Number.isFinite(+p.y) ? +p.y : 0.45,
+    size: Number.isFinite(+p.size) ? +p.size : 0.11,
+  }));
   const labelSet = new Set(stitchPositions.map(s => (s.label || '').trim()).filter(Boolean));
 
   // Farben & Fotos rekonstruieren (Farbe-Option + Stelle-Tags)
@@ -1475,7 +1567,13 @@ async function saveProduct() {
 
   // Stickstellen (Name + Aufpreis)
   const positions = stitchPositions
-    .map(s => ({ label: (s.label || '').trim(), price: parseFloat(s.price) || 0 }))
+    .map(s => ({
+      label: (s.label || '').trim(),
+      price: parseFloat(s.price) || 0,
+      x: Number.isFinite(+s.x) ? +s.x : 0.5,
+      y: Number.isFinite(+s.y) ? +s.y : 0.45,
+      size: Number.isFinite(+s.size) ? +s.size : 0.11,
+    }))
     .filter(s => s.label);
   const labelSet = new Set(positions.map(p => p.label));
 

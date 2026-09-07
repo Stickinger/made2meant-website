@@ -31,6 +31,12 @@ Deno.serve(async (req) => {
       await admin.from('orders')
         .update({ status: 'processing' })
         .eq('id', orderId)
+
+      // Rabattcode-Nutzung zählen (nur bei bezahlter Bestellung)
+      const { data: o } = await admin.from('orders').select('discount_code').eq('id', orderId).single()
+      if (o?.discount_code) {
+        await admin.rpc('increment_discount_use', { p_code: o.discount_code })
+      }
     }
   }
 

@@ -49,6 +49,13 @@
     @media (max-width: 768px) {
       .cart-layout { grid-template-columns: 1fr; }
     }
+    .disc-box { display: flex; gap: 8px; margin: 16px 0 4px; }
+    .disc-box input { flex: 1; text-transform: uppercase; letter-spacing: 0.04em; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-text); padding: 9px 10px; font-size: 0.9rem; }
+    .disc-box input::placeholder { text-transform: none; letter-spacing: normal; }
+    .disc-box button { padding: 0 14px; white-space: nowrap; font-size: 0.85rem; }
+    .disc-msg { font-size: 0.8rem; min-height: 1.1em; margin: 2px 0 4px; }
+    .disc-remove { background: none; border: none; color: var(--color-muted); font-size: 0.78rem; cursor: pointer; padding: 0; text-decoration: underline; }
+    .disc-remove:hover { color: var(--color-danger); }
   </style>
 </head>
 <body>
@@ -75,7 +82,9 @@
   <script src="/js/supabase.js"></script>
   <script src="/js/cart.js"></script>
   <script>
-    function renderCart() {
+    let discNotice = ''; // Meldung, die nach dem Neu-Rendern angezeigt wird
+
+    async function renderCart() {
       const cart = getCart();
       const content = document.getElementById('cart-content');
 
@@ -127,8 +136,13 @@
       `).join('');
 
       const total = getCartTotal();
-      const shipping = total >= 50 ? 0 : 3.90;
-      const grandTotal = total + shipping;
+      const disc = await resolveDiscount(total);
+      if (disc.error) discNotice = disc.error;
+      const shipping = total >= 69 ? 0 : 3.90;
+      const grandTotal = Math.max(0, total - disc.amount) + shipping;
+      const noticeColor = disc.amount > 0 ? 'var(--color-success)' : 'var(--color-danger)';
+      const notice = discNotice;
+      discNotice = '';
 
       content.innerHTML = `
         <div class="cart-layout">
@@ -156,13 +170,27 @@
               <span>Zwischensumme</span>
               <span>€${total.toFixed(2)}</span>
             </div>
-            <div class="cart-summary__row">
+            ${disc.amount > 0 ? `
+              <div class="cart-summary__row" style="color:var(--color-success)">
+                <span>Rabatt (${disc.code})</span>
+                <span>−€${disc.amount.toFixed(2)}</span>
+              </div>` : ''}
+            <div class="disc-box">
+              <input type="text" id="cart-disc-input" placeholder="Rabattcode" autocomplete="off"
+                     value="${disc.code || ''}"
+                     oninput="this.value=this.value.toUpperCase()"
+                     onkeydown="if(event.key==='Enter'){event.preventDefault();applyCartDiscount();}">
+              <button type="button" class="btn btn--ghost" onclick="applyCartDiscount()">${disc.amount > 0 ? 'Ändern' : 'Einlösen'}</button>
+            </div>
+            ${notice ? `<div class="disc-msg" style="color:${noticeColor}">${notice}</div>` : '<div class="disc-msg"></div>'}
+            ${disc.amount > 0 ? `<button class="disc-remove" onclick="removeCartDiscount()">Rabatt entfernen</button>` : ''}
+            <div class="cart-summary__row" style="margin-top:12px;">
               <span>Versand</span>
               <span>${shipping === 0 ? '<span style="color:var(--color-success)">Kostenlos</span>' : '€' + shipping.toFixed(2)}</span>
             </div>
             ${shipping > 0 ? `
               <p style="font-size:0.8rem; color:var(--color-muted); margin-bottom:12px;">
-                Noch €${(50 - total).toFixed(2)} bis zum kostenlosen Versand
+                Noch €${(69 - total).toFixed(2)} bis zum kostenlosen Versand
               </p>
             ` : ''}
             <div class="cart-summary__row cart-summary__row--total">
@@ -197,6 +225,28 @@
         clearCart();
         renderCart();
       }
+    }
+
+    async function applyCartDiscount() {
+      const input = document.getElementById('cart-disc-input');
+      const code = (input.value || '').trim().toUpperCase();
+      if (!code) { removeCartDiscount(); return; }
+      const { data, error } = await db.rpc('validate_discount', { p_code: code, p_subtotal: getCartTotal() });
+      if (error) { discNotice = 'Prüfung fehlgeschlagen. Bitte später erneut versuchen.'; return renderCart(); }
+      if (!data || !data.valid) {
+        clearDiscount();
+        discNotice = (data && data.message) || 'Code ungültig.';
+        return renderCart();
+      }
+      setDiscountCode(data.code);
+      discNotice = 'Code „' + data.code + '" angewendet: −€' + Number(data.amount).toFixed(2);
+      renderCart();
+    }
+
+    function removeCartDiscount() {
+      clearDiscount();
+      discNotice = '';
+      renderCart();
     }
 
     updateCartBadge();

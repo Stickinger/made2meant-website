@@ -57,6 +57,17 @@
       const wrap = document.getElementById('success-wrap');
       if (!id) { wrap.innerHTML = '<p class="empty">Keine Bestellung gefunden.</p>'; return; }
 
+      // Warenkorb + Rabattcode leeren — aber nur EINMAL pro Bestellung, damit
+      // ein späterer Besuch dieser Seite einen neu befüllten Korb nicht löscht.
+      try {
+        const cleared = JSON.parse(localStorage.getItem('cleared_orders') || '[]');
+        if (!cleared.includes(id)) {
+          clearCart();
+          cleared.push(id);
+          localStorage.setItem('cleared_orders', JSON.stringify(cleared.slice(-20)));
+        }
+      } catch (e) {}
+
       const { data: o } = await db.from('orders').select('*, order_items(*)').eq('id', id).single();
       if (!o) {
         wrap.innerHTML = `<div class="success-hero"><h1>Danke für deine Bestellung!</h1><p style="color:var(--color-muted)">Wir haben deine Bestellung erhalten.</p><a href="/shop.html" class="btn btn--primary" style="margin-top:20px">Weiter shoppen</a></div>`;
@@ -102,6 +113,7 @@
           <h3>Bestellübersicht</h3>
           ${items}
           <div class="s-row"><span>Zwischensumme</span><span>${euro(o.subtotal)}</span></div>
+          ${o.discount_amount > 0 ? `<div class="s-row" style="color:var(--color-accent)"><span>Rabatt${o.discount_code ? ' (' + esc(o.discount_code) + ')' : ''}</span><span>− ${euro(o.discount_amount)}</span></div>` : ''}
           <div class="s-row"><span>Versand</span><span>${o.shipping > 0 ? euro(o.shipping) : 'Kostenlos'}</span></div>
           <div class="s-row s-row--total"><span>Gesamt</span><span>${euro(o.total)}</span></div>
         </div>
