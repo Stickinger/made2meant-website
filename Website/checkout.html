@@ -238,6 +238,9 @@
           // falls der Kunde die Bezahlung bei Stripe abbricht und zurückgeht.
           window.location.href = data.url;
         } else {
+          // Vorkasse: Betreiber sofort benachrichtigen (Stripe-Bestellungen
+          // werden erst nach erfolgreicher Zahlung im Webhook gemeldet).
+          db.functions.invoke('notify-order', { body: { order_id: order.id } }).catch(() => {});
           window.location.href = '/order-success.html?id=' + order.id;
         }
       } catch (ex) {

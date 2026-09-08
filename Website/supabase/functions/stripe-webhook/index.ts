@@ -37,6 +37,18 @@ Deno.serve(async (req) => {
       if (o?.discount_code) {
         await admin.rpc('increment_discount_use', { p_code: o.discount_code })
       }
+
+      // Benachrichtigung an den Shop-Betreiber auslösen (bezahlte Bestellung)
+      try {
+        await fetch(Deno.env.get('SUPABASE_URL')! + '/functions/v1/notify-order', {
+          method: 'POST',
+          headers: {
+            'Authorization': 'Bearer ' + Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ order_id: orderId }),
+        })
+      } catch (_) { /* Benachrichtigung darf die Zahlung nie blockieren */ }
     }
   }
 

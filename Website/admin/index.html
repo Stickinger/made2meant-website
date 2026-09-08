@@ -485,6 +485,11 @@
       <a href="#" onclick="showTab('analytics',this)">
         <span class="icon">📈</span> Analytics
       </a>
+
+      <div class="admin-nav-section">System</div>
+      <a href="#" onclick="showTab('settings',this)">
+        <span class="icon">⚙️</span> Einstellungen
+      </a>
     </nav>
 
     <div class="admin-sidebar-footer">
@@ -510,9 +515,9 @@
 
         <div class="stats-grid">
           <div class="stat-card stat-card--primary">
-            <div class="stat-card__label">Umsatz (gesamt)</div>
+            <div class="stat-card__label">Umsatz (bezahlt)</div>
             <div class="stat-card__value" id="stat-revenue">—</div>
-            <div class="stat-card__sub">Alle abgeschlossenen Bestellungen</div>
+            <div class="stat-card__sub">Nur bezahlte Bestellungen</div>
           </div>
           <div class="stat-card">
             <div class="stat-card__label">Bestellungen</div>
@@ -718,6 +723,31 @@
             <div class="admin-card__header"><h3>Beliebteste Seiten</h3></div>
             <div class="admin-card__body" style="padding:0;">
               <div id="top-pages"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════ EINSTELLUNGEN ══════════ -->
+      <div id="tab-settings" class="tab-panel">
+        <div class="page-header"><h2>Einstellungen</h2></div>
+
+        <div class="admin-card" style="max-width:640px;">
+          <div class="admin-card__header">
+            <h3>Bestell-Benachrichtigungen</h3>
+          </div>
+          <div class="admin-card__body">
+            <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:16px;">
+              An diese E-Mail-Adressen wird bei jeder neuen Bestellung automatisch eine
+              Benachrichtigung geschickt. Eine Adresse pro Zeile.
+            </p>
+            <div class="field">
+              <label>E-Mail-Adressen für Benachrichtigungen</label>
+              <textarea id="settings-emails" rows="4" placeholder="bestellungen@made2meant.at&#10;chef@made2meant.at"></textarea>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
+              <button class="btn-sm btn-sm--primary" onclick="saveSettings()">Speichern</button>
+              <span id="settings-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
         </div>
@@ -974,6 +1004,10 @@ const STATUS = {
   cancelled:  { label: 'Storniert',      cls: 'badge--red'    },
 };
 
+// Nur bezahlte Bestellungen zählen zum Umsatz (pending = noch nicht bezahlt)
+const PAID_STATUSES = ['processing', 'shipped', 'delivered'];
+function isPaid(o) { return PAID_STATUSES.includes(o.status); }
+
 function fmt(n) { return '€' + (n || 0).toFixed(2); }
 function fmtDate(d) { return new Date(d).toLocaleDateString('de-AT'); }
 // Schützt vor XSS: Kunden-Eingaben immer durch esc() rendern
@@ -990,7 +1024,7 @@ function showTab(name, link) {
   const titles = {
     dashboard:'Dashboard', products:'Produkte', categories:'Kategorien',
     orders:'Bestellungen', revenue:'Umsatz', discounts:'Rabattcodes',
-    newsletter:'Newsletter', analytics:'Analytics'
+    newsletter:'Newsletter', analytics:'Analytics', settings:'Einstellungen'
   };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   if (link) link.classList.add('active');
@@ -1003,6 +1037,7 @@ function showTab(name, link) {
   if (name === 'newsletter') loadNewsletter();
   if (name === 'revenue')    loadRevenue();
   if (name === 'analytics')  loadAnalytics();
+  if (name === 'settings')   loadSettings();
 }
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
@@ -1031,7 +1066,7 @@ async function loadDashboard() {
   const products = prodRes.data || [];
   const subs     = subRes.data || [];
 
-  const revenue = orders.filter(o => o.status !== 'cancelled').reduce((s,o) => s+(o.total||0), 0);
+  const revenue = orders.filter(isPaid).reduce((s,o) => s+(o.total||0), 0);
   const pending = orders.filter(o => o.status === 'pending').length;
 
   document.getElementById('stat-revenue').textContent     = fmt(revenue);
@@ -1063,7 +1098,7 @@ async function loadDashboard() {
     const d = new Date(); d.setDate(d.getDate()-i);
     const key = d.toISOString().slice(0,10);
     labels.push(d.toLocaleDateString('de-AT', {day:'2-digit',month:'2-digit'}));
-    data.push(orders.filter(o => o.created_at?.slice(0,10) === key && o.status !== 'cancelled')
+    data.push(orders.filter(o => o.created_at?.slice(0,10) === key && isPaid(o))
                     .reduce((s,o) => s+(o.total||0), 0));
   }
   renderChart('revenue-chart', labels, data, 'Umsatz (€)', '#a85d4f');
@@ -1940,7 +1975,8 @@ async function saveNewsletter(action) {
 // ══════════════════════════════════════════
 
 async function loadRevenue() {
-  const { data: orders } = await db.from('orders').select('total, status, created_at').neq('status', 'cancelled');
+  // Nur bezahlte Bestellungen laden (pending/storniert zählen nicht zum Umsatz)
+  const { data: orders } = await db.from('orders').select('total, status, created_at, id').in('status', PAID_STATUSES);
   const all = orders || [];
 
   const now   = new Date();
@@ -1963,8 +1999,11 @@ async function loadRevenue() {
   }
   renderChart('monthly-chart', months, mData, 'Umsatz (€)', '#a85d4f');
 
-  // Top products
-  const { data: items } = await db.from('order_items').select('name, price, quantity');
+  // Top products — nur aus bezahlten Bestellungen
+  const paidIds = all.map(o => o.id);
+  const { data: items } = paidIds.length
+    ? await db.from('order_items').select('name, price, quantity, order_id').in('order_id', paidIds)
+    : { data: [] };
   const grouped = {};
   (items||[]).forEach(i => {
     if (!grouped[i.name]) grouped[i.name] = { revenue: 0, qty: 0 };
@@ -1983,6 +2022,41 @@ async function loadRevenue() {
         </tr>`).join('')}
       </tbody>
     </table>` : '<div class="empty-state"><p>Noch keine Verkäufe.</p></div>';
+}
+
+// ══════════════════════════════════════════
+// EINSTELLUNGEN
+// ══════════════════════════════════════════
+
+async function loadSettings() {
+  const { data } = await db.from('settings').select('value').eq('key', 'order_notification_emails').maybeSingle();
+  const emails = Array.isArray(data?.value) ? data.value : [];
+  document.getElementById('settings-emails').value = emails.join('\n');
+  document.getElementById('settings-msg').textContent = '';
+}
+
+async function saveSettings() {
+  const msg = document.getElementById('settings-msg');
+  const raw = document.getElementById('settings-emails').value;
+  const emails = raw.split(/[\n,;]+/).map(e => e.trim()).filter(Boolean);
+
+  const bad = emails.filter(e => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
+  if (bad.length) {
+    msg.style.color = 'var(--color-danger)';
+    msg.textContent = 'Ungültige Adresse: ' + bad[0];
+    return;
+  }
+
+  const { error } = await db.from('settings')
+    .upsert({ key: 'order_notification_emails', value: emails, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+
+  if (error) {
+    msg.style.color = 'var(--color-danger)';
+    msg.textContent = 'Fehler: ' + error.message;
+    return;
+  }
+  msg.style.color = 'var(--color-success)';
+  msg.textContent = emails.length ? '✓ Gespeichert (' + emails.length + ' Adresse' + (emails.length > 1 ? 'n' : '') + ')' : '✓ Gespeichert – keine Benachrichtigungen aktiv';
 }
 
 // ══════════════════════════════════════════
