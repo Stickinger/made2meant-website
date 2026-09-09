@@ -358,12 +358,12 @@
     <section class="section reveal" style="padding-top:0">
       <div class="container">
         <div class="newsletter">
-          <span class="label-style">Bleib verbunden</span>
-          <h2 style="margin:8px 0 6px">Neue Produkte &amp; kleine Geschichten.</h2>
-          <p style="color:var(--color-muted)">Rund um besondere Momente — kein Spam, versprochen.</p>
+          <span class="label-style">10% Willkommensgeschenk</span>
+          <h2 style="margin:8px 0 6px">Melde dich an &amp; spare 10%.</h2>
+          <p style="color:var(--color-muted)">Sichere dir 10% auf deine erste Bestellung – dazu Neuheiten und kleine Geschichten. Kein Spam, versprochen.</p>
           <form onsubmit="handleNewsletter(event)">
             <input type="email" id="nl-email" placeholder="Deine E-Mail" required aria-label="E-Mail-Adresse">
-            <button type="submit" class="btn btn--primary">Anmelden</button>
+            <button type="submit" class="btn btn--primary">10% sichern</button>
           </form>
           <p id="nl-msg" style="margin-top:12px;font-size:0.85rem;color:var(--color-accent);min-height:1em"></p>
         </div>
@@ -404,6 +404,7 @@
   <script src="/js/products.js"></script>
   <script src="/js/track.js"></script>
   <script src="/js/reveal.js"></script>
+  <script src="/js/newsletter-popup.js"></script>
 
   <script>
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
@@ -425,12 +426,16 @@
 
     async function handleNewsletter(e) {
       e.preventDefault();
-      const email = document.getElementById('nl-email').value;
+      const email = document.getElementById('nl-email').value.trim();
       const msg = document.getElementById('nl-msg');
+      msg.style.color = 'var(--color-muted)';
+      msg.textContent = 'Einen Moment…';
       try {
-        await db.from('newsletter_subscribers').insert({ email });
+        const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
+        if (error) throw error;
+        try { if (typeof setDiscountCode === 'function') setDiscountCode('WILLKOMMEN10'); } catch (_) {}
         msg.style.color = 'var(--color-accent)';
-        msg.textContent = 'Danke! Du bist dabei. 🤍';
+        msg.innerHTML = 'Danke! Dein 10%-Code <strong>WILLKOMMEN10</strong> ist unterwegs zu dir. 🤍';
         document.getElementById('nl-email').value = '';
       } catch (err) {
         msg.style.color = 'var(--color-primary)';
