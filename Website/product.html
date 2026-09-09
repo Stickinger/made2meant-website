@@ -6,6 +6,7 @@
   <title>Produkt — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <style>
     .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
     .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
@@ -83,6 +84,52 @@
     .fontbtn.selected { border-color: var(--color-primary); background: #fbf1ec; }
     .fontbtn.selected small { color: var(--color-primary); }
 
+    /* Mit / Ohne Bestickung */
+    .modepick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .modebtn { text-align: left; padding: 12px 14px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: all 0.15s; }
+    .modebtn strong { display: block; font-size: 0.9rem; color: var(--color-text); }
+    .modebtn small { display: block; font-size: 0.74rem; color: var(--color-muted); margin-top: 2px; }
+    .modebtn:hover { border-color: var(--color-primary); }
+    .modebtn.selected { border-color: var(--color-primary); background: #fbf1ec; }
+    .modebtn.selected strong { color: var(--color-primary); }
+    @media (max-width: 380px) { .modepick { grid-template-columns: 1fr; } }
+
+    /* Kurz-Erklärung „So funktioniert's" */
+    .howto { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 20px; font-size: 0.82rem; color: var(--color-muted); }
+    .howto span { display: inline-flex; align-items: center; gap: 7px; }
+    .howto b { display: inline-flex; align-items: center; justify-content: center; width: 19px; height: 19px; border-radius: 50%; background: var(--color-primary); color: #fff; font-size: 0.68rem; font-weight: 700; flex: 0 0 auto; }
+
+    /* „+ mehr Farben"-Button in den Swatches */
+    .tswatch--more { background: var(--color-surface); color: var(--color-muted); border: 1.5px dashed var(--color-border); box-shadow: none; font-size: 1.1rem; line-height: 1; display: flex; align-items: center; justify-content: center; font-family: var(--font-main); }
+    .tswatch--more:hover { border-color: var(--color-primary); color: var(--color-primary); transform: scale(1.08); }
+
+    /* Empfohlen-Badge auf Schriftart */
+    .fontbtn { position: relative; }
+    .fontbtn__rec { position: absolute; top: -9px; left: 50%; transform: translateX(-50%); background: var(--color-accent); color: #fff; font-size: 0.52rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+
+    /* Textgröße Klein / Groß */
+    .sizepick { display: flex; gap: 10px; }
+    .sizebtn { padding: 8px 22px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); font-family: var(--font-main); font-weight: 600; font-size: 0.88rem; color: var(--color-text); cursor: pointer; transition: all 0.15s; }
+    .sizebtn:hover { border-color: var(--color-primary); }
+    .sizebtn.selected { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
+
+    /* Schritt-Anzeige (Personalisierung › Motive) */
+    .stepper { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 0.8rem; }
+    .stepper__item { display: inline-flex; align-items: center; gap: 7px; color: var(--color-muted); font-weight: 600; }
+    .stepper__item b { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: var(--color-surface-2); color: var(--color-muted); font-size: 0.72rem; }
+    .stepper__item.active { color: var(--color-primary); }
+    .stepper__item.active b { background: var(--color-primary); color: #fff; }
+    .stepper__sep { color: var(--color-taupe); }
+
+    /* Motiv-Auswahl (Schritt 2) */
+    .motifgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+    .motifcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 12px 8px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: all 0.15s; }
+    .motifcard img { width: 46px; height: 46px; object-fit: contain; }
+    .motifcard__name { font-size: 0.78rem; font-weight: 600; color: var(--color-text); text-align: center; }
+    .motifcard__price { font-size: 0.72rem; color: var(--color-primary); font-weight: 700; }
+    .motifcard:hover { border-color: var(--color-primary); }
+    .motifcard.selected { border-color: var(--color-primary); background: #fbf1ec; box-shadow: inset 0 0 0 1px var(--color-primary); }
+
     /* Stickstellen */
     .pos-list { display: flex; flex-direction: column; gap: 10px; }
     .pos-card { border: 1.5px solid var(--color-border); border-radius: var(--radius); padding: 13px 15px; transition: border-color 0.15s, background 0.15s; }
@@ -132,20 +179,16 @@
     <div class="container navbar__inner">
       <a href="/index.html" class="navbar__logo">made2meant</a>
       <ul class="navbar__links">
-        <li><a href="/index.html">Homepage</a></li>
         <li class="has-drop">
           <a href="/shop.html">Geschenke</a>
           <div class="dropdown"><div class="dropdown__inner">
+            <a href="/shop.html?q=babyshower">Babyshower</a>
             <a href="/shop.html?q=geburt">Zur Geburt</a>
-            <a href="/shop.html?q=taufe">Zur Taufe</a>
+            <a href="/shop.html?q=taufe">Taufe</a>
             <a href="/shop.html?q=geburtstag">Geburtstag</a>
-            <a href="/shop.html?cat=familie">Für Mama &amp; Papa</a>
-            <a href="/shop.html?q=grosseltern">Für Großeltern</a>
-            <a href="/shop.html">Kleine Aufmerksamkeit</a>
           </div></div>
         </li>
         <li><a href="/shop.html">Alle Produkte</a></li>
-        <li><a href="/shop.html">Personalisieren</a></li>
         <li><a href="/qualitaet.html">Qualität</a></li>
         <li><a href="/ueber-uns.html">Über uns</a></li>
       </ul>
@@ -204,37 +247,55 @@
     const _nav = document.querySelector('.navbar');
     window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
 
+    // Die ersten 5 sind unsere Empfehlung – der Rest erscheint erst über „+"
+    const RECOMMENDED_THREADS = 5;
     const THREAD_COLORS = [
-      { name: 'Weiß', hex: '#F0EDE8' }, { name: 'Schwarz', hex: '#1a1a1a' },
-      { name: 'Navy', hex: '#1B2A4A' }, { name: 'Bordeaux', hex: '#7B1C2E' },
-      { name: 'Terracotta', hex: '#C56A47' }, { name: 'Moosgrün', hex: '#42553d' },
-      { name: 'Gold', hex: '#C9A84C' }, { name: 'Silber', hex: '#A8A9AD' },
-      { name: 'Rosa', hex: '#D4789E' }, { name: 'Hellblau', hex: '#5B9EC9' },
-      { name: 'Beige', hex: '#C4A882' }, { name: 'Salbei', hex: '#8DA190' },
+      { name: 'Terracotta', hex: '#C56A47' }, { name: 'Salbei', hex: '#8DA190' },
+      { name: 'Beige', hex: '#C4A882' }, { name: 'Weiß', hex: '#F0EDE8' },
+      { name: 'Navy', hex: '#1B2A4A' },
+      { name: 'Moosgrün', hex: '#42553d' }, { name: 'Bordeaux', hex: '#7B1C2E' },
+      { name: 'Gold', hex: '#C9A84C' }, { name: 'Rosa', hex: '#D4789E' },
+      { name: 'Hellblau', hex: '#5B9EC9' }, { name: 'Silber', hex: '#A8A9AD' },
+      { name: 'Schwarz', hex: '#1a1a1a' },
     ];
 
-    // Schriftarten, die der Kunde wählen kann
+    // Schriftarten, die der Kunde wählen kann (recommended = unsere Empfehlung)
     const FONTS = [
-      { name: 'Schreibschrift', css: "'Dancing Script', cursive", weight: 700, sample: 'Aa' },
+      { name: 'Schreibschrift', css: "'Dancing Script', cursive", weight: 700, sample: 'Aa', recommended: true },
       { name: 'Handschrift',    css: "'Caveat', cursive",         weight: 700, sample: 'Aa' },
       { name: 'Klassisch',      css: "'Fraunces', serif",          weight: 600, sample: 'Aa' },
       { name: 'Modern',         css: "'Nunito', sans-serif",       weight: 800, sample: 'Aa' },
     ];
 
+    // Textgröße (Small / Large) – skaliert die im Admin festgelegte Größe
+    const TEXT_SIZES = [
+      { label: 'Klein', scale: 0.82 },
+      { label: 'Groß',  scale: 1.15 },
+    ];
+
     let POSITIONS = [];
+    let MOTIFS = [];
     let currentProduct = null;
     let productImages = [];
     let capOption = null;
     let qty = 1;
 
+    function escH(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
     // threadColor + font sind sinnvoll vorbelegt, damit die Vorschau sofort etwas zeigt.
     // previewPos = null  →  schönes Titelfoto; eine Position-ID  →  leeres Foto mit Text
     const cfg = {
+      mode: 'mit',   // 'mit' = mit Bestickung · 'ohne' = ohne Bestickung (Grundpreis)
       capColor: null,
       threadColor: THREAD_COLORS.find(t => t.name === 'Terracotta') || THREAD_COLORS[0],
+      showAllThreads: false,
       font: FONTS[0],
+      sizeIndex: 1,                       // Standard: „Groß"
+      textScale: TEXT_SIZES[1].scale,
       positions: {},
       previewPos: null,
+      step: 1,                            // 1 = Personalisierung · 2 = Motive
+      selectedMotifs: {},                 // { motifId: true }
     };
 
     const imgCache = {};
@@ -277,6 +338,10 @@
       }));
       cfg.previewPos = null;   // Start: schönes Titelfoto
 
+      MOTIFS = (currentProduct.motifs || []).map((m, i) => ({
+        id: 'm' + i, label: m.label, url: m.url, price: Number(m.price) || 0,
+      }));
+
       document.getElementById('breadcrumb').innerHTML =
         `<a href="/index.html">Startseite</a> / <a href="/index.html#products">Shop</a> / <span>${currentProduct.name}</span>`;
 
@@ -310,8 +375,10 @@
 
     function currentPrice() {
       const base = Number(currentProduct.price) || 0;
-      const add = POSITIONS.filter(p => p.id in cfg.positions).reduce((s, p) => s + p.price, 0);
-      return base + add;
+      if (cfg.mode === 'ohne') return base;
+      const posAdd = POSITIONS.filter(p => p.id in cfg.positions).reduce((s, p) => s + p.price, 0);
+      const motifAdd = MOTIFS.filter(m => cfg.selectedMotifs[m.id]).reduce((s, m) => s + m.price, 0);
+      return base + posAdd + motifAdd;
     }
 
     function isNew() {
@@ -322,6 +389,7 @@
     function renderPage() {
       const p = currentProduct;
       const personalizable = POSITIONS.length > 0;
+      const hasMotifs = personalizable && MOTIFS.length > 0;
       const wished = localStorage.getItem('wish-' + p.slug) === '1';
 
       const capBlock = (capOption && capOption.values?.length) ? `
@@ -356,16 +424,55 @@
       const threadBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label" id="thread-label">Garnfarbe${cfg.threadColor ? ': ' + cfg.threadColor.name : ''}</span>
-          <div class="tswatches" id="thread-swatches">
-            ${THREAD_COLORS.map(c => `<button type="button" class="tswatch ${cfg.threadColor && c.name === cfg.threadColor.name ? 'selected' : ''}" style="--c:${c.hex}" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('')}
-          </div>
+          <div class="tswatches" id="thread-swatches"></div>
         </div>`;
 
       const fontBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Schriftart</span>
           <div class="fonts" id="font-picker">
-            ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" style="font-family:${f.css}" onclick="selectFont(${i})">${f.sample}<small>${f.name}</small></button>`).join('')}
+            ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" style="font-family:${f.css}" onclick="selectFont(${i})">${f.recommended ? '<span class="fontbtn__rec">Empfohlen</span>' : ''}${f.sample}<small>${f.name}</small></button>`).join('')}
+          </div>
+        </div>`;
+
+      const sizeBlock = !personalizable ? '' : `
+        <div class="fld">
+          <span class="fld__label">Textgröße</span>
+          <div class="sizepick" id="size-pick">
+            ${TEXT_SIZES.map((s, i) => `<button type="button" class="sizebtn ${i === cfg.sizeIndex ? 'selected' : ''}" data-i="${i}" onclick="selectSize(${i})">${s.label}</button>`).join('')}
+          </div>
+        </div>`;
+
+      const motifBlock = !hasMotifs ? '' : `
+        <div class="fld">
+          <span class="fld__label">Motive hinzufügen <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
+          <div class="fld__hint">Wähle ein oder mehrere Motive, die zusätzlich gestickt werden — live in der Vorschau.</div>
+          <div class="motifgrid" id="motif-grid">
+            ${MOTIFS.map(m => `<button type="button" class="motifcard ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" data-id="${m.id}" onclick="toggleMotif('${m.id}')">
+              <img src="${escH(m.url)}" alt="${escH(m.label)}" loading="lazy">
+              <span class="motifcard__name">${escH(m.label)}</span>
+              <span class="motifcard__price">+ ${euro(m.price)}</span>
+            </button>`).join('')}
+          </div>
+        </div>`;
+
+      const stepBar = !hasMotifs ? '' : `
+        <div class="stepper" id="stepper">
+          <span class="stepper__item active" id="stepper-1"><b>1</b> Personalisierung</span>
+          <span class="stepper__sep">›</span>
+          <span class="stepper__item" id="stepper-2"><b>2</b> Motive</span>
+        </div>`;
+
+      const modeBlock = !personalizable ? '' : `
+        <div class="fld">
+          <span class="fld__label">Bestickung</span>
+          <div class="modepick" id="mode-pick">
+            <button type="button" class="modebtn ${cfg.mode === 'mit' ? 'selected' : ''}" data-mode="mit" onclick="setMode('mit')">
+              <strong>Mit Bestickung</strong><small>Personalisiert mit Name</small>
+            </button>
+            <button type="button" class="modebtn ${cfg.mode === 'ohne' ? 'selected' : ''}" data-mode="ohne" onclick="setMode('ohne')">
+              <strong>Ohne Bestickung</strong><small>Schlicht zum Grundpreis</small>
+            </button>
           </div>
         </div>`;
 
@@ -397,11 +504,32 @@
 
           <div class="divide"></div>
           ${capBlock}
-          ${posBlock}
-          ${threadBlock}
-          ${fontBlock}
+          ${stepBar}
+
+          <div id="step-1">
+            ${modeBlock}
+            <div id="embroidery-fields" ${cfg.mode === 'ohne' ? 'hidden' : ''}>
+              ${personalizable ? `<div class="howto">
+                <span><b>1</b> Stickstelle wählen</span>
+                <span><b>2</b> Name eintippen</span>
+                <span><b>3</b> Farbe, Schrift &amp; Größe</span>
+              </div>` : ''}
+              ${posBlock}
+              ${threadBlock}
+              ${fontBlock}
+              ${sizeBlock}
+            </div>
+          </div>
+
+          <div id="step-2" hidden>
+            ${motifBlock}
+          </div>
 
           ${personalizable ? '<div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Garnfarbe.</div>' : '<div id="hint"></div>'}
+
+          <div id="step2-back" hidden style="margin-bottom:12px;">
+            <button type="button" class="btn btn--ghost" onclick="goStep(1)" style="padding:0;font-size:0.9rem;">← Zurück zur Personalisierung</button>
+          </div>
 
           <div class="buy-row">
             <div class="qty-selector">
@@ -409,7 +537,7 @@
               <span id="qty-display" aria-live="polite">1</span>
               <button class="qty-btn" aria-label="Menge erhöhen" onclick="changeQty(1)">+</button>
             </div>
-            <button class="btn btn--primary" id="add-btn" onclick="handleAddToCart()" ${personalizable ? 'disabled' : ''}>
+            <button class="btn btn--primary" id="add-btn" onclick="primaryAction()" ${personalizable ? 'disabled' : ''}>
               ${personalizable ? 'Mein Stück personalisieren' : 'In den Warenkorb'}
             </button>
           </div>
@@ -417,9 +545,24 @@
       `;
 
       renderThumbs();
+      renderThreadSwatches();
+      updateFlowUI();
       requestAnimationFrame(renderCanvas);
       if (document.fonts && document.fonts.ready) document.fonts.ready.then(renderCanvas);
     }
+
+    // Garnfarben: erst die 5 empfohlenen, dann „+" für den Rest
+    function renderThreadSwatches() {
+      const box = document.getElementById('thread-swatches');
+      if (!box) return;
+      const list = cfg.showAllThreads ? THREAD_COLORS : THREAD_COLORS.slice(0, RECOMMENDED_THREADS);
+      let html = list.map(c => `<button type="button" class="tswatch ${cfg.threadColor && c.name === cfg.threadColor.name ? 'selected' : ''}" style="--c:${c.hex}" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('');
+      if (THREAD_COLORS.length > RECOMMENDED_THREADS) {
+        html += `<button type="button" class="tswatch tswatch--more" onclick="toggleThreads()" aria-label="${cfg.showAllThreads ? 'Weniger Farben' : 'Mehr Farben'}" title="${cfg.showAllThreads ? 'Weniger' : 'Mehr Farben'}">${cfg.showAllThreads ? '−' : '+'}</button>`;
+      }
+      box.innerHTML = html;
+    }
+    function toggleThreads() { cfg.showAllThreads = !cfg.showAllThreads; renderThreadSwatches(); }
 
     function renderThumbs() {
       const el = document.getElementById('thumbs');
@@ -460,7 +603,7 @@
       const data = cfg.positions[view];
       const t = (data && data.text || '').trim();
       const px = pos.x * W, py = pos.y * H;
-      const fontSize = pos.size * W;
+      const fontSize = pos.size * (cfg.textScale || 1) * W;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
 
       if (t) {
@@ -474,12 +617,47 @@
         ctx.fillStyle = 'rgba(120,110,98,0.45)';
         ctx.fillText('Dein Name', px, py);
       }
+
+      // Gewählte Motive unter dem Namen zeichnen (Schritt 2 – live auf dem Produkt)
+      const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+      if (chosen.length) {
+        const mH = W * 0.14;
+        const gap = W * 0.03;
+        const dims = chosen.map(m => {
+          const im = getImg(m.url);
+          const ratio = (im && im.naturalWidth) ? im.naturalWidth / im.naturalHeight : 1;
+          return { im, w: mH * ratio };
+        });
+        const totalW = dims.reduce((a, d) => a + d.w, 0) + gap * (chosen.length - 1);
+        let x = px - totalW / 2;
+        const my = py + (t ? fontSize * 0.75 : 0) + mH * 0.7;
+        dims.forEach(d => {
+          if (d.im && d.im.complete && d.im.naturalWidth) ctx.drawImage(d.im, x, my - mH / 2, d.w, mH);
+          x += d.w + gap;
+        });
+      }
     }
 
     function selectFont(i) {
       cfg.font = FONTS[i] || FONTS[0];
       document.querySelectorAll('.fontbtn').forEach(el => el.classList.toggle('selected', +el.dataset.i === i));
       renderCanvas();
+    }
+
+    function setMode(mode) {
+      cfg.mode = mode;
+      document.querySelectorAll('.modebtn').forEach(b => b.classList.toggle('selected', b.dataset.mode === mode));
+      const fields = document.getElementById('embroidery-fields');
+      if (fields) fields.hidden = (mode === 'ohne');
+      if (mode === 'ohne') {
+        cfg.previewPos = null;                                  // schlichtes Titelfoto
+        cfg.step = 1;
+      } else {
+        const first = POSITIONS.find(p => p.id in cfg.positions);
+        cfg.previewPos = first ? first.id : null;
+      }
+      updateFlowUI();
+      renderThumbs(); renderCanvas(); updatePrice(); checkReady();
     }
 
     function selectCap(value) {
@@ -491,10 +669,64 @@
 
     function selectThread(name) {
       cfg.threadColor = THREAD_COLORS.find(t => t.name === name) || null;
-      document.querySelectorAll('.tswatch').forEach(s => s.classList.toggle('selected', s.dataset.name === name));
+      renderThreadSwatches();
       const lbl = document.getElementById('thread-label');
       if (lbl) lbl.textContent = 'Garnfarbe' + (cfg.threadColor ? ': ' + cfg.threadColor.name : '');
       renderCanvas(); checkReady();
+    }
+
+    function selectSize(i) {
+      cfg.sizeIndex = i;
+      cfg.textScale = (TEXT_SIZES[i] || TEXT_SIZES[0]).scale;
+      document.querySelectorAll('.sizebtn').forEach(b => b.classList.toggle('selected', +b.dataset.i === i));
+      renderCanvas();
+    }
+
+    // ── Motive & Schritt-Navigation ──
+    function hasMotifStep() { return cfg.mode === 'mit' && MOTIFS.length > 0; }
+
+    function personalizationReady() {
+      const capOk = !capOption || !!cfg.capColor;
+      if (POSITIONS.length === 0 || cfg.mode === 'ohne') return capOk;
+      const active = Object.keys(cfg.positions);
+      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
+      return allFilled && !!cfg.threadColor && capOk;
+    }
+
+    function primaryAction() {
+      // Schritt 1 fertig + es gibt Motive → weiter zu Schritt 2, sonst direkt in den Warenkorb
+      if (hasMotifStep() && cfg.step === 1 && personalizationReady()) { goStep(2); return; }
+      handleAddToCart();
+    }
+
+    function goStep(n) {
+      cfg.step = n;
+      updateFlowUI();
+      renderThumbs(); renderCanvas(); checkReady();
+    }
+
+    function updateFlowUI() {
+      const showMotifStep = hasMotifStep();
+      if (!showMotifStep && cfg.step === 2) cfg.step = 1;
+      const s1 = document.getElementById('step-1');
+      const s2 = document.getElementById('step-2');
+      const back = document.getElementById('step2-back');
+      const stepper = document.getElementById('stepper');
+      if (s1) s1.hidden = (cfg.step === 2);
+      if (s2) s2.hidden = !(showMotifStep && cfg.step === 2);
+      if (back) back.hidden = !(showMotifStep && cfg.step === 2);
+      if (stepper) {
+        stepper.hidden = !showMotifStep;
+        document.getElementById('stepper-1')?.classList.toggle('active', cfg.step === 1);
+        document.getElementById('stepper-2')?.classList.toggle('active', cfg.step === 2);
+      }
+    }
+
+    function toggleMotif(id) {
+      if (cfg.selectedMotifs[id]) delete cfg.selectedMotifs[id];
+      else cfg.selectedMotifs[id] = true;
+      document.querySelector(`.motifcard[data-id="${id}"]`)?.classList.toggle('selected', !!cfg.selectedMotifs[id]);
+      updatePrice(); renderCanvas(); checkReady();
     }
 
     function setPreview(id) { cfg.previewPos = id; renderThumbs(); renderCanvas(); }
@@ -528,12 +760,35 @@
       const btn = document.getElementById('add-btn');
       const hint = document.getElementById('hint');
       const capOk = !capOption || !!cfg.capColor;
-      if (POSITIONS.length === 0) { if (btn) btn.disabled = !capOk; return; }
+      if (POSITIONS.length === 0) { if (btn) { btn.disabled = !capOk; btn.textContent = 'In den Warenkorb'; } return; }
+
+      // Ohne Bestickung: schlicht zum Grundpreis – nur ggf. Farbe nötig
+      if (cfg.mode === 'ohne') {
+        if (btn) { btn.disabled = !capOk; btn.textContent = 'In den Warenkorb'; }
+        if (hint) {
+          hint.className = capOk ? 'personalize-hint complete' : 'personalize-hint';
+          hint.textContent = capOk ? 'Ohne Bestickung — schlicht zum Grundpreis.' : 'Bitte zuerst eine Farbe wählen.';
+        }
+        return;
+      }
+
+      // Schritt 2: Motive (optional) → direkt in den Warenkorb möglich
+      if (cfg.step === 2) {
+        if (btn) { btn.disabled = false; btn.textContent = 'In den Warenkorb'; }
+        if (hint) {
+          const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+          hint.className = 'personalize-hint complete';
+          hint.textContent = chosen.length
+            ? `Motive: ${chosen.map(m => m.label).join(', ')}. Fertig? Ab in den Warenkorb.`
+            : 'Motive sind optional — du kannst direkt in den Warenkorb.';
+        }
+        return;
+      }
 
       const active = Object.keys(cfg.positions);
       const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
       const ready = allFilled && !!cfg.threadColor && capOk;
-      if (btn) btn.disabled = !ready;
+      if (btn) { btn.disabled = !ready; btn.textContent = !ready ? 'Mein Stück personalisieren' : (hasMotifStep() ? 'Weiter: Motive →' : 'In den Warenkorb'); }
       if (!hint) return;
 
       if (ready) {
@@ -554,14 +809,19 @@
     function handleAddToCart() {
       const options = {};
       if (capOption) options[capOption.name] = cfg.capColor;
-      if (POSITIONS.length > 0) {
+      if (POSITIONS.length > 0 && cfg.mode === 'ohne') {
+        options['Bestickung'] = 'Ohne Bestickung';
+      } else if (POSITIONS.length > 0) {
         const active = Object.keys(cfg.positions);
         if (!active.length || !cfg.threadColor) return;
         options['Garnfarbe'] = cfg.threadColor.name;
         options['Schriftart'] = cfg.font.name;
+        options['Textgröße'] = (TEXT_SIZES[cfg.sizeIndex] || TEXT_SIZES[0]).label;
         POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
+        const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+        if (chosenM.length) options['Motive'] = chosenM.map(m => m.label).join(', ');
       }
-      let previewUrl = cfg.previewPos ? photoFor(cfg.previewPos) : displayImage();
+      let previewUrl = (cfg.mode === 'mit' && cfg.previewPos) ? photoFor(cfg.previewPos) : displayImage();
       try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}
       const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
       for (let i = 0; i < qty; i++) addToCart(base, options);
