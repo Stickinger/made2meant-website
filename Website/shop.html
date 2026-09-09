@@ -40,6 +40,20 @@
     .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
     .shop-count { color: var(--color-muted); font-size: 0.85rem; margin-bottom: 22px; }
 
+    /* Sortier-Dropdown */
+    .sort-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+    .sort-wrap label { font-size: 0.8rem; color: var(--color-muted); white-space: nowrap; }
+    .sort-select { padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff; font-family: var(--font-main); font-size: 0.85rem; font-weight: 600; color: var(--color-text); cursor: pointer; }
+    .sort-select:focus { border-color: var(--color-primary); outline: none; }
+
+    /* Filter-Gruppen (Produkt / Anlass / Farbe) */
+    .filter-groups { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
+    .fgroup { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .fgroup__label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-muted); min-width: 70px; }
+    .color-tabs .filter-tab { display: inline-flex; align-items: center; gap: 7px; }
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); flex: 0 0 auto; }
+    @media (max-width: 620px) { .fgroup__label { min-width: 100%; } }
+
     .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; padding-bottom: 40px; }
     @media (max-width: 1000px) { .pgrid { grid-template-columns: repeat(3, 1fr); } }
     @media (max-width: 720px) { .pgrid { grid-template-columns: 1fr 1fr; } }
@@ -122,13 +136,22 @@
           <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
           <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
         </div>
-        <div class="filter-tabs" id="filter-tabs" role="group" aria-label="Produkte filtern">
-          <button class="filter-tab active" aria-pressed="true" data-cat="all" onclick="showCat('all')">Alle</button>
-          <button class="filter-tab" aria-pressed="false" data-cat="baby" onclick="showCat('baby')">Baby &amp; Kind</button>
-          <button class="filter-tab" aria-pressed="false" data-cat="familie" onclick="showCat('familie')">Für die Familie</button>
-          <button class="filter-tab" aria-pressed="false" data-cat="bestseller" onclick="showCat('bestseller')">Bestseller</button>
+        <div class="sort-wrap">
+          <label for="sort-select">Sortieren</label>
+          <select id="sort-select" class="sort-select" onchange="setSort(this.value)">
+            <option value="beliebt">Beliebtheit</option>
+            <option value="price-asc">Preis: aufsteigend</option>
+            <option value="price-desc">Preis: absteigend</option>
+          </select>
         </div>
       </div>
+
+      <div class="filter-groups">
+        <div class="fgroup"><span class="fgroup__label">Produkt</span><div class="filter-tabs" id="type-tabs" role="group" aria-label="Nach Produkt filtern"></div></div>
+        <div class="fgroup"><span class="fgroup__label">Anlass</span><div class="filter-tabs" id="occasion-tabs" role="group" aria-label="Nach Anlass filtern"></div></div>
+        <div class="fgroup" id="color-group"><span class="fgroup__label">Farbe</span><div class="filter-tabs color-tabs" id="color-tabs" role="group" aria-label="Nach Farbe filtern"></div></div>
+      </div>
+
       <p class="shop-count" id="shop-count" aria-live="polite"></p>
       <div class="pgrid" id="product-grid"><p class="loading">Produkte werden geladen…</p></div>
     </div>
@@ -168,18 +191,71 @@
     window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
 
     let allProducts = [];
-    let activeFilter = 'all';
+    const filters = { typ: 'all', anlass: 'all', farbe: 'all' };
+    let sortBy = 'beliebt';
 
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
     function firstName(p) { const m = (p.name || '').match(/[A-Za-zÄÖÜäöüß]+/); return m ? m[0] : 'made2meant'; }
     function haystack(p) { return (p.name + ' ' + (p.description || '') + ' ' + (p.tags || []).join(' ') + ' ' + (p.category_name || '')).toLowerCase(); }
+    function productColors(p) { const o = (p.options || []).find(o => /kappe|farbe/i.test(o.name)); return o ? (o.values || []) : []; }
 
-    const CATS = {
-      all:        { label: 'Alle Produkte',  sub: 'Personalisierte Lieblingsstücke – mit Liebe für euch bestickt.', match: () => true },
-      bestseller: { label: 'Bestseller',      sub: 'Unsere beliebtesten Stücke.', match: p => p.bestseller },
-      baby:       { label: 'Baby & Kind',     sub: 'Für die Kleinsten – weich, sicher und persönlich.', match: p => /baby|kind|kinder|body|strampler|l[aä]tzchen|m[uü]tze|kappe|handtuch|decke|nuschi|spucktuch|schnuller|geburt|taufe/.test(haystack(p)) },
-      familie:    { label: 'Für die Familie', sub: 'Passende Lieblingsstücke für die ganze Familie.', match: p => /mama|papa|eltern|familie|erwachsen|paar|polster|kissen|bademantel|beutel|tasche/.test(haystack(p)) },
-    };
+    // ── Filter-Definitionen ──
+    const TYPES = [
+      { key: 'all',         label: 'Alle',        match: () => true },
+      { key: 'handtuch',    label: 'Handtuch',    match: p => /handtuch/.test(haystack(p)) },
+      { key: 'kapuzentuch', label: 'Kapuzentuch', match: p => /kapuze/.test(haystack(p)) },
+      { key: 'hauben',      label: 'Hauben',      match: p => /haube/.test(haystack(p)) },
+      { key: 'musselin',    label: 'Musselin',    match: p => /musselin|mull|nuschi|spucktuch|swaddle|puck/.test(haystack(p)) },
+      { key: 'spielzeug',   label: 'Spielzeug',   match: p => /spielzeug|kuscheltier|greifling|rassel|spieluhr|schmusetuch|kuscheltuch/.test(haystack(p)) },
+    ];
+    const OCCASIONS = [
+      { key: 'all',        label: 'Alle',       match: () => true },
+      { key: 'taufe',      label: 'Taufe',      match: p => /tauf/.test(haystack(p)) },
+      { key: 'geburt',     label: 'Geburt',     match: p => /geburt|newborn/.test(haystack(p)) },
+      { key: 'babyshower', label: 'Babyshower', match: p => /babyshower|baby.?shower|baby.?party/.test(haystack(p)) },
+      { key: 'geburtstag', label: 'Geburtstag', match: p => /geburtstag/.test(haystack(p)) },
+    ];
+    const COLOR_HEX = { 'weiß':'#F0EDE8','weiss':'#F0EDE8','creme':'#EFE7DA','natur':'#E7DCCB','beige':'#C4A882','sand':'#E7DCCB','grau':'#A8A9AD','silber':'#A8A9AD','schwarz':'#1a1a1a','anthrazit':'#3a3a3a','navy':'#1B2A4A','blau':'#5B9EC9','hellblau':'#5B9EC9','rosa':'#D4789E','altrosa':'#C98B93','rot':'#7B1C2E','bordeaux':'#7B1C2E','grün':'#42553d','gruen':'#42553d','salbei':'#8DA190','mint':'#A8CBB7','gelb':'#C9A84C','gold':'#C9A84C','terracotta':'#C56A47','braun':'#8a5a3b' };
+    function colorHex(name) { return COLOR_HEX[(name || '').toLowerCase().trim()] || '#D8CBB8'; }
+
+    function typeMatch(p)  { const t = TYPES.find(x => x.key === filters.typ);       return !t || t.match(p); }
+    function occMatch(p)   { const o = OCCASIONS.find(x => x.key === filters.anlass); return !o || o.match(p); }
+    function colorMatch(p) { return filters.farbe === 'all' || productColors(p).some(c => c.toLowerCase() === filters.farbe.toLowerCase()); }
+
+    function chip(group, key, label, active, swatch) {
+      return `<button class="filter-tab" data-group="${group}" data-key="${key}" aria-pressed="${active ? 'true' : 'false'}" onclick="pickFilter('${group}','${String(key).replace(/'/g, "\\'")}')">${swatch ? `<span class="color-dot" style="background:${swatch}"></span>` : ''}${label}</button>`;
+    }
+
+    function renderFilterBars() {
+      document.getElementById('type-tabs').innerHTML = TYPES.map(t => chip('typ', t.key, t.label, filters.typ === t.key)).join('');
+      document.getElementById('occasion-tabs').innerHTML = OCCASIONS.map(o => chip('anlass', o.key, o.label, filters.anlass === o.key)).join('');
+      const colors = [];
+      allProducts.forEach(p => productColors(p).forEach(c => { if (c && !colors.some(x => x.toLowerCase() === c.toLowerCase())) colors.push(c); }));
+      const colorGroup = document.getElementById('color-group');
+      if (!colors.length) { colorGroup.style.display = 'none'; return; }
+      colorGroup.style.display = '';
+      document.getElementById('color-tabs').innerHTML =
+        chip('farbe', 'all', 'Alle', filters.farbe === 'all') +
+        colors.map(c => chip('farbe', c, c, filters.farbe.toLowerCase() === c.toLowerCase(), colorHex(c))).join('');
+    }
+
+    function setActive(group) {
+      document.querySelectorAll(`.filter-tab[data-group="${group}"]`).forEach(t => {
+        const on = t.dataset.key.toLowerCase() === String(filters[group]).toLowerCase();
+        t.classList.toggle('active', on); t.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+    }
+
+    function pickFilter(group, key) { filters[group] = key; setActive(group); applyFilters(); }
+    function setSort(v) { sortBy = v; applyFilters(); }
+
+    function sortList(list) {
+      const arr = list.slice();
+      if (sortBy === 'price-asc') arr.sort((a, b) => (a.price || 0) - (b.price || 0));
+      else if (sortBy === 'price-desc') arr.sort((a, b) => (b.price || 0) - (a.price || 0));
+      else arr.sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0) || (new Date(b.created_at || 0) - new Date(a.created_at || 0)));
+      return arr;
+    }
 
     function shopCard(p) {
       const img = p.image_url
@@ -191,31 +267,25 @@
     function renderGrid(list) {
       const grid = document.getElementById('product-grid');
       const count = document.getElementById('shop-count');
-      if (!list.length) { grid.innerHTML = '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Keine Produkte gefunden.</p>'; count.textContent = ''; return; }
+      if (!list.length) { grid.innerHTML = '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Keine Produkte gefunden.</p>'; count.textContent = '0 Produkte'; return; }
       count.textContent = list.length + ' Produkt' + (list.length !== 1 ? 'e' : '');
       grid.innerHTML = list.map(shopCard).join('');
     }
 
-    function showCat(cat) {
-      activeFilter = cat;
-      document.querySelectorAll('.filter-tab').forEach(t => {
-        const on = t.dataset.cat === cat;
-        t.classList.toggle('active', on); t.setAttribute('aria-pressed', on ? 'true' : 'false');
-      });
-      const c = CATS[cat] || CATS.all;
-      document.getElementById('shop-title').textContent = c.label;
-      document.getElementById('shop-sub').textContent = c.sub;
-      document.getElementById('crumb').textContent = c.label;
-      const url = new URL(location); url.searchParams.set('cat', cat); url.searchParams.delete('q'); history.replaceState(null, '', url);
-      filterProducts();
+    function applyFilters() {
+      const q = document.getElementById('search-input').value.toLowerCase().trim();
+      let list = allProducts.filter(p => typeMatch(p) && occMatch(p) && colorMatch(p));
+      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q)));
+      renderGrid(sortList(list));
+
+      const url = new URL(location);
+      ['typ', 'anlass', 'farbe'].forEach(g => { if (filters[g] && filters[g] !== 'all') url.searchParams.set(g, filters[g]); else url.searchParams.delete(g); });
+      if (sortBy !== 'beliebt') url.searchParams.set('sort', sortBy); else url.searchParams.delete('sort');
+      if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
+      history.replaceState(null, '', url);
     }
 
-    function filterProducts() {
-      const q = document.getElementById('search-input').value.toLowerCase().trim();
-      let list = allProducts.filter((CATS[activeFilter] || CATS.all).match);
-      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q)));
-      renderGrid(list);
-    }
+    function filterProducts() { applyFilters(); }   // Handler fürs Suchfeld
 
     async function init() {
       let products = await loadProducts();
@@ -223,11 +293,22 @@
       allProducts = products;
 
       const params = new URLSearchParams(location.search);
-      const cat = params.get('cat');
+      if (params.get('typ')) filters.typ = params.get('typ');
+      if (params.get('anlass')) filters.anlass = params.get('anlass');
+      if (params.get('farbe')) filters.farbe = params.get('farbe');
+      if (params.get('sort')) sortBy = params.get('sort');
+
       const q = params.get('q');
-      if (q) { document.getElementById('search-input').value = q; document.getElementById('crumb').textContent = 'Suche'; }
-      if (cat && CATS[cat]) showCat(cat);
-      else filterProducts();
+      const occKeys = OCCASIONS.map(o => o.key);
+      if (q) {
+        if (occKeys.includes(q.toLowerCase())) filters.anlass = q.toLowerCase();   // ?q=taufe → Anlass-Filter
+        else document.getElementById('search-input').value = q;
+      }
+      if (params.get('cat') === 'bestseller') sortBy = 'beliebt';                  // Legacy-Link
+
+      renderFilterBars();
+      const sortSel = document.getElementById('sort-select'); if (sortSel) sortSel.value = sortBy;
+      applyFilters();
     }
 
     init();
