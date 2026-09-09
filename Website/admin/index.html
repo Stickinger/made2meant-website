@@ -6,6 +6,7 @@
   <title>Admin — MADE2MEANT</title>
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- PDF-Rendering (erste Seite → PNG beim Upload) -->
@@ -838,6 +839,15 @@
           <div id="p-placement"></div>
         </div>
 
+        <div class="field form-full">
+          <label>Motive <span style="font-weight:400;color:var(--color-muted)">— zusätzliche Stick-Motive (Schritt 2)</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Motive, die der Kunde im 2. Schritt zusätzlich wählen kann (z.B. Herz, Stern, Krone). Am besten PNG mit transparentem Hintergrund. Aufpreis pro Motiv.
+          </p>
+          <div id="p-motifs"></div>
+          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addMotif()">+ Motiv hinzufügen</button>
+        </div>
+
         <details class="field form-full" style="margin-top:8px">
           <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted)">Erweitert: eigene Optionen & Bilder (nicht nötig für Kappen)</summary>
           <div style="margin-top:14px">
@@ -1366,6 +1376,49 @@ function renderPlacement() {
   }));
 }
 
+// ── MOTIVE (Schritt 2: zusätzliche Motive je Produkt) ────────
+let motifItems = [];   // [{ label, url, price }]
+
+function addMotif() { motifItems.push({ label: '', url: '', price: '' }); renderMotifs(); }
+function removeMotif(i) { motifItems.splice(i, 1); renderMotifs(); }
+function setMotifLabel(i, v) { motifItems[i].label = v; }
+function setMotifPrice(i, v) { motifItems[i].price = v; }
+function setMotifUrl(i, v) { motifItems[i].url = v; renderMotifs(); }
+
+async function handleMotifPhoto(i, file) {
+  if (!file) return;
+  const url = await uploadToStorage(file);
+  if (url) { motifItems[i].url = url; renderMotifs(); }
+}
+
+function renderMotifs() {
+  const box = document.getElementById('p-motifs');
+  if (!box) return;
+  box.innerHTML = motifItems.map((m, i) => `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
+      ${m.url ? `<img src="${m.url}" alt="" style="width:48px;height:48px;object-fit:contain;border-radius:6px;background:#faf9f6;">` : ''}
+      <div class="dropzone dropzone--row" tabindex="0" role="button"
+           aria-label="Motiv-Bild hochladen"
+           onclick="this.querySelector('input[type=file]').click()"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
+           ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+           ondragleave="this.classList.remove('dropzone--over')"
+           ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleMotifPhoto(${i}, event.dataTransfer.files[0])">
+        ${m.url ? 'Ersetzen' : 'Bild ziehen / klicken'}
+        <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden
+               onchange="handleMotifPhoto(${i}, this.files[0]); this.value=''">
+      </div>
+      <input type="text" placeholder="Name, z.B. Herz" value="${(m.label||'').replace(/"/g,'&quot;')}"
+             style="flex:1;min-width:120px" onchange="setMotifLabel(${i}, this.value)">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <span style="color:var(--color-muted)">+ €</span>
+        <input type="number" step="0.01" min="0" placeholder="2.90" value="${m.price}"
+               style="width:90px" onchange="setMotifPrice(${i}, this.value)">
+      </div>
+      <button type="button" class="btn-sm btn-sm--outline" onclick="removeMotif(${i})">✕</button>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Motive. Klick „+ Motiv hinzufügen".</p>';
+}
+
 function addOptionRow(name = '', values = '') {
   const div = document.createElement('div');
   div.className = 'option-row';
@@ -1404,6 +1457,19 @@ async function uploadToStorage(file) {
     }
   }
 
+  // Bild fürs Web verkleinern & komprimieren (spart Ladezeit im Shop)
+  if (blob.type && blob.type.startsWith('image/')) {
+    try {
+      const smaller = await downscaleImage(blob, 1600);
+      if (smaller && smaller !== blob) {
+        blob = smaller;
+        ext = blob.type === 'image/webp' ? 'webp'
+            : blob.type === 'image/jpeg' ? 'jpg'
+            : blob.type === 'image/png'  ? 'png' : ext;
+      }
+    } catch (_) { /* zur Not Original hochladen */ }
+  }
+
   const safeName = Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
   const { error } = await db.storage.from('product-images')
     .upload(safeName, blob, { contentType: blob.type || 'image/png', upsert: false });
@@ -1415,6 +1481,31 @@ async function uploadToStorage(file) {
   }
   const { data: pub } = db.storage.from('product-images').getPublicUrl(safeName);
   return pub.publicUrl;
+}
+
+// Bild auf max. Kantenlänge verkleinern + komprimieren.
+// PNG behält Transparenz (für Motive), Fotos werden zu JPEG (deutlich kleiner).
+async function downscaleImage(blob, maxDim = 1600) {
+  let bmp;
+  try { bmp = await createImageBitmap(blob); } catch (_) { return blob; }
+  const { width, height } = bmp;
+  const scale = Math.min(1, maxDim / Math.max(width, height));
+  // schon klein genug und keine Riesendatei → unverändert lassen
+  if (scale === 1 && blob.size < 500 * 1024) { bmp.close && bmp.close(); return blob; }
+  const w = Math.max(1, Math.round(width * scale));
+  const h = Math.max(1, Math.round(height * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  canvas.getContext('2d').drawImage(bmp, 0, 0, w, h);
+  bmp.close && bmp.close();
+  const isPng = blob.type === 'image/png';   // Transparenz möglich
+  // WebP zuerst (deutlich kleiner, unterstützt Transparenz).
+  // Kann der Browser kein WebP, Fallback auf PNG (Transparenz) bzw. JPEG.
+  let out = await new Promise(res => canvas.toBlob(res, 'image/webp', 0.85));
+  if (!out || out.type !== 'image/webp') {
+    out = await new Promise(res => canvas.toBlob(res, isPng ? 'image/png' : 'image/jpeg', 0.85));
+  }
+  return (out && out.size < blob.size) ? out : blob;
 }
 
 // PDF (erste Seite) → PNG-Blob mit pdf.js
@@ -1581,8 +1672,12 @@ async function openProductModal(product = null) {
       return { name, photos };
     });
   }
+  // Motive laden
+  motifItems = (product?.motifs || []).map(m => ({ label: m.label, url: m.url, price: m.price }));
+
   renderStitchPos();
   renderColorVariants();
+  renderMotifs();
 
   // Erweiterte Optionen befüllen (ohne die Farbe, die der Farben-Bereich verwaltet)
   document.getElementById('p-options').innerHTML = '';
@@ -1612,6 +1707,11 @@ async function saveProduct() {
     .filter(s => s.label);
   const labelSet = new Set(positions.map(p => p.label));
 
+  // Motive (Name + Bild + Aufpreis) – nur vollständige Einträge
+  const motifs = motifItems
+    .map(m => ({ label: (m.label || '').trim(), url: (m.url || '').trim(), price: parseFloat(m.price) || 0 }))
+    .filter(m => m.label && m.url);
+
   // Optionen: erweiterte Optionen + (falls Farben angelegt) die Farbe-Option
   const options = readOptionsFromDOM().filter(o => !/kappe|farbe/i.test(o.name));
   const colorNames = colorVariants.map(c => (c.name || '').trim()).filter(Boolean);
@@ -1640,6 +1740,7 @@ async function saveProduct() {
     tags,
     options,
     positions,
+    motifs,
     active:          document.getElementById('p-active').checked,
   };
 
