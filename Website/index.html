@@ -431,8 +431,14 @@
       msg.style.color = 'var(--color-muted)';
       msg.textContent = 'Einen Moment…';
       try {
-        const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
-        if (error) throw error;
+        try {
+          const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
+          if (error) throw error;
+        } catch (err) {
+          // Fallback: zumindest eintragen, Code trotzdem vergeben
+          const { error: e2 } = await db.from('newsletter_subscribers').insert({ email });
+          if (e2 && !/duplicate|unique/i.test(e2.message || '')) throw e2;
+        }
         try { if (typeof setDiscountCode === 'function') setDiscountCode('WILLKOMMEN10'); } catch (_) {}
         msg.style.color = 'var(--color-accent)';
         msg.innerHTML = 'Danke! Dein 10%-Code <strong>WILLKOMMEN10</strong> ist unterwegs zu dir. 🤍';

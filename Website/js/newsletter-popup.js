@@ -131,15 +131,22 @@
     const btn = form.querySelector('.nlp-btn');
     btn.disabled = true; msg.style.color = 'var(--color-muted, #8a8580)'; msg.textContent = 'Einen Moment…';
 
-    // Anmelden + Willkommens-Mail (Funktion trägt ein und verschickt den Code)
+    // Anmelden + Willkommens-Mail (Funktion trägt ein und verschickt den Code).
+    // Fallback: falls die Funktion (noch) nicht erreichbar ist, trotzdem
+    // eintragen und den Code zeigen — nur die Mail kommt dann später.
     try {
       const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
       if (error) throw error;
     } catch (err) {
-      btn.disabled = false;
-      msg.style.color = 'var(--color-primary, #C56A47)';
-      msg.textContent = 'Das hat nicht geklappt — bitte später erneut versuchen.';
-      return;
+      try {
+        const { error: e2 } = await db.from('newsletter_subscribers').insert({ email });
+        if (e2 && !/duplicate|unique/i.test(e2.message || '')) throw e2;
+      } catch (e3) {
+        btn.disabled = false;
+        msg.style.color = 'var(--color-primary, #C56A47)';
+        msg.textContent = 'Das hat nicht geklappt — bitte später erneut versuchen.';
+        return;
+      }
     }
 
     // Code direkt in den Warenkorb legen (falls cart.js vorhanden)
