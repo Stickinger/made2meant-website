@@ -8,8 +8,16 @@
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
   <style>
+    .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
+    .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a, .nav-icons button { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
     .page-hero {
       padding: 80px 0 60px;
       text-align: center;
@@ -46,22 +54,26 @@
     .about-grid--reverse > * { direction: ltr; }
 
     .about-image {
+      position: relative;
       aspect-ratio: 4/3;
       background: linear-gradient(135deg, #b56a5a, #8f4d41);
-      border-radius: var(--radius);
+      border-radius: var(--radius-lg);
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
+      box-shadow: var(--shadow);
     }
-    .about-image--moss { background: linear-gradient(135deg, #4f6349, #334430); }
+    .about-image--moss { background: linear-gradient(135deg, #6E8D7A, #4f6349); }
+    .about-image img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .about-image__mark {
-      font-size: 2.4rem;
-      font-weight: 900;
-      letter-spacing: 0.15em;
-      color: rgba(242,237,220,0.92);
+      font-size: 1.3rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.9);
+      text-align: center;
+      padding: 0 16px;
     }
-    .about-image__mark span { opacity: 0.55; }
 
     .about-text__label {
       font-size: 0.65rem;
@@ -145,18 +157,42 @@
 
 
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
   <nav class="navbar">
     <div class="container navbar__inner">
-      <a href="/index.html" class="navbar__logo">MADE2<span>MEANT</span></a>
+      <a href="/index.html" class="navbar__logo">made2meant</a>
       <ul class="navbar__links">
-        <li><a href="/index.html">Shop</a></li>
-        <li><a href="/ueber-uns.html">Über uns</a></li>
+        <li class="has-drop">
+          <a href="/shop.html">Geschenke</a>
+          <div class="dropdown"><div class="dropdown__inner">
+            <a href="/shop.html?q=babyshower">Babyshower</a>
+            <a href="/shop.html?q=geburt">Zur Geburt</a>
+            <a href="/shop.html?q=taufe">Taufe</a>
+            <a href="/shop.html?q=geburtstag">Geburtstag</a>
+          </div></div>
+        </li>
+        <li><a href="/shop.html">Alle Produkte</a></li>
         <li><a href="/qualitaet.html">Qualität</a></li>
-        <li><a href="/login.html" id="nav-login">Login</a></li>
-        <li><a href="/account.html" id="nav-account" style="display:none">Mein Konto</a></li>
-        <li><button class="btn btn--ghost" id="nav-logout" style="display:none" onclick="logout()">Logout</button></li>
-        <li><a href="/cart.html" class="cart-icon" aria-label="Warenkorb"><span aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span> <span id="cart-badge" style="display:none">0</span></a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
       </ul>
+      <div class="nav-icons">
+        <a href="/shop.html" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
     </div>
   </nav>
 
@@ -173,22 +209,28 @@
       <div class="container">
 
         <div class="about-grid">
-          <div class="about-image"><span class="about-image__mark">MADE<span>2</span>MEANT</span></div>
+          <div class="about-image">
+            <img src="/assets/images/team-lukas-veronika.jpg" alt="Lukas und Veronika, die Gründer von made2meant" onerror="this.remove()">
+            <span class="about-image__mark">Lukas &amp; Veronika</span>
+          </div>
           <div class="about-text">
             <div class="about-text__label">Wie alles begann</div>
-            <h2>Aus Leidenschaft entstand ein Handwerk</h2>
-            <p>MADE2MEANT entstand aus dem Wunsch heraus, Dinge herzustellen, die wirklich bedeuten. Nicht Massenware, sondern Stücke, die Erinnerungen tragen und Geschichten erzählen.</p>
-            <p>Was als kleines Projekt begann, ist heute ein Ort für personalisierte Stickereien, die Menschen wirklich bewegen — sei es als Geschenk, Andenken oder persönliches Statement.</p>
+            <h2>Zwei Menschen, eine Leidenschaft</h2>
+            <p>Wir sind Lukas und Veronika — und made2meant ist unser Herzensprojekt. Seit über fünf Jahren besticken wir Textilien, die mehr sein sollen als nur ein Geschenk: kleine Erinnerungsstücke, die bleiben.</p>
+            <p>Alles entsteht bei uns in Österreich — vom ersten Entwurf über die Stickerei bis zum liebevoll verpackten Paket, das wir selbst verschicken. Keine Massenware, sondern Stücke mit Namen und Geschichte.</p>
           </div>
         </div>
 
         <div class="about-grid about-grid--reverse">
-          <div class="about-image about-image--moss"><span class="about-image__mark">MADE<span>2</span>MEANT</span></div>
+          <div class="about-image about-image--moss">
+            <img src="/assets/images/team-lukas-leo.jpg" alt="Lukas mit Leo" onerror="this.remove()">
+            <span class="about-image__mark">Lukas &amp; Leo</span>
+          </div>
           <div class="about-text">
-            <div class="about-text__label">Unser Ansatz</div>
-            <h2>Jedes Stück ist einzigartig</h2>
-            <p>Wir glauben, dass die schönsten Dinge persönlich sind. Jede Stickerei wird mit Sorgfalt und Liebe zum Detail gefertigt — für Menschen, die das Besondere zu schätzen wissen.</p>
-            <p>Von der ersten Skizze bis zum fertigen Produkt begleiten wir jeden Schritt mit dem Anspruch, etwas Bleibendes zu schaffen.</p>
+            <div class="about-text__label">Warum uns die Kleinsten am Herzen liegen</div>
+            <h2>Mit dem Herzen einer jungen Familie</h2>
+            <p>Der Wunsch, für die Allerkleinsten das Schönste zu schaffen, ist bei uns ganz persönlich: Auch bei uns ist der Kinderwunsch da — und genau diese Vorfreude steckt in jedem einzelnen Stich.</p>
+            <p>Ob zur Geburt, zur Taufe oder einfach so: Wir gestalten jedes Stück so sorgfältig, als wäre es für unsere eigene Familie. Weil wir glauben, dass Babys nur das Beste berühren sollte.</p>
           </div>
         </div>
 
@@ -222,7 +264,7 @@
       <div class="container">
         <h2>Dein persönliches Stück wartet</h2>
         <p>Entdecke unsere Kollektion oder lass uns gemeinsam etwas Einzigartiges für dich schaffen.</p>
-        <a href="/index.html" class="btn btn--primary" style="width:auto;display:inline-block;">Zum Shop →</a>
+        <a href="/shop.html" class="btn btn--primary" style="width:auto;display:inline-block;">Zum Shop →</a>
       </div>
     </section>
   </main>

@@ -54,7 +54,9 @@
     .herofull__slides { position: absolute; inset: 0; }
     .herofull__slide { position: absolute; inset: 0; opacity: 0; transition: opacity 1.1s ease; }
     .herofull__slide.active { opacity: 1; }
-    .herofull__slide img { width: 100%; height: 100%; object-fit: cover; object-position: 68% center; display: block; }
+    .herofull__fallback { position: absolute; inset: 0; }
+    .hero-deco { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .herofull__slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 68% center; display: block; }
     .hero-name { color: var(--color-primary); transition: opacity 0.35s ease; }
     .hero-name.swap { opacity: 0; }
     .herofull__content { position: relative; z-index: 2; max-width: 560px; padding: 48px 0; }
@@ -307,22 +309,22 @@
           <a class="cat-tile" href="/shop.html?q=taufe" style="background:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe →</span></a>
           <a class="cat-tile" href="/shop.html?q=geburtstag" style="background:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag →</span></a>
           <a class="cat-tile" href="/shop.html?cat=familie" style="background:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa →</span></a>
-          <a class="cat-tile" href="/shop.html" style="background:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Kleine Aufmerksamkeit →</span></a>
+          <a class="cat-tile" href="/shop.html?q=babyshower" style="background:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Babyshower →</span></a>
         </div>
       </div>
     </section>
 
-    <!-- ===== BESTSELLER ===== -->
+    <!-- ===== GESCHENK-BUNDLES ===== -->
     <section class="section reveal" style="padding-top:24px">
       <div class="container">
         <div class="sec-head sec-head--row">
           <div>
-            <span class="label-style">Beliebt</span>
-            <h2>Besonders gern verschenkt.</h2>
+            <span class="label-style">Geschenkfertig</span>
+            <h2>Unsere Geschenk-Sets.</h2>
           </div>
-          <a href="/shop.html" class="btn btn--ghost">Alle Produkte ansehen →</a>
+          <a href="/shop.html" class="btn btn--ghost">Alle Sets ansehen →</a>
         </div>
-        <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
+        <div class="pgrid" id="bundle-grid"><p class="loading">Wird geladen…</p></div>
       </div>
     </section>
 
@@ -330,7 +332,10 @@
     <section class="section reveal">
       <div class="container">
         <div class="quality">
-          <div class="quality__img"><span class="stitch-name" style="font-size:3.4rem;color:#9c6a4a">Emma<small>♥</small></span></div>
+          <div class="quality__img" style="position:relative;overflow:hidden">
+            <img src="/assets/images/quality-baby.jpg" alt="Spielendes Baby auf einer personalisierten Decke" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">
+            <span class="stitch-name" style="font-size:3.4rem;color:#9c6a4a">Emma<small>♥</small></span>
+          </div>
           <div>
             <span class="label-style">Qualität</span>
             <h2 style="margin:8px 0 16px">Was Babys berührt,<br>wählen wir besonders sorgfältig.</h2>
@@ -342,6 +347,20 @@
             <a href="/qualitaet.html" class="btn btn--ghost" style="padding-left:0">Mehr über unsere Materialien →</a>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== BESTSELLER ===== -->
+    <section class="section reveal">
+      <div class="container">
+        <div class="sec-head sec-head--row">
+          <div>
+            <span class="label-style">Beliebt</span>
+            <h2>Unsere Bestseller.</h2>
+          </div>
+          <a href="/shop.html" class="btn btn--ghost">Alle Produkte ansehen →</a>
+        </div>
+        <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
       </div>
     </section>
 
@@ -462,10 +481,10 @@
     // Hero-Diashow: Bilder + Name wechseln synchron.
     // Lege Fotos als /assets/images/hero-1.jpg … hero-4.jpg ab (fehlt eins, bleibt der Farbverlauf).
     const HERO_SLIDES = [
-      { name: 'Leni', img: '/assets/images/hero-1.jpg' },
-      { name: 'Emma', img: '/assets/images/hero-2.jpg' },
-      { name: 'Max',  img: '/assets/images/hero-3.jpg' },
-      { name: 'Mia',  img: '/assets/images/hero-4.jpg' },
+      { name: 'Leni', img: '/assets/images/hero-1.jpg', c1: '#EFE7DA', c2: '#E4D3BE' },
+      { name: 'Emma', img: '/assets/images/hero-2.jpg', c1: '#ECE6DC', c2: '#D9C7B4' },
+      { name: 'Max',  img: '/assets/images/hero-3.jpg', c1: '#E7E5DC', c2: '#CFC6AE' },
+      { name: 'Mia',  img: '/assets/images/hero-4.jpg', c1: '#F1E8DD', c2: '#E1CDB6' },
     ];
 
     function startHeroShow() {
@@ -473,7 +492,17 @@
       const nameEl = document.getElementById('hero-name');
       if (!box || !nameEl) return;
       box.innerHTML = HERO_SLIDES.map((s, i) =>
-        `<div class="herofull__slide ${i === 0 ? 'active' : ''}"><img src="${s.img}" alt="Besticktes Lieblingsstück mit dem Namen ${s.name}" onerror="this.remove()"></div>`
+        `<div class="herofull__slide ${i === 0 ? 'active' : ''}">
+          <div class="herofull__fallback" style="background:linear-gradient(120deg, ${s.c1} 0%, ${s.c2} 62%, ${s.c2} 100%)">
+            <svg class="hero-deco" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <circle cx="415" cy="215" r="185" fill="rgba(255,255,255,0.40)"/>
+              <circle cx="505" cy="355" r="95" fill="rgba(255,255,255,0.28)"/>
+              <path d="M415 300 c-46 -46 -86 -74 -86 -116 a42 42 0 0 1 86 -20 a42 42 0 0 1 86 20 c0 42 -40 70 -86 116 z"
+                    fill="none" stroke="#C56A47" stroke-width="3" stroke-dasharray="7 7" stroke-linecap="round" opacity="0.55"/>
+            </svg>
+          </div>
+          <img src="${s.img}" alt="Besticktes Lieblingsstück mit dem Namen ${s.name}" onerror="this.remove()">
+        </div>`
       ).join('');
       const slides = [...box.children];
       nameEl.textContent = HERO_SLIDES[0].name;
@@ -496,11 +525,21 @@
       let products = await loadProducts();
       if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
 
-      // Bestseller (Flag, sonst die ersten)
-      const best = products.filter(p => p.bestseller);
-      const bestList = (best.length ? best : products).slice(0, 5);
-      const bg = document.getElementById('bestseller-grid');
-      bg.innerHTML = bestList.length ? bestList.map(shopCard).join('') : '<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">Bald verfügbar.</p>';
+      // Bundle = Produkt, dessen Name/Tags auf ein Set hindeuten
+      const isBundle = p => /bundle|set\b|paket|geschenkset|geschenkbox/.test((p.name + ' ' + (p.tags || []).join(' ')).toLowerCase());
+
+      const fill = (id, list, empty) => {
+        const el = document.getElementById(id); if (!el) return;
+        el.innerHTML = list.length ? list.map(shopCard).join('') : `<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">${empty}</p>`;
+      };
+
+      // Geschenk-Bundles
+      fill('bundle-grid', products.filter(isBundle).slice(0, 5), 'Unsere Geschenk-Sets sind bald verfügbar.');
+
+      // Bestseller (Flag; sonst die beliebtesten Einzelprodukte)
+      let best = products.filter(p => p.bestseller && !isBundle(p));
+      if (!best.length) best = products.filter(p => !isBundle(p));
+      fill('bestseller-grid', best.slice(0, 5), 'Bald verfügbar.');
     }
 
     init();
