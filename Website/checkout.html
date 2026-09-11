@@ -159,7 +159,7 @@
           <span>${euro(item.price * item.quantity)}</span>
         </div>`).join('');
       const total = getCartTotal();
-      const shipping = total >= 69 ? 0 : 3.90;
+      const shipping = total >= 119 ? 0 : 3.90;
       const disc = appliedDiscount ? appliedDiscount.amount : 0;
       const grand = Math.max(0, total - disc) + shipping;
       document.getElementById('summary-items').innerHTML = items;
@@ -178,7 +178,7 @@
     async function placeOrder(f) {
       const user = await getUser();
       const total = getCartTotal();
-      const shipping = total >= 69 ? 0 : 3.90;
+      const shipping = total >= 119 ? 0 : 3.90;
       const disc = appliedDiscount ? appliedDiscount.amount : 0;
       const { data: order, error } = await db.from('orders').insert({
         user_id: user?.id || null,

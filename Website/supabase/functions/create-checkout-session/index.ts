@@ -67,8 +67,8 @@ Deno.serve(async (req) => {
       }
     })
 
-    // Versand serverseitig bestimmen (frei ab 69 €)
-    const shipping = subtotal >= 69 ? 0 : 3.90
+    // Versand serverseitig bestimmen (frei ab 119 €)
+    const shipping = subtotal >= 119 ? 0 : 3.90
     if (shipping > 0) {
       line_items.push({
         price_data: { currency: 'eur', product_data: { name: 'Versand' }, unit_amount: Math.round(shipping * 100) },

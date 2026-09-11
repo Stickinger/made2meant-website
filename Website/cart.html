@@ -57,6 +57,11 @@
     .disc-msg { font-size: 0.8rem; min-height: 1.1em; margin: 2px 0 4px; }
     .disc-remove { background: none; border: none; color: var(--color-muted); font-size: 0.78rem; cursor: pointer; padding: 0; text-decoration: underline; }
     .disc-remove:hover { color: var(--color-danger); }
+    .ship-progress { margin: 4px 0 12px; }
+    .ship-progress__track { height: 7px; background: var(--color-border); border-radius: 99px; overflow: hidden; }
+    .ship-progress__fill { height: 100%; background: var(--color-primary); border-radius: 99px; transition: width .4s ease; }
+    .ship-progress__label { display: block; font-size: 0.8rem; color: var(--color-muted); margin-top: 7px; }
+    .ship-progress__label--done { color: var(--color-success); font-weight: 600; }
   </style>
 </head>
 <body>
@@ -139,7 +144,7 @@
       const total = getCartTotal();
       const disc = await resolveDiscount(total);
       if (disc.error) discNotice = disc.error;
-      const shipping = total >= 69 ? 0 : 3.90;
+      const shipping = total >= 119 ? 0 : 3.90;
       const grandTotal = Math.max(0, total - disc.amount) + shipping;
       const noticeColor = disc.amount > 0 ? 'var(--color-success)' : 'var(--color-danger)';
       const notice = discNotice;
@@ -189,11 +194,12 @@
               <span>Versand</span>
               <span>${shipping === 0 ? '<span style="color:var(--color-success)">Kostenlos</span>' : '€' + shipping.toFixed(2)}</span>
             </div>
-            ${shipping > 0 ? `
-              <p style="font-size:0.8rem; color:var(--color-muted); margin-bottom:12px;">
-                Noch €${(69 - total).toFixed(2)} bis zum kostenlosen Versand
-              </p>
-            ` : ''}
+            <div class="ship-progress">
+              <div class="ship-progress__track"><div class="ship-progress__fill" style="width:${Math.min(100, total / 119 * 100).toFixed(0)}%"></div></div>
+              ${shipping > 0
+                ? `<span class="ship-progress__label">Noch <strong>€${(119 - total).toFixed(2)}</strong> bis zum kostenlosen Versand</span>`
+                : `<span class="ship-progress__label ship-progress__label--done">Geschafft – du erhältst kostenlosen Versand!</span>`}
+            </div>
             <div class="cart-summary__row cart-summary__row--total">
               <span>Gesamt</span>
               <span>€${grandTotal.toFixed(2)}</span>
