@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Impressum — made2meant</title>
+  <meta name="description" content="Impressum der Made2Meant GmbH.">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
+    .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a, .nav-icons button { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
+
+    .legal-hero { padding: 54px 0 6px; }
+    .legal-hero .label-style { display: block; margin-bottom: 12px; }
+    .legal-hero h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.1; }
+    .legal { max-width: 760px; margin: 0 auto; padding: 20px 0 64px; }
+    .legal__meta { color: var(--color-muted); font-size: 0.85rem; margin: 0 0 26px; }
+    .legal h2 { font-size: 1.12rem; margin: 32px 0 10px; color: var(--color-heading); line-height: 1.35; }
+    .legal h3 { font-size: 0.98rem; margin: 20px 0 8px; color: var(--color-heading); }
+    .legal p { color: var(--color-text); line-height: 1.85; margin-bottom: 12px; font-size: 0.95rem; }
+    .legal ul { margin: 0 0 14px 22px; color: var(--color-text); line-height: 1.85; font-size: 0.95rem; }
+    .legal ul li { margin-bottom: 4px; }
+    .legal a { color: var(--color-primary); }
+    .legal .idcard { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 22px 26px; margin-bottom: 26px; }
+    .legal .idcard p { margin-bottom: 6px; }
+    .legal .idcard strong { color: var(--color-heading); }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">made2meant</a>
+      <ul class="navbar__links">
+        <li class="has-drop">
+          <a href="/shop.html">Geschenke</a>
+          <div class="dropdown"><div class="dropdown__inner">
+            <a href="/shop.html?q=babyshower">Babyshower</a>
+            <a href="/shop.html?q=geburt">Zur Geburt</a>
+            <a href="/shop.html?q=taufe">Taufe</a>
+            <a href="/shop.html?q=geburtstag">Geburtstag</a>
+          </div></div>
+        </li>
+        <li><a href="/shop.html">Alle Produkte</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+      </ul>
+      <div class="nav-icons">
+        <a href="/shop.html" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="container">
+      <section class="legal-hero">
+        <span class="label-style">Rechtliches</span>
+        <h1>Impressum</h1>
+      </section>
+      <div class="legal">
+        <p class="legal__meta">Angaben gemäß § 5 E-Commerce-Gesetz (ECG), § 25 Mediengesetz und § 63 Gewerbeordnung.</p>
+        <div class="idcard">
+          <p><strong>Made2Meant GmbH</strong></p>
+          <p>Franz Broschek-Platz 5a</p>
+          <p>2514 Möllersdorf, Österreich</p>
+          <p>Sitz: Traiskirchen</p>
+        </div>
+        <h2>Firmendaten</h2>
+        <p><strong>Firmenbuchnummer:</strong> FN 684401 y</p>
+        <p><strong>Firmenbuchgericht:</strong> Landesgericht Wiener Neustadt</p>
+        <p><strong>Geschäftsführer:</strong> Lukas Hölzl, Leonard Strokan</p>
+        <p><strong>UID-Nr.:</strong> nach Erteilung ergänzen</p>
+        <h2>Kontakt</h2>
+        <p><strong>E-Mail:</strong> <a href="mailto:office@made2meant.com">office@made2meant.com</a></p>
+        <p><strong>Telefon:</strong> [echte Telefonnummer]</p>
+        <h2>Unternehmensgegenstand</h2>
+        <p>Veredlung und Individualisierung von Textilien, Lederwaren und sonstigen Materialien sowie Handel mit Textilwaren jeglicher Art.</p>
+        <h2>Kammer, Behörde &amp; Berufsrecht</h2>
+        <p>Mitglied der Wirtschaftskammer Niederösterreich und der Wirtschaftskammer Österreich.</p>
+        <p>Aufsichts- und Gewerbebehörde: Bezirkshauptmannschaft Baden.</p>
+        <p>Berufsrecht: Gewerbeordnung 1994, abrufbar im Rechtsinformationssystem des Bundes (<a href="https://www.ris.bka.gv.at" target="_blank" rel="noopener">ris.bka.gv.at</a>).</p>
+        <h2>Medieninhaber</h2>
+        <p>Made2Meant GmbH, Sitz: Traiskirchen. Unternehmensgegenstand: wie oben.</p>
+        <h2>Online-Streitbeilegung</h2>
+        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 made2meant · Made personal. Meant forever.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script>updateNav(); updateCartBadge();</script>
+</body>
+</html>

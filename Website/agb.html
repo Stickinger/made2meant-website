@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AGB — made2meant</title>
+  <meta name="description" content="Allgemeine Geschäftsbedingungen der Made2Meant GmbH.">
+  <meta name="robots" content="index,follow">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <style>
+    .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
+    .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
+    .announcebar__item { display: inline-flex; align-items: center; gap: 7px; }
+    .announcebar__item svg { width: 15px; height: 15px; color: var(--color-accent); }
+    @media (max-width: 720px) { .announcebar__item:nth-child(n+2) { display: none; } }
+    .nav-icons { display: flex; align-items: center; gap: 20px; }
+    .nav-icons a, .nav-icons button { color: var(--color-text); display: inline-flex; }
+    .nav-icons a:hover { color: var(--color-primary); }
+    .nav-icons svg { width: 21px; height: 21px; }
+
+    .legal-hero { padding: 54px 0 6px; }
+    .legal-hero .label-style { display: block; margin-bottom: 12px; }
+    .legal-hero h1 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 1.1; }
+    .legal { max-width: 760px; margin: 0 auto; padding: 20px 0 64px; }
+    .legal__meta { color: var(--color-muted); font-size: 0.85rem; margin: 0 0 26px; }
+    .legal h2 { font-size: 1.12rem; margin: 32px 0 10px; color: var(--color-heading); line-height: 1.35; }
+    .legal h3 { font-size: 0.98rem; margin: 20px 0 8px; color: var(--color-heading); }
+    .legal p { color: var(--color-text); line-height: 1.85; margin-bottom: 12px; font-size: 0.95rem; }
+    .legal ul { margin: 0 0 14px 22px; color: var(--color-text); line-height: 1.85; font-size: 0.95rem; }
+    .legal ul li { margin-bottom: 4px; }
+    .legal a { color: var(--color-primary); }
+    .legal .idcard { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 22px 26px; margin-bottom: 26px; }
+    .legal .idcard p { margin-bottom: 6px; }
+    .legal .idcard strong { color: var(--color-heading); }
+  </style>
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <div class="announcebar">
+    <div class="announcebar__inner">
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 69 €</span>
+      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>30 Tage Rückgaberecht</span>
+    </div>
+  </div>
+
+  <nav class="navbar">
+    <div class="container navbar__inner">
+      <a href="/index.html" class="navbar__logo">made2meant</a>
+      <ul class="navbar__links">
+        <li class="has-drop">
+          <a href="/shop.html">Geschenke</a>
+          <div class="dropdown"><div class="dropdown__inner">
+            <a href="/shop.html?q=babyshower">Babyshower</a>
+            <a href="/shop.html?q=geburt">Zur Geburt</a>
+            <a href="/shop.html?q=taufe">Taufe</a>
+            <a href="/shop.html?q=geburtstag">Geburtstag</a>
+          </div></div>
+        </li>
+        <li><a href="/shop.html">Alle Produkte</a></li>
+        <li><a href="/qualitaet.html">Qualität</a></li>
+        <li><a href="/ueber-uns.html">Über uns</a></li>
+      </ul>
+      <div class="nav-icons">
+        <a href="/shop.html" aria-label="Suchen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></a>
+        <a href="/login.html" id="nav-login" aria-label="Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <a href="/account.html" id="nav-account" style="display:none" aria-label="Mein Konto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg></a>
+        <button class="btn btn--ghost" id="nav-logout" style="display:none;padding:0;font-size:0.85rem" onclick="logout()">Logout</button>
+        <a href="/cart.html" class="cart-icon" aria-label="Warenkorb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v13a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          <span id="cart-badge" style="display:none">0</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <main id="main">
+    <div class="container">
+      <section class="legal-hero">
+        <span class="label-style">Rechtliches</span>
+        <h1>Allgemeine Geschäftsbedingungen</h1>
+      </section>
+      <div class="legal">
+        <p class="legal__meta">Allgemeine Geschäftsbedingungen der Made2Meant GmbH · Stand: 1. Oktober 2026</p>
+        <h2>1. Geltungsbereich</h2>
+        <p>1.1. Diese Allgemeinen Geschäftsbedingungen („AGB“) gelten für sämtliche Verträge, die über den Online-Shop der Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich Firmenbuchnummer: FN 684401y E-Mail: support@made2meant.com – nachfolgend „Made2Meant“ genannt – mit ihren Kundinnen und Kunden geschlossen werden.</p>
+        <p>1.2. Made2Meant vertreibt insbesondere hochwertige Textilien, Baby- und Kinderartikel, Geschenkartikel, Familienprodukte und sonstige Waren, die je nach Angebot entweder unverändert oder individuell personalisiert, insbesondere durch Stickerei, angeboten werden.</p>
+        <p>1.3. Diese AGB gelten sowohl gegenüber Verbrauchern als auch gegenüber Unternehmern. Als Verbraucher gilt jede natürliche Person, die ein Rechtsgeschäft zu Zwecken abschließt, die überwiegend weder ihrer gewerblichen noch ihrer selbständigen beruflichen Tätigkeit zugerechnet werden können. Unternehmer ist jede natürliche oder juristische Person oder rechtsfähige Personengesellschaft, die bei Abschluss eines Rechtsgeschäfts im Rahmen ihrer unternehmerischen oder beruflichen Tätigkeit handelt.</p>
+        <p>1.4. Soweit einzelne Bestimmungen dieser AGB ausschließlich für Unternehmer gelten, wird dies ausdrücklich angegeben.</p>
+        <p>1.5. Gegenüber Verbrauchern gelten zwingende gesetzliche Verbraucherrechte uneingeschränkt. Soweit eine Bestimmung dieser AGB mit einer zwingenden gesetzlichen Verbraucherschutzbestimmung in Widerspruch stehen sollte, geht die gesetzliche Bestimmung vor.</p>
+        <p>1.6. Abweichende Vereinbarungen gelten nur, wenn sie von Made2Meant ausdrücklich bestätigt wurden. Individuell getroffene Vereinbarungen zwischen Made2Meant und dem Kunden gehen diesen AGB vor.</p>
+        <p>1.7. Maßgeblich ist grundsätzlich jene Fassung der AGB, die zum Zeitpunkt des Vertragsabschlusses gültig ist. Eine nachträgliche Änderung dieser AGB verändert bereits abgeschlossene Verträge nicht, sofern nicht ausdrücklich und rechtlich wirksam etwas anderes vereinbart wird.</p>
+        <h2>2. Liefergebiet</h2>
+        <p>2.1. Made2Meant liefert nach Österreich, Deutschland sowie in weitere Mitgliedstaaten der Europäischen Union.</p>
+        <p>2.2. Die konkret verfügbaren Lieferländer ergeben sich aus der im Online-Shop bzw. im Checkout verfügbaren Länderauswahl.</p>
+        <p>2.3. Ein Anspruch auf Lieferung in ein Land, das im Checkout nicht als Lieferland angeboten wird, besteht nicht.</p>
+        <p>2.4. Versandkosten und gegebenenfalls länderspezifisch unterschiedliche Versandkosten werden vor Abschluss der Bestellung angezeigt.</p>
+        <h2>3. Angebot und Produktdarstellung</h2>
+        <p>3.1. Die Darstellung von Produkten im Online-Shop stellt grundsätzlich noch kein rechtlich verbindliches Angebot von Made2Meant dar, sondern eine Einladung an den Kunden, selbst ein verbindliches Angebot zum Abschluss eines Vertrages abzugeben.</p>
+        <p>3.2. Made2Meant bemüht sich um eine möglichst genaue und vollständige Beschreibung sämtlicher Waren.</p>
+        <p>3.3. Produktbilder dienen der Darstellung der angebotenen Produkte. Insbesondere bei Textilien, Naturmaterialien, unterschiedlichen Bildschirmeinstellungen, Lichtverhältnissen sowie fotografischer Darstellung können geringfügige Abweichungen zwischen Produktbild und tatsächlichem Produkt auftreten.</p>
+        <p>3.4. Geringfügige Farbabweichungen aufgrund unterschiedlicher Displays oder Bildschirmkalibrierungen stellen allein keinen Produktmangel dar, sofern die tatsächliche Ware insgesamt der vereinbarten Beschaffenheit entspricht.</p>
+        <p>3.5. Bei Textilien können materialtypische geringfügige Unterschiede hinsichtlich Struktur, Flor, Webbild, Faserverlauf, Farbton oder Oberflächenbeschaffenheit auftreten.</p>
+        <p>3.6. Made2Meant ist nicht berechtigt, eine wesentlich andere als die vereinbarte Ware zu liefern. Gesetzliche Gewährleistungsrechte werden durch die vorstehenden Hinweise nicht eingeschränkt.</p>
+        <h2>4. Bestellvorgang und Vertragsabschluss</h2>
+        <p>4.1. Der Kunde kann die gewünschten Produkte auswählen und in den virtuellen Warenkorb legen.</p>
+        <p>4.2. Soweit für ein Produkt eine Personalisierung angeboten wird, kann der Kunde innerhalb des Bestellvorgangs die jeweils angebotenen Personalisierungsoptionen auswählen bzw. eigene Angaben machen.</p>
+        <p>4.3. Vor Abgabe seiner Bestellung erhält der Kunde die Möglichkeit, die Bestellung und seine Eingaben zu überprüfen und Eingabefehler zu korrigieren.</p>
+        <p>4.4. Dies gilt insbesondere für:</p>
+        <ul><li>Produkt,</li><li>Variante,</li><li>Farbe,</li><li>Größe,</li><li>Menge,</li><li>Personalisierungstext,</li><li>Namen,</li><li>Initialen,</li><li>Datumsangaben,</li><li>Schriftart,</li><li>Garnfarbe,</li><li>Motive,</li><li>Lieferanschrift,</li><li>Rechnungsanschrift und</li><li>Zahlungsart.</li></ul>
+        <p>4.5. Mit Betätigung des eindeutig auf die Zahlungspflicht hinweisenden Bestellbuttons gibt der Kunde ein verbindliches Angebot zum Abschluss eines Vertrages über die im Warenkorb befindlichen Produkte ab.</p>
+        <p>4.6. Eine automatisierte E-Mail, die lediglich den Eingang der Bestellung bestätigt, stellt noch keine Annahme des Vertragsangebotes dar, sofern aus ihrem Inhalt nicht ausdrücklich hervorgeht, dass Made2Meant das Angebot bereits annimmt.</p>
+        <p>4.7. Der Vertrag kommt zustande, sobald Made2Meant das Angebot des Kunden ausdrücklich annimmt, beispielsweise durch:</p>
+        <p>a) eine ausdrückliche Auftragsbestätigung,</p>
+        <p>b) die Mitteilung über die Bearbeitung bzw. Produktion der Bestellung, soweit daraus die Annahme eindeutig hervorgeht, oder</p>
+        <p>c) die Versandbestätigung bzw. Versendung der Ware.</p>
+        <p>4.8. Made2Meant kann Bestellungen vor Vertragsannahme insbesondere ablehnen, wenn:</p>
+        <ul><li>ein Produkt nicht verfügbar ist,</li><li>eine gewünschte Personalisierung technisch nicht umgesetzt werden kann,</li><li>die Personalisierung offensichtlich rechtswidrig ist,</li><li>begründete Anhaltspunkte für missbräuchliche oder betrügerische Bestellungen bestehen</li></ul>
+        <p>oder</p>
+        <ul><li>ein offensichtlicher technischer Fehler im Bestellvorgang vorliegt.</li></ul>
+        <p>4.9. Bereits geleistete Zahlungen werden bei einer Nichtannahme des Vertrages unverzüglich zurückerstattet.</p>
+        <h2>5. Vertragssprache und Speicherung</h2>
+        <p>5.1. Vertragssprache ist grundsätzlich Deutsch, sofern nicht ausdrücklich eine andere Vertragssprache angeboten oder vereinbart wird.</p>
+        <p>5.2. Made2Meant speichert die Bestelldaten im Rahmen der gesetzlichen Aufbewahrungsfristen.</p>
+        <p>5.3. Der Kunde erhält die wesentlichen Daten seiner Bestellung elektronisch, insbesondere per E- Mail.</p>
+        <p>5.4. Die AGB sowie die gesetzlich erforderlichen Verbraucherinformationen werden dem Kunden in einer Form zugänglich gemacht, die gespeichert und ausgedruckt werden kann.</p>
+        <p>5.5. Soweit gesetzlich erforderlich, erhält der Verbraucher die Vertragsbestätigung und die relevanten Vertragsinformationen auf einem dauerhaften Datenträger.</p>
+        <h2>6. Personalisierte Produkte</h2>
+        <p>6.1. Ein wesentlicher Bestandteil des Angebots von Made2Meant ist die Individualisierung und Personalisierung von Waren.</p>
+        <p>6.2. Personalisierungen können insbesondere erfolgen durch:</p>
+        <ul><li>Namen,</li><li>Initialen,</li><li>Geburtsdaten,</li><li>Datumsangaben,</li><li>persönliche Texte,</li><li>kurze Botschaften,</li><li>Schriftzüge,</li><li>Symbole,</li><li>Motive,</li><li>Monogramme,</li><li>Garnfarben,</li><li>Schriftarten,</li><li>Logos oder</li><li>andere individuelle Gestaltungselemente.</li></ul>
+        <p>6.3. Die Personalisierung erfolgt insbesondere durch Stickerei.</p>
+        <p>6.4. Maßgeblich für die Herstellung eines personalisierten Produkts sind die Angaben, die der Kunde bei seiner Bestellung gemacht und vor Abschluss der Bestellung bestätigt hat.</p>
+        <p>6.5. Der Kunde ist dafür verantwortlich, seine Personalisierungsangaben vor Absenden der Bestellung sorgfältig auf ihre Richtigkeit zu überprüfen.</p>
+        <p>6.6. Dies betrifft insbesondere:</p>
+        <ul><li>Schreibweise von Namen,</li><li>Groß- und Kleinschreibung,</li><li>Zahlen,</li><li>Datumsangaben,</li><li>Sonderzeichen,</li><li>Satzzeichen,</li><li>Initialen,</li><li>Reihenfolge von Buchstaben,</li><li>Schreibweise fremdsprachiger Begriffe und</li><li>sonstige individuelle Angaben.</li></ul>
+        <p>6.7. Gibt der Kunde beispielsweise den Namen „Sofia“ ein und wird das Produkt entsprechend mit „Sofia“ bestickt, stellt die korrekte Umsetzung dieser Kundeneingabe grundsätzlich keinen Produktionsfehler dar, auch wenn der Kunde tatsächlich „Sophia“ gemeint hat.</p>
+        <p>6.8. Wird hingegen „Sophia“ bestellt und Made2Meant führt die Personalisierung aufgrund eines von Made2Meant zu vertretenden Fehlers als „Sofia“ aus, liegt eine Abweichung von der Bestellung vor. Die gesetzlichen Gewährleistungsrechte bleiben in diesem Fall uneingeschränkt bestehen.</p>
+        <p>6.9. Gleiches gilt für andere Abweichungen, beispielsweise eine falsche Garnfarbe, ein falsches Motiv, eine falsche Positionierung oder einen anderen als den vereinbarten Personalisierungstext, sofern die Abweichung nicht bloß geringfügig und material- oder produktionsbedingt ist.</p>
+        <h2>7. Änderungen einer Personalisierung nach Bestellung</h2>
+        <p>7.1. Personalisierte Produkte werden individuell für den jeweiligen Kunden angefertigt.</p>
+        <p>7.2. Änderungen einer bereits abgeschlossenen Bestellung können daher nicht garantiert werden.</p>
+        <p>7.3. Möchte der Kunde eine Personalisierungsangabe nach Abschluss der Bestellung ändern, sollte er Made2Meant unverzüglich unter support@made2meant.com kontaktieren.</p>
+        <p>7.4. Made2Meant wird nach Möglichkeit prüfen, ob die Änderung noch umgesetzt werden kann.</p>
+        <p>7.5. Sobald die Personalisierung vorbereitet, digitalisiert, produziert oder gestickt wurde, kann eine Änderung unter Umständen technisch oder wirtschaftlich nicht mehr möglich sein.</p>
+        <p>7.6. Entstehen aufgrund einer vom Kunden nachträglich gewünschten und von Made2Meant angenommenen Änderung zusätzliche Kosten, werden diese dem Kunden vor Durchführung der kostenpflichtigen Änderung mitgeteilt.</p>
+        <p>7.7. Eine kostenpflichtige Änderung wird nur mit Zustimmung des Kunden durchgeführt.</p>
+        <h2>8. Digitale Personalisierungsvorschau</h2>
+        <p>8.1. Soweit im Online-Shop eine digitale Vorschau einer Personalisierung angeboten wird, dient diese dazu, dem Kunden einen möglichst realistischen Eindruck des voraussichtlichen Endergebnisses zu vermitteln.</p>
+        <p>8.2. Eine Bildschirmvorschau kann das endgültige Stickbild nicht in allen Einzelheiten exakt wiedergeben.</p>
+        <p>8.3. Abweichungen können insbesondere entstehen durch:</p>
+        <ul><li>unterschiedliche Bildschirmgrößen,</li><li>unterschiedliche Bildschirmkalibrierungen,</li><li>unterschiedliche Farbdarstellungen,</li><li>unterschiedliche Helligkeitseinstellungen,</li><li>Stoffstruktur,</li><li>Frotteehöhe,</li><li>Webstruktur,</li><li>Materialspannung,</li><li>Stichdichte,</li><li>Garnstärke,</li><li>Größe des Textils,</li><li>technische Anforderungen der Stickmaschine oder</li><li>unterschiedliche Proportionen verschiedener Produktgrößen.</li></ul>
+        <p>8.4. Die vom Kunden ausgewählten inhaltlichen Angaben – insbesondere Name, Text, Motiv und grundsätzlich auch die gewählte Garnfarbe und Schriftart – sind jedoch entsprechend der Bestellung umzusetzen.</p>
+        <p>8.5. Die Vorschau berechtigt Made2Meant nicht zu beliebigen Abweichungen.</p>
+        <h2>9. Handwerks- und materialbedingte Abweichungen</h2>
+        <p>9.1. Stickerei ist ein textiler Veredelungsprozess. Aufgrund unterschiedlicher Materialien kann sich dasselbe Stickmotiv auf unterschiedlichen Produkten geringfügig unterschiedlich darstellen.</p>
+        <p>9.2. Bei weichen, strukturierten oder hochflorigen Textilien kann sich insbesondere die sichtbare Oberflächenwirkung einer Stickerei verändern.</p>
+        <p>9.3. Geringfügige produktionstechnische Abweichungen hinsichtlich Position oder Größe sind zulässig, soweit sie für den Kunden zumutbar sind, branchen- bzw. materialtypisch auftreten und die vereinbarte Beschaffenheit sowie den Gesamteindruck des Produkts nicht wesentlich beeinträchtigen.</p>
+        <p>9.4. Eine offensichtlich schiefe, falsch positionierte, fehlerhafte oder von der Bestellung wesentlich abweichende Stickerei wird dadurch nicht zu einer zulässigen Abweichung.</p>
+        <p>9.5. Gesetzliche Gewährleistungsrechte bleiben uneingeschränkt bestehen.</p>
+        <h2>10. Eigene Texte, Bilder, Motive und Logos</h2>
+        <p>10.1. Soweit Made2Meant Kunden die Möglichkeit bietet, eigene Texte, Logos, Motive, Grafiken oder sonstige Inhalte zur Personalisierung zu übermitteln, ist der Kunde dafür verantwortlich, dass er zur entsprechenden Nutzung berechtigt ist.</p>
+        <p>10.2. Der Kunde sichert insbesondere zu, dass durch die von ihm übermittelten Inhalte keine Rechte Dritter verletzt werden.</p>
+        <p>10.3. Dies betrifft insbesondere:</p>
+        <ul><li>Urheberrechte,</li><li>Markenrechte,</li><li>Designrechte,</li><li>Namensrechte,</li><li>Persönlichkeitsrechte und</li><li>sonstige gewerbliche Schutzrechte.</li></ul>
+        <p>10.4. Mit Übermittlung eines eigenen Inhalts räumt der Kunde Made2Meant ausschließlich jene Nutzungsrechte ein, die erforderlich sind, um den konkret beauftragten Personalisierungsauftrag herzustellen und abzuwickeln.</p>
+        <p>10.5. Eine darüber hinausgehende Verwendung für Werbung, Social Media oder andere Marketingzwecke erfolgt nicht allein aufgrund dieser AGB.</p>
+        <p>10.6. Made2Meant ist berechtigt, offensichtlich rechtswidrige Personalisierungswünsche abzulehnen.</p>
+        <p>10.7. Dies betrifft insbesondere Inhalte, die:</p>
+        <ul><li>strafbar,</li><li>menschenverachtend,</li><li>diskriminierend,</li><li>volksverhetzend,</li><li>pornografisch in gesetzlich unzulässiger Weise,</li><li>offensichtlich urheberrechtsverletzend,</li><li>offensichtlich markenrechtsverletzend oder</li><li>sonst eindeutig rechtswidrig</li></ul>
+        <p>sind.</p>
+        <p>10.8. Wird die Rechtswidrigkeit erst nach Vertragsabschluss erkennbar, kann Made2Meant die Ausführung im gesetzlich zulässigen Umfang verweigern. Bereits erhaltene Zahlungen werden zurückerstattet, soweit Made2Meant kein rechtmäßiger Zahlungsanspruch zusteht.</p>
+        <h2>11. Stickdateien und technische Produktionsdateien</h2>
+        <p>11.1. Soweit Made2Meant aus einem vom Kunden bereitgestellten Logo, Motiv oder einer Grafik eine technische Stick- oder Produktionsdatei erstellt, dient diese Datei grundsätzlich der internen Herstellung des bestellten Produkts.</p>
+        <p>11.2. Sofern nicht ausdrücklich etwas anderes vereinbart wurde, beinhaltet der Auftrag keinen Anspruch des Kunden auf Übermittlung oder Herausgabe der von Made2Meant erstellten Maschinen-, Stick-, Produktions- oder Digitalisierungsdateien.</p>
+        <p>11.3. Rechte des Kunden am zugrunde liegenden eigenen Logo, Motiv oder Design bleiben hiervon unberührt.</p>
+        <h2>12. Produkte für Babys und Kinder</h2>
+        <p>12.1. Bei Produkten für Babys und Kinder sind sämtliche produktbezogenen Sicherheits-, Pflege-, Alters- und Verwendungshinweise zu beachten.</p>
+        <p>12.2. Produktbezogene Sicherheitshinweise sind Bestandteil der Produktinformation und dürfen nicht entfernt oder missachtet werden.</p>
+        <p>12.3. Ein Produkt, das vom Hersteller nicht als Spielzeug vorgesehen ist, wird allein durch eine Personalisierung nicht zu einem Spielzeug.</p>
+        <p>12.4. Soweit für ein Produkt eine Beaufsichtigung durch Erwachsene empfohlen oder vorgeschrieben ist, ist dieser Hinweis zu beachten.</p>
+        <p>12.5. Diese Bestimmungen stellen keinen Ausschluss gesetzlicher Produkthaftungs-, Gewährleistungs- oder Schadenersatzansprüche dar.</p>
+        <h2>13. Produktinformationen und Zertifizierungen</h2>
+        <p>13.1. Made2Meant legt besonderen Wert auf hochwertige Produkte und kann insbesondere Produkte anbieten, deren Materialien oder Ausgangsprodukte bestimmte Zertifizierungen oder Standards erfüllen.</p>
+        <p>13.2. Dazu können beispielsweise gehören:</p>
+        <ul><li>OEKO-TEX® STANDARD 100,</li><li>GOTS – Global Organic Textile Standard oder</li><li>andere anerkannte Produkt- bzw. Textilstandards.</li></ul>
+        <p>13.3. Eine Zertifizierungsangabe gilt ausschließlich für jene Produkte und jenen Zertifizierungsumfang, die auf der jeweiligen Produktseite ausdrücklich angegeben werden.</p>
+        <p>13.4. Die Zertifizierung eines einzelnen Produkts bedeutet nicht, dass automatisch das gesamte Sortiment von Made2Meant dieselbe Zertifizierung besitzt.</p>
+        <p>13.5. Insbesondere kann zwischen:</p>
+        <ul><li>der Zertifizierung des Ausgangstextils,</li><li>der Zertifizierung bestimmter Materialien und</li><li>der Zertifizierung des fertig personalisierten Endprodukts</li></ul>
+        <p>zu unterscheiden sein.</p>
+        <p>13.6. Made2Meant wird eine Zertifizierung des Endprodukts nur dann als solche kommunizieren, wenn hierfür eine entsprechende Grundlage besteht.</p>
+        <p>13.7. Produktbezogene Angaben im Online-Shop sind für den jeweiligen Artikel maßgeblich.</p>
+        <h2>14. Preise</h2>
+        <p>14.1. Die im Online-Shop gegenüber Verbrauchern angegebenen Preise enthalten die gesetzlich geschuldete Umsatzsteuer, soweit diese anfällt.</p>
+        <p>14.2. Zusätzliche Personalisierungskosten werden dem Kunden vor Abschluss der Bestellung angezeigt.</p>
+        <p>14.3. Zusätzlich zum Warenpreis können Versandkosten anfallen.</p>
+        <p>14.4. Die Höhe der Versandkosten wird dem Kunden vor Abgabe der Bestellung angezeigt.</p>
+        <p>14.5. Vor Betätigung des zahlungspflichtigen Bestellbuttons wird der vollständige Gesamtpreis der Bestellung einschließlich aller im Voraus berechenbaren Preisbestandteile angezeigt.</p>
+        <p>14.6. Maßgeblich ist der im Checkout vor Abschluss der Bestellung angezeigte Gesamtpreis.</p>
+        <p>14.7. Sofern nichts anderes angegeben wird, erfolgt die Preisangabe in Euro.</p>
+        <p>14.8. Werden für bestimmte Länder andere Währungen angeboten, ist die im Checkout angezeigte Währung maßgeblich.</p>
+        <h2>15. Offensichtliche Preis- und Darstellungsfehler</h2>
+        <p>15.1. Made2Meant bemüht sich um eine fehlerfreie Preis- und Produktdarstellung.</p>
+        <p>15.2. Offensichtliche Tipp-, Eingabe-, Rechen-, Übertragungs- oder technische Darstellungsfehler begründen keinen Anspruch auf Lieferung zu einem objektiv erkennbar fehlerhaften Preis, soweit nach den gesetzlichen Vorschriften kein entsprechender Vertrag zustande gekommen ist bzw. dieser wirksam angefochten oder berichtigt werden kann.</p>
+        <p>15.3. Made2Meant wird den Kunden in einem solchen Fall unverzüglich informieren.</p>
+        <p>15.4. Bereits geleistete Zahlungen werden zurückerstattet, soweit kein wirksamer Zahlungsanspruch besteht.</p>
+        <h2>16. Zahlungsbedingungen</h2>
+        <p>16.1. Die für die jeweilige Bestellung verfügbaren Zahlungsmethoden werden im Checkout angezeigt.</p>
+        <p>16.2. Made2Meant kann insbesondere folgende Zahlungsmöglichkeiten anbieten:</p>
+        <ul><li>Kreditkarte,</li><li>Debitkarte,</li><li>PayPal,</li><li>Apple Pay,</li><li>Google Pay,</li><li>Shopify Payments,</li><li>Klarna oder</li><li>andere elektronische Zahlungsdienstleister.</li></ul>
+        <p>16.3. Ein Anspruch auf Bereitstellung einer bestimmten Zahlungsart besteht nicht.</p>
+        <p>16.4. Je nach Zahlungsanbieter können zusätzliche Bedingungen des jeweiligen Zahlungsdienstleisters gelten.</p>
+        <p>16.5. Sofern nichts anderes vereinbart wurde, ist der Kaufpreis mit Vertragsabschluss fällig.</p>
+        <p>16.6. Bei einer fehlgeschlagenen Zahlung ist Made2Meant nicht verpflichtet, mit der Herstellung oder Versendung zu beginnen, solange der geschuldete Betrag nicht erfolgreich bezahlt wurde.</p>
+        <p>16.7. Bei Zahlungsverzug gelten die gesetzlichen Verzugsfolgen.</p>
+        <h2>17. Produktions- und Bearbeitungszeit</h2>
+        <p>17.1. Bei personalisierten Waren ist zwischen Produktions- bzw. Bearbeitungszeit und Versandlaufzeit zu unterscheiden.</p>
+        <p>17.2. Die auf der Produktseite angegebene Bearbeitungszeit beschreibt grundsätzlich den Zeitraum, den Made2Meant für Vorbereitung und Herstellung benötigt.</p>
+        <p>17.3. Die Versandzeit beschreibt den anschließenden Transport durch den Versanddienstleister.</p>
+        <p>17.4. Eine Produktionsfrist beginnt grundsätzlich erst, sobald:</p>
+        <ul><li>die Bestellung vollständig vorliegt,</li><li>sämtliche erforderlichen Personalisierungsangaben vorliegen,</li><li>eine erforderliche Zahlung erfolgt ist und</li><li>eine allenfalls erforderliche Freigabe erteilt wurde.</li></ul>
+        <p>17.5. Verzögert sich die Produktion, weil notwendige Angaben oder eine erforderliche Freigabe des Kunden fehlen, verlängert sich die Bearbeitungszeit entsprechend.</p>
+        <h2>18. Lieferung</h2>
+        <p>18.1. Die Lieferung erfolgt an die vom Kunden angegebene Lieferanschrift.</p>
+        <p>18.2. Der Kunde ist verpflichtet, seine Lieferanschrift vor Abschluss der Bestellung auf Richtigkeit zu überprüfen.</p>
+        <p>18.3. Nachträgliche Adressänderungen können nur berücksichtigt werden, solange die Bestellung noch nicht für den Versand vorbereitet oder an das Versandunternehmen übergeben wurde.</p>
+        <p>18.4. Der Kunde sollte Made2Meant bei einem Adressfehler unverzüglich kontaktieren.</p>
+        <p>18.5. Kann eine Sendung aufgrund einer vom Kunden unrichtig angegebenen Adresse oder eines sonstigen vom Kunden verursachten Umstands nicht zugestellt werden und wird sie an Made2Meant zurückgesendet, kann für einen erneuten Versand eine neuerliche angemessene Versandgebühr anfallen.</p>
+        <p>18.6. Dies gilt nicht, soweit Made2Meant die Unzustellbarkeit zu vertreten hat.</p>
+        <p>18.7. Made2Meant kann Teillieferungen vornehmen, wenn dies dem Kunden zumutbar ist.</p>
+        <p>18.8. Durch eine von Made2Meant veranlasste Teillieferung entstehen dem Verbraucher keine zusätzlichen Versandkosten, sofern dies nicht ausdrücklich anders vereinbart wurde.</p>
+        <h2>19. Lieferverzögerungen</h2>
+        <p>19.1. Kommt es zu einer erheblichen Verzögerung, wird Made2Meant den Kunden im gesetzlich erforderlichen Umfang informieren.</p>
+        <p>19.2. Gesetzliche Rechte des Kunden bei Lieferverzug bleiben bestehen.</p>
+        <p>19.3. Ereignisse außerhalb des zumutbaren Einflussbereichs von Made2Meant, beispielsweise außergewöhnliche Transportstörungen, Naturereignisse, behördliche Maßnahmen oder vergleichbare unvorhersehbare Ereignisse, können zu Lieferverzögerungen führen.</p>
+        <p>19.4. Eine solche Regelung schließt gesetzliche Rücktritts-, Erfüllungs- oder Schadenersatzrechte des Kunden nicht pauschal aus.</p>
+        <h2>20. Gefahrübergang bei Verbrauchern</h2>
+        <p>20.1. Bei Verbrauchern geht die Gefahr des zufälligen Verlusts oder der zufälligen Beschädigung der Ware grundsätzlich erst über, wenn der Verbraucher oder ein von ihm bestimmter Dritter, der nicht der Beförderer ist, die Ware erhalten hat.</p>
+        <p>20.2. Allein die Übergabe an ein von Made2Meant beauftragtes Versandunternehmen bewirkt gegenüber einem Verbraucher grundsätzlich noch keinen Gefahrübergang.</p>
+        <p>20.3. Beauftragt der Verbraucher selbst einen Beförderer, ohne dabei eine von Made2Meant angebotene Versandmöglichkeit zu nutzen, gelten die gesetzlichen Sonderbestimmungen.</p>
+        <h2>21. Transportschäden</h2>
+        <p>21.1. Ist ein Paket bei Erhalt sichtbar beschädigt, empfiehlt Made2Meant, die Beschädigung möglichst beim Zusteller zu dokumentieren und Made2Meant zu informieren.</p>
+        <p>21.2. Auch Fotos einer beschädigten Verpackung oder Ware können die Bearbeitung erleichtern.</p>
+        <p>21.3. Das Unterlassen einer solchen Dokumentation oder sofortigen Meldung führt bei Verbrauchern jedoch nicht zum Verlust gesetzlicher Gewährleistungs- oder sonstiger zwingender Rechte.</p>
+        <h2>22. Eigentumsvorbehalt</h2>
+        <p>22.1. Bis zur vollständigen Bezahlung des Kaufpreises bleibt die gelieferte Ware Eigentum von Made2Meant.</p>
+        <p>22.2. Gegenüber Unternehmern gelten ergänzend die gesetzlichen Regelungen.</p>
+        <h2>23. Gesetzliches Rücktritts-/Widerrufsrecht</h2>
+        <p>23.1. Verbraucher haben bei Fernabsatzverträgen grundsätzlich das Recht, binnen 14 Tagen ohne Angabe von Gründen vom Vertrag zurückzutreten.</p>
+        <p>23.2. Bei einem Vertrag über eine einzelne Ware beträgt die Rücktrittsfrist grundsätzlich 14 Tage ab dem Tag, an dem der Verbraucher oder ein von ihm bestimmter Dritter, der nicht Beförderer ist, die Ware erhalten hat.</p>
+        <p>23.3. Werden mehrere Waren im Rahmen einer einheitlichen Bestellung bestellt und getrennt geliefert, beginnt die Frist grundsätzlich mit Erhalt der zuletzt gelieferten Ware, soweit die gesetzlichen Voraussetzungen dafür vorliegen.</p>
+        <p>23.4. Werden mehrere Teile einer Ware getrennt geliefert, beginnt die Frist grundsätzlich mit Erhalt des letzten Teils.</p>
+        <p>23.5. Zur Ausübung des Rücktrittsrechts muss der Verbraucher Made2Meant mittels einer eindeutigen Erklärung über seinen Entschluss informieren. Die Erklärung kann insbesondere gerichtet werden an: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich E-Mail: support@made2meant.com</p>
+        <p>23.6. Der Verbraucher kann dafür das am Ende dieser Bedingungen bereitgestellte Muster- Widerrufsformular verwenden. Die Verwendung dieses Formulars ist nicht verpflichtend.</p>
+        <p>23.7. Zur Wahrung der Rücktrittsfrist genügt es grundsätzlich, wenn die Rücktrittserklärung vor Ablauf der Frist abgesendet wird.</p>
+        <h2>24. Online-Rücktrittsfunktion</h2>
+        <p>24.1. Soweit für den jeweiligen Vertrag ein gesetzliches Rücktrittsrecht besteht und Made2Meant gesetzlich zur Bereitstellung einer elektronischen Rücktrittsfunktion verpflichtet ist, kann der Verbraucher den Rücktritt zusätzlich über die auf der Website bereitgestellte Online- Rücktrittsfunktion erklären.</p>
+        <p>24.2. Die entsprechende Funktion ist insbesondere über eine eindeutig bezeichnete Schaltfläche wie „Vertrag widerrufen“ erreichbar.</p>
+        <p>24.3. Nach Eingabe der erforderlichen Vertragsinformationen kann die Erklärung über die entsprechende Bestätigungsfunktion, insbesondere „Widerruf bestätigen“, übermittelt werden.</p>
+        <p>24.4. Made2Meant stellt dem Verbraucher nach erfolgreicher elektronischer Erklärung entsprechend den gesetzlichen Anforderungen eine elektronische Bestätigung über den Eingang zur Verfügung.</p>
+        <p>24.5. Die gesetzlichen Anforderungen an die Online-Rücktrittsfunktion werden durch die Möglichkeit einer Erklärung per E-Mail nicht eingeschränkt.</p>
+        <h2>25. Ausnahme vom Rücktrittsrecht für personalisierte Waren</h2>
+        <p>25.1. Das gesetzliche Rücktrittsrecht besteht insbesondere nicht bei Waren, die nach Kundenspezifikationen angefertigt werden oder eindeutig auf die persönlichen Bedürfnisse des Kunden zugeschnitten sind.</p>
+        <p>25.2. Dies betrifft bei Made2Meant insbesondere Waren, die aufgrund der konkreten Bestellung individuell versehen werden mit:</p>
+        <ul><li>einem Namen,</li><li>Initialen,</li><li>einem individuellen Text,</li><li>einem persönlichen Datum,</li><li>einem individuellen Monogramm,</li><li>einem kundenspezifischen Logo,</li><li>einem individuell übermittelten Motiv oder</li><li>einer vergleichbaren eindeutig persönlichen Gestaltung.</li></ul>
+        <p>25.3. Beispiel: Bestellt ein Kunde ein Handtuch und lässt darauf speziell den Namen „Emilia“ sticken, handelt es sich regelmäßig um eine eindeutig individualisierte Ware.</p>
+        <p>25.4. Gleiches kann insbesondere für Geschenksets, Bademäntel, Musselindecken, Babyhandtücher, Lätzchen oder sonstige Produkte gelten, wenn diese speziell aufgrund einer individuellen Kundenvorgabe personalisiert werden.</p>
+        <p>25.5. Eine bloße Auswahl aus üblichen Standardvarianten führt hingegen nicht automatisch zum Ausschluss des Rücktrittsrechts.</p>
+        <p>25.6. Insbesondere begründet die bloße Auswahl von:</p>
+        <ul><li>Standardgröße,</li><li>Standardfarbe,</li><li>normaler Produktvariante oder</li><li>anderen vollständig vorgegebenen Standardoptionen</li></ul>
+        <p>für sich allein nicht zwingend eine Ware nach Kundenspezifikation.</p>
+        <p>25.7. Maßgeblich ist, ob das konkrete Produkt aufgrund der Kundenvorgaben tatsächlich individuell angefertigt oder eindeutig auf die persönlichen Bedürfnisse zugeschnitten wird.</p>
+        <h2>26. Ausschluss bereits vor Produktionsbeginn</h2>
+        <p>26.1. Bei einem Produkt, das rechtlich als nach Kundenspezifikation angefertigte oder eindeutig personalisierte Ware einzustufen ist, besteht das gesetzliche Rücktrittsrecht grundsätzlich bereits aufgrund der vereinbarten Individualanfertigung nicht.</p>
+        <p>26.2. Der Ausschluss hängt daher nicht zwingend davon ab, ob Made2Meant zum Zeitpunkt eines Stornierungswunsches bereits tatsächlich mit der Stickerei oder Produktion begonnen hat.</p>
+        <p>26.3. Made2Meant kann eine Stornierung vor Beginn der Bearbeitung freiwillig aus Kulanz akzeptieren.</p>
+        <p>26.4. Ein Anspruch auf eine solche freiwillige Stornierung besteht bei einer vom gesetzlichen Rücktrittsrecht ausgenommenen Individualanfertigung jedoch nicht.</p>
+        <h2>27. Rücktrittsrecht und Gewährleistung sind nicht dasselbe</h2>
+        <p>27.1. Der Ausschluss des gesetzlichen Rücktrittsrechts für eine personalisierte Ware bedeutet nicht, dass für personalisierte Waren keine Gewährleistung besteht.</p>
+        <p>27.2. Gesetzliche Gewährleistungsrechte bestehen auch für personalisierte Produkte.</p>
+        <p>27.3. Ein korrekt entsprechend der Bestellung individualisiertes Produkt kann zwar vom Rücktrittsrecht ausgenommen sein.</p>
+        <p>27.4. Ist das Produkt jedoch mangelhaft oder wurde die Personalisierung nicht vertragsgemäß ausgeführt, stehen dem Kunden die gesetzlichen Gewährleistungsrechte zu.</p>
+        <p>27.5. Beispiele: Bestellt wurde „Emilia“, gestickt wurde „Amelia“: Die gesetzlichen Gewährleistungsrechte bleiben bestehen. Bestellt wurde Garnfarbe Terrakotta, Made2Meant verwendet aufgrund eines Fehlers eine wesentlich andere Farbe: Die gesetzlichen Gewährleistungsrechte bleiben bestehen. Bestellt wurde „Emilia“ und exakt „Emilia“ hergestellt, der Kunde möchte das Produkt nachträglich lediglich nicht mehr: Bei einer echten Individualanfertigung besteht grundsätzlich kein gesetzliches Rücktrittsrecht.</p>
+        <h2>28. Gemischte Bestellungen</h2>
+        <p>28.1. Enthält eine Bestellung sowohl personalisierte als auch nicht personalisierte Produkte, wird das Bestehen eines gesetzlichen Rücktrittsrechts grundsätzlich nach den einzelnen Vertragspositionen beurteilt.</p>
+        <p>28.2. Beispiel: Ein Kunde bestellt:</p>
+        <ul><li>ein individuell mit „Lina“ besticktes Handtuch und</li><li>eine nicht personalisierte Standarddecke.</li></ul>
+        <p>Für das personalisierte Handtuch kann die Ausnahme vom gesetzlichen Rücktrittsrecht gelten. Für die unveränderte Standarddecke besteht grundsätzlich weiterhin das gesetzliche Rücktrittsrecht.</p>
+        <p>28.3. Der Ausschluss des Rücktrittsrechts für eine personalisierte Ware führt daher nicht automatisch zum Ausschluss des Rücktrittsrechts für sämtliche anderen Waren derselben Bestellung.</p>
+        <h2>29. Folgen des Rücktritts</h2>
+        <p>29.1. Im Falle eines wirksamen gesetzlichen Rücktritts erstattet Made2Meant die vom Verbraucher für den vom Rücktritt betroffenen Vertrag bzw. Vertragsteil erhaltenen Zahlungen nach Maßgabe der gesetzlichen Vorschriften.</p>
+        <p>29.2. Die Rückzahlung erfolgt grundsätzlich spätestens binnen 14 Tagen ab dem Tag, an dem die Rücktrittserklärung bei Made2Meant eingegangen ist.</p>
+        <p>29.3. Made2Meant kann die Rückzahlung bei Waren grundsätzlich solange zurückhalten, bis die Ware wieder eingegangen ist oder der Verbraucher nachgewiesen hat, dass er die Ware zurückgesendet hat, je nachdem, welches Ereignis früher eintritt.</p>
+        <p>29.4. Dies gilt nicht, wenn Made2Meant angeboten hat, die Ware selbst abzuholen.</p>
+        <p>29.5. Made2Meant verwendet für die Rückzahlung grundsätzlich dasselbe Zahlungsmittel, das für die ursprüngliche Zahlung verwendet wurde, sofern mit dem Verbraucher nicht ausdrücklich etwas anderes vereinbart wurde.</p>
+        <p>29.6. Für die Rückzahlung werden dem Verbraucher keine zusätzlichen Entgelte berechnet.</p>
+        <h2>30. Kosten der ursprünglichen Lieferung</h2>
+        <p>30.1. Bei einem vollständigen wirksamen Rücktritt erstattet Made2Meant grundsätzlich auch die Kosten der günstigsten angebotenen Standardlieferung.</p>
+        <p>30.2. Hat der Verbraucher ausdrücklich eine teurere Versandart gewählt, beispielsweise Expressversand, ist Made2Meant nicht verpflichtet, jene Mehrkosten zu erstatten, die über die günstigste Standardlieferung hinausgehen.</p>
+        <h2>31. Rücksendung</h2>
+        <p>31.1. Der Verbraucher hat die vom Rücktritt betroffene Ware grundsätzlich spätestens binnen 14 Tagen nach Abgabe seiner Rücktrittserklärung zurückzusenden.</p>
+        <p>31.2. Rücksendungen sind zu richten an: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich</p>
+        <p>31.3. Der Verbraucher trägt bei einem gesetzlichen Rücktritt grundsätzlich die unmittelbaren Kosten der Rücksendung, sofern Made2Meant ihn hierüber ordnungsgemäß vor Vertragsabschluss informiert hat und Made2Meant nicht freiwillig die Rücksendekosten übernimmt.</p>
+        <p>31.4. Diese Regelung gilt nicht für notwendige Rücksendekosten aufgrund einer berechtigten Reklamation wegen einer mangelhaften, beschädigten oder falsch gelieferten Ware.</p>
+        <h2>32. Wertverlust bei Rücksendung</h2>
+        <p>32.1. Der Verbraucher haftet bei Ausübung des gesetzlichen Rücktrittsrechts für einen Wertverlust der Ware nur, soweit dieser auf einen Umgang mit der Ware zurückzuführen ist, der zur Prüfung ihrer Beschaffenheit, Eigenschaften und Funktionsweise nicht notwendig war und die gesetzlichen Voraussetzungen hierfür erfüllt sind.</p>
+        <p>32.2. Das bloße angemessene Prüfen eines Produkts begründet daher nicht automatisch einen Ersatzanspruch.</p>
+        <h2>33. Gewährleistung gegenüber Verbrauchern</h2>
+        <p>33.1. Für Verträge mit Verbrauchern gelten die gesetzlichen Gewährleistungsbestimmungen, insbesondere das Verbrauchergewährleistungsgesetz (VGG), soweit dieses anwendbar ist.</p>
+        <p>33.2. Made2Meant leistet insbesondere dafür Gewähr, dass die Ware die vertraglich vereinbarten sowie gesetzlich erforderlichen Eigenschaften besitzt.</p>
+        <p>33.3. Ein Mangel kann insbesondere vorliegen, wenn:</p>
+        <ul><li>eine andere Ware geliefert wurde,</li><li>eine andere Größe geliefert wurde,</li><li>eine wesentlich andere Farbe geliefert wurde,</li><li>die Ware beschädigt ist,</li><li>die Ware nicht die vereinbarte Beschaffenheit besitzt,</li><li>eine Personalisierung falsch ausgeführt wurde,</li><li>ein vereinbarter Name falsch gestickt wurde,</li><li>ein falsches Motiv umgesetzt wurde oder</li><li>eine sonstige relevante Abweichung von der Bestellung vorliegt.</li></ul>
+        <p>33.4. Für bewegliche Waren beträgt die gesetzliche Gewährleistungsfrist im Anwendungsbereich des VGG grundsätzlich zwei Jahre ab Übergabe.</p>
+        <p>33.5. Kommt ein Mangel innerhalb der gesetzlich vorgesehenen Vermutungsfrist hervor, gelten die gesetzlichen Beweislastregeln.</p>
+        <p>33.6. Gesetzliche Beweislastregeln werden durch diese AGB nicht verändert.</p>
+        <h2>34. Gewährleistungsbehelfe</h2>
+        <p>34.1. Bei Vorliegen eines Mangels stehen Verbrauchern die gesetzlichen Gewährleistungsbehelfe zu.</p>
+        <p>34.2. Nach Maßgabe der gesetzlichen Voraussetzungen kann der Verbraucher zunächst insbesondere Verbesserung oder Austausch verlangen.</p>
+        <p>34.3. Der Verbraucher kann grundsätzlich zwischen Verbesserung und Austausch wählen, soweit die gewählte Abhilfe nicht unmöglich oder im Vergleich zur anderen Abhilfe für den Unternehmer mit unverhältnismäßig hohem Aufwand verbunden ist.</p>
+        <p>34.4. Verbesserung oder Austausch erfolgen im gesetzlichen Umfang:</p>
+        <ul><li>innerhalb angemessener Frist,</li><li>ohne Kosten für den Verbraucher und</li><li>ohne erhebliche Unannehmlichkeiten.</li></ul>
+        <p>34.5. Unter den gesetzlichen Voraussetzungen können anschließend bzw. unmittelbar Preisminderung oder Vertragsauflösung verlangt werden.</p>
+        <p>34.6. Eine Vertragsauflösung wegen eines nur geringfügigen Mangels ist ausgeschlossen, soweit dies gesetzlich vorgesehen ist.</p>
+        <p>34.7. Die gesetzlichen Rechte gelten auch für personalisierte Produkte.</p>
+        <h2>35. Reklamationen</h2>
+        <p>35.1. Sollte eine Bestellung mangelhaft, beschädigt oder falsch personalisiert sein, kann der Kunde Made2Meant kontaktieren: support@made2meant.com</p>
+        <p>35.2. Zur schnellen Bearbeitung empfiehlt Made2Meant die Angabe von:</p>
+        <ul><li>Name,</li><li>Bestellnummer,</li><li>betroffenem Produkt,</li><li>kurzer Beschreibung des Problems und</li><li>gegebenenfalls Fotos des Mangels.</li></ul>
+        <p>35.3. Fotos können die Bearbeitung wesentlich erleichtern.</p>
+        <p>35.4. Die Übermittlung eines Fotos ist bei Verbrauchern jedoch keine zwingende Voraussetzung für das Bestehen gesetzlicher Gewährleistungsrechte.</p>
+        <p>35.5. Ebenso wird durch diese AGB keine unzulässig kurze Reklamationsfrist für Verbraucher eingeführt.</p>
+        <h2>36. Keine freiwillige Garantie, sofern nicht ausdrücklich angegeben</h2>
+        <p>36.1. Soweit bei einem Produkt nicht ausdrücklich etwas anderes angegeben wird, gewährt Made2Meant keine über die gesetzliche Gewährleistung hinausgehende freiwillige Garantie.</p>
+        <p>36.2. Wird bei einem Produkt ausdrücklich eine zusätzliche Garantie angeboten, gelten ergänzend die jeweiligen Garantiebedingungen.</p>
+        <p>36.3. Eine freiwillige Garantie schränkt die gesetzlichen Gewährleistungsrechte des Verbrauchers niemals ein.</p>
+        <h2>37. Pflege von Textilien</h2>
+        <p>37.1. Die bei einem Produkt angegebenen Pflege- und Waschhinweise sind zu beachten.</p>
+        <p>37.2. Dies betrifft insbesondere Hinweise zu:</p>
+        <ul><li>Waschtemperatur,</li><li>Waschprogramm,</li><li>Trocknung,</li><li>Schleudern,</li><li>Bügeln,</li><li>Bleichen,</li><li>chemischer Reinigung und</li><li>besonderen Pflegeanforderungen der Stickerei.</li></ul>
+        <p>37.3. Schäden, die ausschließlich durch eine nach Übergabe erfolgte unsachgemäße Behandlung oder eine Verwendung entgegen eindeutigen Pflegehinweisen verursacht wurden, begründen grundsätzlich keinen von Made2Meant zu vertretenden Mangel.</p>
+        <p>37.4. Gesetzliche Gewährleistungs- und Beweislastregeln bleiben davon unberührt.</p>
+        <h2>38. Gutscheine</h2>
+        <p>38.1. Soweit Made2Meant Gutscheine anbietet, können je nach Gutscheinart unterschiedliche Bedingungen gelten.</p>
+        <p>38.2. Es ist insbesondere zwischen:</p>
+        <ul><li>entgeltlich erworbenen Wertgutscheinen und</li><li>unentgeltlich ausgegebenen Rabatt- oder Aktionscodes</li></ul>
+        <p>zu unterscheiden.</p>
+        <p>38.3. Für entgeltlich erworbene Wertgutscheine können gesonderte Gutscheinbedingungen gelten.</p>
+        <p>38.4. Gesetzliche Rechte werden durch Gutscheinbedingungen nicht eingeschränkt.</p>
+        <h2>39. Rabattcodes und Aktionen</h2>
+        <p>39.1. Rabatt- und Aktionscodes können an bestimmte Voraussetzungen geknüpft sein.</p>
+        <p>39.2. Dazu können insbesondere gehören:</p>
+        <ul><li>Mindestbestellwert,</li><li>bestimmter Aktionszeitraum,</li><li>bestimmte Produktkategorie,</li><li>bestimmte Kundengruppe,</li><li>einmalige Nutzung oder</li><li>Ausschluss bestimmter Produkte.</li></ul>
+        <p>39.3. Die konkreten Bedingungen werden bei der jeweiligen Aktion kommuniziert.</p>
+        <p>39.4. Sofern nicht ausdrücklich etwas anderes angegeben wird, können mehrere Rabattcodes nicht miteinander kombiniert werden.</p>
+        <p>39.5. Ein Rabattcode, der bei Abschluss einer Bestellung nicht eingegeben wurde, kann grundsätzlich nicht nachträglich auf eine bereits abgeschlossene Bestellung angewendet werden.</p>
+        <p>39.6. Gesetzliche Verbraucherrechte werden durch Rabattaktionen nicht eingeschränkt.</p>
+        <h2>40. Zugaben und kostenlose Aktionsprodukte</h2>
+        <p>40.1. Made2Meant kann zeitweise kostenlose Zugaben oder Aktionsprodukte anbieten.</p>
+        <p>40.2. Die Bedingungen einer solchen Aktion werden im Zusammenhang mit der jeweiligen Aktion bekanntgegeben.</p>
+        <p>40.3. Gesetzliche Rücktritts- und Gewährleistungsrechte des Kunden werden dadurch nicht eingeschränkt.</p>
+        <h2>41. Kundenkonto</h2>
+        <p>41.1. Soweit Made2Meant die Einrichtung eines Kundenkontos anbietet, ist der Kunde verpflichtet, seine Zugangsdaten angemessen vor dem Zugriff Dritter zu schützen.</p>
+        <p>41.2. Der Kunde sollte Made2Meant unverzüglich informieren, wenn begründeter Verdacht besteht, dass Dritte unbefugt auf sein Kundenkonto zugreifen.</p>
+        <p>41.3. Die Nutzung eines Kundenkontos ist nur nach Maßgabe der jeweils verfügbaren Shopfunktionen möglich.</p>
+        <p>41.4. Eine Bestellung als Gast kann angeboten werden, soweit dies technisch vorgesehen ist.</p>
+        <h2>42. Datenschutz</h2>
+        <p>42.1. Made2Meant verarbeitet personenbezogene Daten ausschließlich nach Maßgabe der geltenden datenschutzrechtlichen Vorschriften.</p>
+        <p>42.2. Weitere Informationen befinden sich in der gesonderten Datenschutzerklärung.</p>
+        <p>42.3. Diese AGB ersetzen die Datenschutzerklärung nicht.</p>
+        <p>42.4. Dies gilt insbesondere für personenbezogene Daten im Zusammenhang mit:</p>
+        <ul><li>Bestellungen,</li><li>Personalisierungen,</li><li>Lieferanschriften,</li><li>Zahlungsdienstleistern,</li><li>Kundenkonten,</li><li>Versanddienstleistern und</li><li>Kundenservice.</li></ul>
+        <h2>43. Haftung gegenüber Verbrauchern</h2>
+        <p>43.1. Gegenüber Verbrauchern haftet Made2Meant nach den gesetzlichen Bestimmungen.</p>
+        <p>43.2. Zwingende gesetzliche Haftungsvorschriften werden durch diese AGB nicht eingeschränkt.</p>
+        <p>43.3. Insbesondere wird die Haftung für Personenschäden nicht ausgeschlossen.</p>
+        <p>43.4. Ebenso bleiben gesetzliche Ansprüche aufgrund vorsätzlichen oder grob fahrlässigen Verhaltens unberührt.</p>
+        <p>43.5. Ansprüche aus zwingender Produkthaftung bleiben unberührt.</p>
+        <h2>44. Unternehmergeschäfte – Allgemeines</h2>
+        <p>44.1. Die nachfolgenden Bestimmungen dieses Abschnitts gelten ausschließlich, wenn der Kunde Unternehmer ist.</p>
+        <p>44.2. Verbraucher werden durch diese Bestimmungen nicht eingeschränkt.</p>
+        <p>44.3. Für Unternehmer besteht kein verbraucherrechtliches Rücktrittsrecht nach dem FAGG.</p>
+        <p>44.4. Für individuell vereinbarte B2B-Bestellungen, Firmenaufträge, größere Stückzahlen oder Sonderproduktionen können ergänzende Individualvereinbarungen getroffen werden.</p>
+        <p>44.5. Solche Individualvereinbarungen gehen diesen AGB im jeweiligen Umfang vor.</p>
+        <h2>45. Unternehmergeschäfte – Prüfung und Mängelrüge</h2>
+        <p>45.1. Bei beiderseitigen Unternehmergeschäften gelten insbesondere die gesetzlichen Untersuchungs- und Rügepflichten nach § 377 UGB.</p>
+        <p>45.2. Der Unternehmer hat die Ware nach Ablieferung im Rahmen des ordnungsgemäßen Geschäftsganges zu untersuchen und festgestellte Mängel entsprechend den gesetzlichen Vorgaben anzuzeigen.</p>
+        <p>45.3. Für Verbraucher gilt diese Verpflichtung nicht.</p>
+        <h2>46. Unternehmergeschäfte – Logos und Rechte Dritter</h2>
+        <p>46.1. Bei B2B-Bestellungen mit vom Unternehmer bereitgestellten Firmenlogos, Marken, Designs oder sonstigen Inhalten bestätigt der Unternehmer, über die erforderlichen Nutzungsrechte zu verfügen.</p>
+        <p>46.2. Der Unternehmer haftet Made2Meant nach den gesetzlichen Bestimmungen für schuldhafte Verletzungen dieser Verpflichtung.</p>
+        <p>46.3. Eine Freistellung von berechtigten Ansprüchen Dritter erfolgt nur im gesetzlich zulässigen Umfang.</p>
+        <h2>47. Unternehmergeschäfte – Haftung</h2>
+        <p>47.1. Gegenüber Unternehmern ist die Haftung von Made2Meant für leicht fahrlässig verursachte Sach- und Vermögensschäden im gesetzlich zulässigen Umfang ausgeschlossen.</p>
+        <p>47.2. Dies gilt nicht für:</p>
+        <ul><li>Personenschäden,</li><li>Vorsatz,</li><li>Fälle zwingender gesetzlicher Haftung oder</li><li>Ansprüche nach zwingenden Produkthaftungsvorschriften.</li></ul>
+        <p>47.3. Gesetzlich nicht abdingbare Haftungstatbestände bleiben uneingeschränkt bestehen.</p>
+        <h2>48. Geistiges Eigentum an Website und Gestaltung</h2>
+        <p>48.1. Inhalte des Online-Shops, insbesondere Texte, Fotografien, Grafiken, Logos, Designs und sonstige eigene Inhalte von Made2Meant, können urheber-, marken- oder sonst schutzrechtlich geschützt sein.</p>
+        <p>48.2. Eine Nutzung über den gesetzlich zulässigen Umfang hinaus bedarf der Zustimmung des jeweiligen Rechteinhabers.</p>
+        <p>48.3. Diese Regelung betrifft nicht Inhalte, die ein Kunde selbst berechtigterweise zur Verfügung gestellt hat.</p>
+        <h2>49. Kundenservice</h2>
+        <p>49.1. Kunden können Made2Meant bei Fragen zur Bestellung, Lieferung, Personalisierung oder Reklamation kontaktieren unter: support@made2meant.com</p>
+        <p>49.2. Made2Meant bemüht sich um eine zeitnahe Bearbeitung von Kundenanfragen.</p>
+        <h2>50. Alternative Streitbeilegung</h2>
+        <p>50.1. Made2Meant ist bestrebt, Beschwerden nach Möglichkeit unmittelbar mit dem Kunden zu lösen.</p>
+        <p>50.2. Kann eine Streitigkeit mit einem Verbraucher nicht unmittelbar beigelegt werden, informiert Made2Meant den Verbraucher nach Maßgabe der anwendbaren gesetzlichen Vorschriften über die jeweils zuständige Stelle zur alternativen Streitbeilegung sowie darüber, ob Made2Meant an einem entsprechenden Verfahren teilnimmt.</p>
+        <p>50.3. Gesetzliche Möglichkeiten der Verbraucher, gerichtliche Hilfe in Anspruch zu nehmen, bleiben hiervon unberührt.</p>
+        <h2>51. Anwendbares Recht</h2>
+        <p>51.1. Für Verträge mit Made2Meant gilt österreichisches Recht unter Ausschluss des UN-Kaufrechts.</p>
+        <p>51.2. Gegenüber Verbrauchern gilt diese Rechtswahl jedoch nur insoweit, als dadurch nicht der Schutz zwingender Bestimmungen des Staates entzogen wird, in dem der Verbraucher seinen gewöhnlichen Aufenthalt hat, sofern diese Bestimmungen nach den anwendbaren unionsrechtlichen Kollisionsnormen maßgeblich sind.</p>
+        <p>51.3. Dies bedeutet insbesondere, dass ein Verbraucher aus Deutschland oder einem anderen von Made2Meant belieferten EU-Mitgliedstaat durch die Wahl österreichischen Rechts nicht jene zwingenden Verbraucherrechte verliert, die ihm nach den anwendbaren gesetzlichen Vorschriften seines Wohnsitzstaates zwingend zustehen.</p>
+        <h2>52. Gerichtsstand für Verbraucher</h2>
+        <p>52.1. Für Verbraucher gelten die gesetzlichen Gerichtsstandsbestimmungen.</p>
+        <p>52.2. Durch diese AGB wird kein zwingender Verbrauchergerichtsstand ausgeschlossen.</p>
+        <p>52.3. Insbesondere bleiben die aufgrund des Wohnsitzes eines Verbrauchers innerhalb der Europäischen Union bestehenden gesetzlichen Zuständigkeitsregeln unberührt.</p>
+        <h2>53. Gerichtsstand für Unternehmer</h2>
+        <p>53.1. Für Streitigkeiten mit Unternehmern wird, soweit gesetzlich zulässig, das sachlich zuständige Gericht am Sitz der Made2Meant GmbH vereinbart.</p>
+        <p>53.2. Made2Meant bleibt berechtigt, einen Unternehmer auch an einem anderen gesetzlich zuständigen Gerichtsstand zu klagen, soweit dies zulässig ist.</p>
+        <h2>54. Unwirksamkeit einzelner Bestimmungen</h2>
+        <p>54.1. Sollte eine einzelne Bestimmung dieser AGB unwirksam oder undurchsetzbar sein oder werden, richtet sich die Rechtsfolge nach den gesetzlichen Bestimmungen.</p>
+        <p>54.2. Die Wirksamkeit der übrigen Bestimmungen bleibt im gesetzlich zulässigen Umfang unberührt.</p>
+        <p>54.3. Eine unwirksame Bestimmung wird insbesondere gegenüber Verbrauchern nicht automatisch durch eine für Made2Meant wirtschaftlich möglichst ähnliche Bestimmung ersetzt, soweit eine solche automatische Ersetzung gesetzlich nicht vorgesehen ist.</p>
+        <h2>55. Kontakt und Vertragspartner</h2>
+        <h3>Made2Meant GmbH</h3>
+        <h3>Franz Broschek-Platz 5a</h3>
+        <p>2514 Möllersdorf Österreich Firmenbuchnummer: FN 684401y E-Mail: support@made2meant.com Rücksendeadresse: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich</p>
+        <h2>ANHANG 1 – RÜCKTRITTS-/WIDERRUFSBELEHRUNG</h2>
+        <h3>Rücktrittsrecht</h3>
+        <p>Verbraucher haben grundsätzlich das Recht, binnen 14 Tagen ohne Angabe von Gründen von einem im Fernabsatz geschlossenen Vertrag zurückzutreten. Die Rücktrittsfrist beträgt grundsätzlich 14 Tage ab dem Tag, an dem Sie oder ein von Ihnen benannter Dritter, der nicht Beförderer ist, die Ware in Besitz genommen haben bzw. hat. Bei mehreren Waren einer einheitlichen Bestellung, die getrennt geliefert werden und für die nach den gesetzlichen Bestimmungen ein gemeinsamer Fristbeginn vorgesehen ist, beginnt die Frist mit Erhalt der letzten Ware. Um Ihr Rücktrittsrecht auszuüben, müssen Sie uns mittels einer eindeutigen Erklärung über Ihren Entschluss informieren. Bitte richten Sie diese an: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich E-Mail: support@made2meant.com Sie können dafür das unten angeführte Muster-Widerrufsformular verwenden. Die Verwendung des Formulars ist jedoch nicht vorgeschrieben. Zur Wahrung der Rücktrittsfrist reicht es aus, dass Sie Ihre Mitteilung über die Ausübung des Rücktrittsrechts vor Ablauf der Rücktrittsfrist absenden. Soweit für Ihren Vertrag gesetzlich eine Online-Rücktrittsfunktion zur Verfügung zu stellen ist, können Sie Ihr Rücktrittsrecht zusätzlich über die auf unserer Website bereitgestellte Funktion „Vertrag widerrufen“ ausüben.</p>
+        <h3>Folgen des Rücktritts</h3>
+        <p>Wenn Sie wirksam vom Vertrag zurücktreten, erstatten wir Ihnen alle vom Rücktritt betroffenen Zahlungen einschließlich der Kosten der günstigsten von uns angebotenen Standardlieferung nach Maßgabe der gesetzlichen Vorschriften. Zusätzliche Kosten, die dadurch entstanden sind, dass Sie eine andere Art der Lieferung als die von uns angebotene günstigste Standardlieferung gewählt haben, müssen nicht erstattet werden. Die Rückzahlung erfolgt grundsätzlich unverzüglich und spätestens binnen 14 Tagen ab dem Tag, an dem Ihre Rücktrittserklärung bei uns eingegangen ist. Für die Rückzahlung verwenden wir grundsätzlich dasselbe Zahlungsmittel, das Sie bei der ursprünglichen Transaktion eingesetzt haben, sofern nicht ausdrücklich etwas anderes vereinbart wurde. Ihnen entstehen durch die Rückzahlung keine zusätzlichen Entgelte. Wir können die Rückzahlung bei Waren grundsätzlich verweigern, bis wir die Waren zurückerhalten haben oder bis Sie den Nachweis erbracht haben, dass Sie die Waren zurückgesandt haben, je nachdem, welches der frühere Zeitpunkt ist. Sie haben die Ware grundsätzlich unverzüglich und spätestens binnen 14 Tagen ab dem Tag, an dem Sie uns über Ihren Rücktritt informieren, zurückzusenden an: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich Sie tragen die unmittelbaren Kosten der Rücksendung einer mangelfreien Ware im Rahmen des gesetzlichen Rücktrittsrechts, soweit wir Sie darüber vor Vertragsabschluss ordnungsgemäß informiert haben. Sie müssen für einen etwaigen Wertverlust der Ware nur aufkommen, soweit dieser Wertverlust auf einen zur Prüfung von Beschaffenheit, Eigenschaften und Funktionsweise der Ware nicht notwendigen Umgang zurückzuführen ist und die gesetzlichen Voraussetzungen erfüllt sind.</p>
+        <h2>WICHTIGE AUSNAHME BEI PERSONALISIERTEN WAREN</h2>
+        <p>Ein gesetzliches Rücktrittsrecht besteht insbesondere nicht bei Waren, die nach Kundenspezifikationen angefertigt werden oder eindeutig auf Ihre persönlichen Bedürfnisse zugeschnitten sind. Dies betrifft bei Made2Meant insbesondere Produkte, die individuell für Sie mit beispielsweise:</p>
+        <ul><li>einem Namen,</li><li>Initialen,</li><li>einem persönlichen Text,</li><li>einem Geburtsdatum,</li><li>einem individuellen Logo,</li><li>einem individuell übermittelten Motiv oder</li><li>einer vergleichbaren persönlichen Gestaltung</li></ul>
+        <p>versehen werden. Beispiel: Ein speziell für Sie mit dem Namen „Emilia“ besticktes Handtuch ist regelmäßig eine individuell personalisierte Ware. Der Ausschluss des Rücktrittsrechts gilt bei einer echten Individualanfertigung grundsätzlich unabhängig davon, ob Made2Meant im Zeitpunkt Ihres Stornierungswunsches bereits mit der Produktion begonnen hat. Eine bloße Auswahl einer Standardfarbe, Standardgröße oder gewöhnlichen Produktvariante führt hingegen nicht automatisch zum Ausschluss des gesetzlichen Rücktrittsrechts. Wichtig: Der Ausschluss des Rücktrittsrechts schränkt Ihre gesetzlichen Gewährleistungsrechte bei mangelhaften oder falsch personalisierten Waren nicht ein.</p>
+        <h2>ANHANG 2 – MUSTER-WIDERRUFSFORMULAR</h2>
+        <p>Wenn Sie den Vertrag widerrufen wollen, können Sie dieses Formular verwenden und an uns übermitteln. An: Made2Meant GmbH Franz Broschek-Platz 5a 2514 Möllersdorf Österreich E-Mail: support@made2meant.com Hiermit widerrufe ich / widerrufen wir den von mir / uns abgeschlossenen Vertrag über den Kauf der folgenden Ware(n):</p>
+        <p>Bestellnummer:</p>
+        <p>Bestellt am:</p>
+        <p>Erhalten am:</p>
+        <p>Name des Verbrauchers / der Verbraucher:</p>
+        <p>Anschrift des Verbrauchers / der Verbraucher:</p>
+        <p>E-Mail-Adresse:</p>
+        <p>Datum:</p>
+        <p>Unterschrift des Verbrauchers / der Verbraucher: (nur bei Mitteilung auf Papier erforderlich)</p>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <span class="footer__copy">© 2026 made2meant · Made personal. Meant forever.</span>
+      <ul class="footer__links">
+        <li><a href="/impressum.html">Impressum</a></li>
+        <li><a href="/datenschutz.html">Datenschutz</a></li>
+        <li><a href="/agb.html">AGB</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/js/supabase.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/cart.js"></script>
+  <script>updateNav(); updateCartBadge();</script>
+</body>
+</html>
