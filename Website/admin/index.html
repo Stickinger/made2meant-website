@@ -1962,8 +1962,78 @@ async function viewOrder(id) {
       <div style="display:flex;justify-content:flex-end;gap:24px;font-size:1rem;font-weight:700;border-top:1px solid var(--color-border);padding-top:8px;">
         <span>Gesamt</span><span>${fmt(o.total)}</span>
       </div>
+    </div>
+
+    <div style="border-top:1px solid var(--color-border);margin-top:22px;padding-top:16px;">
+      <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:10px;">Versand &amp; Label (Senddrop)</div>
+      ${o.senddrop_shipment_id ? `
+        <div style="background:rgba(66,85,61,0.10);border:1px solid #cfe0d4;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:0.85rem;">
+          ✓ Label erstellt${o.shipping_carrier ? ' · ' + esc(o.shipping_carrier) : ''}${o.tracking_number ? ' · Tracking: <strong>' + esc(o.tracking_number) + '</strong>' : ''}${o.tracking_link ? ' · <a href="' + esc(o.tracking_link) + '" target="_blank" rel="noopener">Sendung verfolgen ↗</a>' : ''}
+        </div>` : ''}
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+        <div>
+          <label style="display:block;font-size:0.7rem;color:var(--color-muted);margin-bottom:4px;">Versanddienst</label>
+          <select id="lbl-carrier" style="padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:0.85rem;background:#fff;">
+            <option value="POST_AT">Österreichische Post</option>
+            <option value="GLS_AT">GLS Austria</option>
+            <option value="DHL_EXPRESS_AT">DHL Express</option>
+            <option value="DPD_AT">DPD Austria</option>
+            <option value="DHL_PAKET_DE">DHL Paket (DE)</option>
+            <option value="GLS_DE">GLS (DE)</option>
+          </select>
+        </div>
+        <div>
+          <label style="display:block;font-size:0.7rem;color:var(--color-muted);margin-bottom:4px;">Gewicht (g)</label>
+          <input id="lbl-weight" type="number" min="1" step="10" value="500" style="width:92px;padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:0.85rem;">
+        </div>
+        <div>
+          <label style="display:block;font-size:0.7rem;color:var(--color-muted);margin-bottom:4px;">Telefon (optional)</label>
+          <input id="lbl-phone" type="text" placeholder="z. B. für DHL Express" style="width:160px;padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:0.85rem;">
+        </div>
+        <button class="btn-sm btn-sm--primary" id="lbl-btn" onclick="createLabel('${o.id}')">${o.senddrop_shipment_id ? 'Neues Label erstellen' : 'Versandlabel erstellen'}</button>
+      </div>
+      <div id="lbl-msg" style="font-size:0.85rem;margin-top:10px;"></div>
     </div>`;
   openModal('order-modal');
+}
+
+async function createLabel(orderId) {
+  const msg = document.getElementById('lbl-msg');
+  const btn = document.getElementById('lbl-btn');
+  const carrierType = document.getElementById('lbl-carrier').value;
+  const weightGrams = parseInt(document.getElementById('lbl-weight').value) || 500;
+  const phone = document.getElementById('lbl-phone').value.trim();
+  msg.style.color = 'var(--color-muted)';
+  msg.textContent = 'Label wird erstellt…';
+  if (btn) btn.disabled = true;
+  try {
+    const { data, error } = await db.functions.invoke('senddrop-label', { body: { order_id: orderId, carrierType, weightGrams, phone } });
+    if (error) {
+      let detail = '';
+      try { const r = error.context && await error.context.json(); detail = r?.error ? (r.error + (r.detail ? ' — ' + r.detail : '')) : ''; } catch (_) {}
+      msg.style.color = 'var(--color-danger)';
+      msg.textContent = 'Fehler: ' + (detail || error.message || 'unbekannt');
+      return;
+    }
+    if (data && data.error) {
+      msg.style.color = 'var(--color-danger)';
+      msg.textContent = 'Fehler: ' + data.error + (data.detail ? ' — ' + data.detail : '');
+      return;
+    }
+    msg.style.color = 'var(--color-success)';
+    msg.innerHTML = '✓ Label erstellt' + (data.tracking ? ' · Tracking: <strong>' + esc(data.tracking) + '</strong>' : '') + (data.pdfBase64 ? '' : ' (PDF konnte nicht geladen werden – über Senddrop öffnen)');
+    if (data.pdfBase64) {
+      const bytes = Uint8Array.from(atob(data.pdfBase64), c => c.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
+      window.open(url, '_blank');
+    }
+    loadOrdersTable();
+  } catch (e) {
+    msg.style.color = 'var(--color-danger)';
+    msg.textContent = 'Fehler: ' + (e.message || e);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 }
 
 // ══════════════════════════════════════════
