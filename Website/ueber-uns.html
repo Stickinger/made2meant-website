@@ -286,6 +286,26 @@
   <script src="/js/cart.js"></script>
   <script src="/js/newsletter-popup.js"></script>
   <script src="/js/track.js"></script>
-  <script>updateNav(); updateCartBadge();</script>
+  <script>
+    updateNav(); updateCartBadge();
+    // Vom Admin gepflegte Über-uns-Fotos laden
+    (async () => {
+      let v = {};
+      try {
+        const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+        v = (data && data.value) || {};
+      } catch (_) {}
+      const setImg = (sel, url) => {
+        if (!url) return;
+        const box = document.querySelector(sel);
+        if (!box) return;
+        let img = box.querySelector('img');
+        if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
+        img.src = url;
+      };
+      setImg('.about-image:not(.about-image--moss)', v.aboutVeronika);
+      setImg('.about-image--moss', v.aboutLeo);
+    })();
+  </script>
 </body>
 </html>

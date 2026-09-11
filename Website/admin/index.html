@@ -752,6 +752,35 @@
             </div>
           </div>
         </div>
+
+        <div class="admin-card" style="max-width:760px;">
+          <div class="admin-card__header">
+            <h3>Website-Bilder</h3>
+            <span style="font-size:0.75rem;color:var(--color-muted)">Hero, Über uns, Qualität</span>
+          </div>
+          <div class="admin-card__body">
+            <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:18px;">
+              Hier änderst du die Bilder der Startseite und der Über-uns-Seite — ganz ohne Code.
+              Bilder werden automatisch verkleinert (WebP). Nach dem Speichern sind sie sofort live.
+            </p>
+
+            <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:8px;">Hero-Slideshow (Startseite)</label>
+            <p style="font-size:0.8rem;color:var(--color-muted);margin:0 0 12px">Bilder laufen automatisch durch. „Name" erscheint im Titel („Meant for …").</p>
+            <div id="si-hero"></div>
+            <button type="button" class="btn-sm btn-sm--outline" style="margin-top:4px" onclick="addHeroSlide()">+ Bild hinzufügen</button>
+
+            <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 10px;">Über-uns-Fotos</label>
+            <div id="si-about" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
+
+            <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 10px;">Qualitäts-Foto (Startseite)</label>
+            <div id="si-quality" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
+
+            <div style="display:flex; align-items:center; gap:14px; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
+              <button class="btn-sm btn-sm--primary" onclick="saveSiteImages()">Website-Bilder speichern</button>
+              <span id="si-msg" style="font-size:0.85rem;"></span>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div><!-- /admin-content -->
@@ -2134,6 +2163,7 @@ async function loadSettings() {
   const emails = Array.isArray(data?.value) ? data.value : [];
   document.getElementById('settings-emails').value = emails.join('\n');
   document.getElementById('settings-msg').textContent = '';
+  loadSiteImages();
 }
 
 async function saveSettings() {
@@ -2158,6 +2188,87 @@ async function saveSettings() {
   }
   msg.style.color = 'var(--color-success)';
   msg.textContent = emails.length ? '✓ Gespeichert (' + emails.length + ' Adresse' + (emails.length > 1 ? 'n' : '') + ')' : '✓ Gespeichert – keine Benachrichtigungen aktiv';
+}
+
+// ── WEBSITE-BILDER (Hero / Über uns / Qualität) ──────────────
+let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '' };
+
+async function loadSiteImages() {
+  const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+  const v = (data && data.value) || {};
+  siteImages = {
+    hero: Array.isArray(v.hero) && v.hero.length
+      ? v.hero.map(s => ({ name: s.name || '', img: s.img || '' }))
+      : [{ name: 'Leni', img: '' }, { name: 'Emma', img: '' }, { name: 'Max', img: '' }, { name: 'Mia', img: '' }],
+    aboutVeronika: v.aboutVeronika || '',
+    aboutLeo: v.aboutLeo || '',
+    quality: v.quality || '',
+  };
+  renderSiteImages();
+}
+
+// Ein Bild-Auswahlfeld (Dropzone) – onFileExpr ist ein Funktionsaufruf ohne letztes Argument,
+// z. B. "uploadHero(2," → wird zu "uploadHero(2, <file>)"
+function siSlot(imgUrl, onFileExpr, w = 130) {
+  return `
+    ${imgUrl ? `<img src="${imgUrl}" alt="" style="width:${w}px;height:${Math.round(w*0.7)}px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px;">`
+             : `<div style="width:${w}px;height:${Math.round(w*0.7)}px;border-radius:6px;background:#f0efe9;display:flex;align-items:center;justify-content:center;color:#b8b2a6;font-size:0.72rem;margin-bottom:6px;">kein Bild</div>`}
+    <div class="dropzone dropzone--row" style="width:${w}px" tabindex="0" role="button"
+         onclick="this.querySelector('input[type=file]').click()"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
+         ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+         ondragleave="this.classList.remove('dropzone--over')"
+         ondrop="event.preventDefault();this.classList.remove('dropzone--over');${onFileExpr} event.dataTransfer.files[0])">
+      ${imgUrl ? 'Ersetzen' : 'Bild wählen'}
+      <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="${onFileExpr} this.files[0]); this.value=''">
+    </div>`;
+}
+
+function renderSiteImages() {
+  const hero = document.getElementById('si-hero');
+  if (!hero) return;
+  hero.innerHTML = siteImages.hero.map((s, i) => `
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
+      <div style="text-align:center;">${siSlot(s.img, `uploadHero(${i},`, 120)}</div>
+      <input type="text" placeholder="Name, z. B. Leni" value="${(s.name || '').replace(/"/g, '&quot;')}"
+             style="flex:1;min-width:110px;align-self:flex-start;" onchange="setHeroName(${i}, this.value)">
+      <button type="button" class="btn-sm btn-sm--outline" onclick="removeHeroSlide(${i})">✕</button>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Hero-Bilder. Klick „+ Bild hinzufügen".</p>';
+
+  const about = document.getElementById('si-about');
+  if (about) about.innerHTML =
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Lukas &amp; Veronika</div>${siSlot(siteImages.aboutVeronika, "uploadAbout('aboutVeronika',", 150)}</div>` +
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Lukas &amp; Leo</div>${siSlot(siteImages.aboutLeo, "uploadAbout('aboutLeo',", 150)}</div>`;
+
+  const quality = document.getElementById('si-quality');
+  if (quality) quality.innerHTML = `<div style="text-align:center;">${siSlot(siteImages.quality, 'uploadQuality(', 170)}</div>`;
+}
+
+function setHeroName(i, v) { if (siteImages.hero[i]) siteImages.hero[i].name = v; }
+function addHeroSlide() { siteImages.hero.push({ name: '', img: '' }); renderSiteImages(); }
+function removeHeroSlide(i) { siteImages.hero.splice(i, 1); renderSiteImages(); }
+
+async function uploadHero(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && siteImages.hero[i]) { siteImages.hero[i].img = url; renderSiteImages(); } }
+async function uploadAbout(which, file) { if (!file) return; const url = await uploadToStorage(file); if (url) { siteImages[which] = url; renderSiteImages(); } }
+async function uploadQuality(file) { if (!file) return; const url = await uploadToStorage(file); if (url) { siteImages.quality = url; renderSiteImages(); } }
+
+async function saveSiteImages() {
+  const msg = document.getElementById('si-msg');
+  const payload = {
+    hero: siteImages.hero.map(s => ({ name: (s.name || '').trim(), img: (s.img || '').trim() })).filter(s => s.img || s.name),
+    aboutVeronika: siteImages.aboutVeronika || '',
+    aboutLeo: siteImages.aboutLeo || '',
+    quality: siteImages.quality || '',
+  };
+  const { error } = await db.from('settings')
+    .upsert({ key: 'site_images', value: payload, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) {
+    msg.style.color = 'var(--color-danger)';
+    msg.textContent = 'Fehler: ' + error.message + ' (Wurde site-images-setup.sql ausgeführt?)';
+    return;
+  }
+  msg.style.color = 'var(--color-success)';
+  msg.textContent = '✓ Gespeichert – die Bilder sind jetzt live.';
 }
 
 // ══════════════════════════════════════════

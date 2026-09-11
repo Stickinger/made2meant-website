@@ -508,12 +508,36 @@
 
     // Hero-Diashow: Bilder + Name wechseln synchron.
     // Lege Fotos als /assets/images/hero-1.jpg … hero-4.jpg ab (fehlt eins, bleibt der Farbverlauf).
-    const HERO_SLIDES = [
+    const HERO_GRAD = [['#EFE7DA','#E4D3BE'],['#ECE6DC','#D9C7B4'],['#E7E5DC','#CFC6AE'],['#F1E8DD','#E1CDB6']];
+    let HERO_SLIDES = [
       { name: 'Leni', img: '/assets/images/hero-1.jpg', c1: '#EFE7DA', c2: '#E4D3BE' },
       { name: 'Emma', img: '/assets/images/hero-2.jpg', c1: '#ECE6DC', c2: '#D9C7B4' },
       { name: 'Max',  img: '/assets/images/hero-3.jpg', c1: '#E7E5DC', c2: '#CFC6AE' },
       { name: 'Mia',  img: '/assets/images/hero-4.jpg', c1: '#F1E8DD', c2: '#E1CDB6' },
     ];
+
+    // Vom Admin gepflegte Bilder laden (Hero-Slideshow + Qualitäts-Foto)
+    async function applySiteImages() {
+      let v = {};
+      try {
+        const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+        v = (data && data.value) || {};
+      } catch (_) {}
+      if (Array.isArray(v.hero) && v.hero.some(s => s && s.img)) {
+        HERO_SLIDES = v.hero.filter(s => s && (s.img || s.name)).map((s, i) => ({
+          name: s.name || '', img: s.img || '',
+          c1: HERO_GRAD[i % HERO_GRAD.length][0], c2: HERO_GRAD[i % HERO_GRAD.length][1],
+        }));
+      }
+      if (v.quality) {
+        const box = document.querySelector('.quality__img');
+        if (box) {
+          let img = box.querySelector('img');
+          if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
+          img.alt = 'Qualität bei made2meant'; img.src = v.quality;
+        }
+      }
+    }
 
     let heroSlides = [], heroIndex = 0, heroTimer = null;
 
@@ -582,6 +606,7 @@
     async function init() {
       updateNav();
       updateCartBadge();
+      await applySiteImages();
       startHeroShow();
 
       let products = await loadProducts();
