@@ -59,6 +59,27 @@
     .herofull__slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 68% center; display: block; }
     .hero-name { color: var(--color-primary); transition: opacity 0.35s ease; }
     .hero-name.swap { opacity: 0; }
+
+    /* Slideshow-Steuerung: Pfeile + Punkte */
+    .hero-nav {
+      position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.82); border: 1px solid var(--color-border);
+      box-shadow: var(--shadow); cursor: pointer; color: var(--color-text);
+      display: flex; align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .hero-nav svg { width: 22px; height: 22px; }
+    .hero-nav:hover { background: #fff; color: var(--color-primary); transform: translateY(-50%) scale(1.06); }
+    .hero-nav--prev { left: 18px; }
+    .hero-nav--next { right: 18px; }
+    .hero-dots { position: absolute; bottom: 62px; left: 50%; transform: translateX(-50%); z-index: 4; display: flex; gap: 9px; }
+    .hero-dot { width: 9px; height: 9px; border-radius: 99px; background: rgba(60,50,40,0.28); border: none; cursor: pointer; padding: 0; transition: all 0.2s; }
+    .hero-dot:hover { background: rgba(60,50,40,0.5); }
+    .hero-dot.active { background: var(--color-primary); width: 26px; }
+    @media (max-width: 700px) {
+      .hero-nav { display: none; }
+      .hero-dots { bottom: 14px; }
+    }
     .herofull__content { position: relative; z-index: 2; max-width: 560px; padding: 48px 0; }
     .herofull__title { font-size: clamp(2.1rem, 4.2vw, 3.3rem); line-height: 1.14; margin-bottom: 16px; }
     .herofull__text { font-size: 1.08rem; color: var(--color-text); max-width: 370px; margin-bottom: 26px; }
@@ -268,6 +289,13 @@
       <div class="herofull__bg"></div>
       <div class="herofull__slides" id="hero-slides"></div>
       <div class="herofull__scrim"></div>
+      <button class="hero-nav hero-nav--prev" aria-label="Vorheriges Bild" onclick="heroStep(-1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <button class="hero-nav hero-nav--next" aria-label="Nächstes Bild" onclick="heroStep(1)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
+      </button>
+      <div class="hero-dots" id="hero-dots" role="tablist" aria-label="Bildauswahl"></div>
       <div class="container herofull__content">
         <h1 class="herofull__title">Made personal.<br>Meant for <span class="hero-name" id="hero-name">Leni</span>.</h1>
         <p class="herofull__text">Hochwertige Textilien und Geschenke – persönlich für euch bestickt.</p>
@@ -487,10 +515,37 @@
       { name: 'Mia',  img: '/assets/images/hero-4.jpg', c1: '#F1E8DD', c2: '#E1CDB6' },
     ];
 
+    let heroSlides = [], heroIndex = 0, heroTimer = null;
+
+    // Zu einem bestimmten Bild springen (0-basiert), Name + Punkte mitziehen
+    function heroGo(n) {
+      if (heroSlides.length < 2) return;
+      heroSlides[heroIndex].classList.remove('active');
+      heroIndex = (n % heroSlides.length + heroSlides.length) % heroSlides.length;
+      heroSlides[heroIndex].classList.add('active');
+      const nameEl = document.getElementById('hero-name');
+      if (nameEl) {
+        nameEl.classList.add('swap');
+        setTimeout(() => { nameEl.textContent = HERO_SLIDES[heroIndex].name; nameEl.classList.remove('swap'); }, 350);
+      }
+      document.querySelectorAll('.hero-dot').forEach((d, k) => {
+        d.classList.toggle('active', k === heroIndex);
+        d.setAttribute('aria-selected', k === heroIndex ? 'true' : 'false');
+      });
+    }
+
+    function heroAutoplay() {
+      if (heroTimer) clearInterval(heroTimer);
+      if (heroSlides.length > 1) heroTimer = setInterval(() => heroGo(heroIndex + 1), 4500);
+    }
+
+    // Klick auf Pfeil (dir = -1/+1) oder Punkt → wechseln und Timer neu starten
+    function heroStep(dir) { heroGo(heroIndex + dir); heroAutoplay(); }
+    function heroTo(n) { heroGo(n); heroAutoplay(); }
+
     function startHeroShow() {
       const box = document.getElementById('hero-slides');
-      const nameEl = document.getElementById('hero-name');
-      if (!box || !nameEl) return;
+      if (!box) return;
       box.innerHTML = HERO_SLIDES.map((s, i) =>
         `<div class="herofull__slide ${i === 0 ? 'active' : ''}">
           <div class="herofull__fallback" style="background:linear-gradient(120deg, ${s.c1} 0%, ${s.c2} 62%, ${s.c2} 100%)">
@@ -504,17 +559,24 @@
           <img src="${s.img}" alt="Besticktes Lieblingsstück mit dem Namen ${s.name}" onerror="this.remove()">
         </div>`
       ).join('');
-      const slides = [...box.children];
-      nameEl.textContent = HERO_SLIDES[0].name;
-      if (HERO_SLIDES.length < 2) return;
-      let i = 0;
-      setInterval(() => {
-        slides[i].classList.remove('active');
-        i = (i + 1) % HERO_SLIDES.length;
-        slides[i].classList.add('active');
-        nameEl.classList.add('swap');
-        setTimeout(() => { nameEl.textContent = HERO_SLIDES[i].name; nameEl.classList.remove('swap'); }, 350);
-      }, 4000);
+      heroSlides = [...box.children];
+      heroIndex = 0;
+
+      const nameEl = document.getElementById('hero-name');
+      if (nameEl) nameEl.textContent = HERO_SLIDES[0].name;
+
+      // Punkte erzeugen
+      const dots = document.getElementById('hero-dots');
+      if (dots) dots.innerHTML = HERO_SLIDES.map((s, i) =>
+        `<button class="hero-dot ${i === 0 ? 'active' : ''}" role="tab" aria-label="Bild ${i + 1}: ${s.name}" aria-selected="${i === 0 ? 'true' : 'false'}" onclick="heroTo(${i})"></button>`
+      ).join('');
+
+      // Bei nur einem Bild keine Steuerung nötig
+      if (HERO_SLIDES.length < 2) {
+        document.querySelectorAll('.hero-nav, .hero-dots').forEach(el => el.style.display = 'none');
+        return;
+      }
+      heroAutoplay();
     }
 
     async function init() {
