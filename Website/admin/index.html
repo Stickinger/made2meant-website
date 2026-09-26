@@ -840,6 +840,7 @@
           <span id="p-image-status" style="display:inline-block;margin-top:6px;font-size:0.85rem;color:var(--color-muted);"></span>
           <input type="url" id="p-image" placeholder="…oder Bild-URL einfügen" style="margin-top:8px">
           <img id="p-image-preview" alt="" style="display:none;margin-top:8px;max-width:120px;border-radius:6px;">
+          <button type="button" id="p-image-rotate" class="btn-sm btn-sm--outline" style="display:none;margin-top:6px" onclick="rotateMainImage()">↻ Drehen</button>
         </div>
 
         <div class="field form-full">
@@ -1309,7 +1310,7 @@ function renderColorVariants() {
         ${labels.map(lbl => `
           <div style="flex:1;min-width:120px;text-align:center;">
             <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">${lbl}</div>
-            ${c.photos[lbl] ? `<img src="${c.photos[lbl]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;">` : ''}
+            ${c.photos[lbl] ? `<img src="${c.photos[lbl]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;"><button type="button" class="btn-sm btn-sm--outline" style="font-size:0.72rem;padding:3px 10px;margin:0 auto 6px;display:block" onclick="rotateVariantPhoto(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')}, this)">↻ Drehen</button>` : ''}
             <div class="dropzone dropzone--row" tabindex="0" role="button"
                  aria-label="Foto für ${lbl} hochladen"
                  onclick="this.querySelector('input[type=file]').click()"
@@ -1425,7 +1426,7 @@ function renderMotifs() {
   if (!box) return;
   box.innerHTML = motifItems.map((m, i) => `
     <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
-      ${m.url ? `<img src="${m.url}" alt="" style="width:48px;height:48px;object-fit:contain;border-radius:6px;background:#faf9f6;">` : ''}
+      ${m.url ? `<img src="${m.url}" alt="" style="width:48px;height:48px;object-fit:contain;border-radius:6px;background:#faf9f6;"><button type="button" class="btn-sm btn-sm--outline" style="font-size:0.8rem;padding:4px 9px" onclick="rotateMotif(${i}, this)" title="Drehen">↻</button>` : ''}
       <div class="dropzone dropzone--row" tabindex="0" role="button"
            aria-label="Motiv-Bild hochladen"
            onclick="this.querySelector('input[type=file]').click()"
@@ -1512,6 +1513,74 @@ async function uploadToStorage(file) {
   return pub.publicUrl;
 }
 
+// Ein bereits hochgeladenes Bild um 90° drehen und als NEUES Bild hochladen → neue URL.
+async function rotateStoredImage(url, degrees = 90) {
+  if (!url) return null;
+  const resp = await fetch(url, { cache: 'no-store' });
+  if (!resp.ok) throw new Error('Bild konnte nicht geladen werden (' + resp.status + ')');
+  const blob = await resp.blob();
+  const bmp = await createImageBitmap(blob);
+  const rot = ((degrees % 360) + 360) % 360;
+  const swap = rot === 90 || rot === 270;
+  const w = swap ? bmp.height : bmp.width;
+  const h = swap ? bmp.width : bmp.height;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(rot * Math.PI / 180);
+  ctx.drawImage(bmp, -bmp.width / 2, -bmp.height / 2);
+  bmp.close && bmp.close();
+  // Motive (PNG mit Transparenz) als PNG behalten, Fotos als WebP
+  const isPng = /image\/png/.test(blob.type) || /\.png(\?|$)/i.test(url);
+  const type = isPng ? 'image/png' : 'image/webp';
+  const out = await new Promise(res => canvas.toBlob(res, type, 0.85));
+  const file = new File([out], 'rotated.' + (isPng ? 'png' : 'webp'), { type });
+  return await uploadToStorage(file);
+}
+
+async function rotateMainImage() {
+  const url = document.getElementById('p-image').value;
+  if (!url) return;
+  const btn = document.getElementById('p-image-rotate');
+  const status = document.getElementById('p-image-status');
+  if (btn) btn.disabled = true;
+  if (status) { status.style.color = 'var(--color-muted)'; status.textContent = 'Wird gedreht…'; }
+  try {
+    const neu = await rotateStoredImage(url);
+    if (neu) {
+      document.getElementById('p-image').value = neu;
+      const prev = document.getElementById('p-image-preview'); prev.src = neu; prev.style.display = 'block';
+      if (status) status.textContent = 'Gedreht ✓';
+    }
+  } catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (status) status.textContent = ''; }
+  finally { if (btn) btn.disabled = false; }
+}
+
+async function rotateVariantPhoto(i, label, btn) {
+  const url = colorVariants[i] && colorVariants[i].photos[label];
+  if (!url) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { const neu = await rotateStoredImage(url); if (neu) { colorVariants[i].photos[label] = neu; renderColorVariants(); } }
+  catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻ Drehen'; } }
+}
+
+async function rotateMotif(i, btn) {
+  const url = motifItems[i] && motifItems[i].url;
+  if (!url) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { const neu = await rotateStoredImage(url); if (neu) { motifItems[i].url = neu; renderMotifs(); } }
+  catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
+}
+
+async function rotateRowImage(i, btn) {
+  const url = modalImages[i] && modalImages[i].url;
+  if (!url) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { const neu = await rotateStoredImage(url); if (neu) { modalImages[i].url = neu; renderImagesEditor(); } }
+  catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
+}
+
 // Bild auf max. Kantenlänge verkleinern + komprimieren.
 // PNG behält Transparenz (für Motive), Fotos werden zu JPEG (deutlich kleiner).
 async function downscaleImage(blob, maxDim = 1600) {
@@ -1569,6 +1638,7 @@ async function handleMainFile(file) {
     document.getElementById('p-image').value = url;
     const prev = document.getElementById('p-image-preview');
     prev.src = url; prev.style.display = 'block';
+    const rb = document.getElementById('p-image-rotate'); if (rb) rb.style.display = 'inline-block';
     status.textContent = 'Hochgeladen ✓';
   } else {
     status.textContent = '';
@@ -1620,7 +1690,7 @@ function renderImagesEditor() {
   const box = document.getElementById('p-images');
   box.innerHTML = modalImages.map((img, i) => `
     <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center;flex-wrap:wrap;">
-      ${img.url ? `<img src="${img.url}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;">` : ''}
+      ${img.url ? `<img src="${img.url}" alt="" style="width:40px;height:40px;object-fit:cover;border-radius:4px;"><button type="button" class="btn-sm btn-sm--outline" style="font-size:0.8rem;padding:4px 9px" onclick="rotateRowImage(${i}, this)" title="Drehen">↻</button>` : ''}
       <div class="dropzone dropzone--row" tabindex="0" role="button"
            aria-label="Bild für diese Zeile hochladen: ziehen oder klicken"
            onclick="this.querySelector('input[type=file]').click()"
@@ -1657,6 +1727,7 @@ async function openProductModal(product = null) {
   const _imgPrev = document.getElementById('p-image-preview');
   _imgPrev.src = product?.image_url || '';
   _imgPrev.style.display = product?.image_url ? 'block' : 'none';
+  const _rb = document.getElementById('p-image-rotate'); if (_rb) _rb.style.display = product?.image_url ? 'inline-block' : 'none';
   document.getElementById('p-image-status').textContent = '';
   document.getElementById('p-image-file').value = '';
   document.getElementById('p-seo-title').value     = product?.seo_title || '';
