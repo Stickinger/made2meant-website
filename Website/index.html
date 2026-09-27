@@ -284,8 +284,10 @@
     .reveal.is-visible { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
   </style>
+
+  <link rel="stylesheet" href="/css/design-v2.css">
 </head>
-<body>
+<body class="home">
 
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
@@ -350,8 +352,8 @@
         <h1 class="herofull__title">Made personal.<br>Meant for <span class="hero-name" id="hero-name">Leni</span>.</h1>
         <p class="herofull__text">Personalisierte Babytextilien &amp; Geschenke mit Namen – liebevoll in Österreich bestickt.</p>
         <div class="herofull__cta">
-          <a href="/shop.html" class="btn btn--primary">Geschenke entdecken</a>
-          <a href="/shop.html" class="btn btn--ghost">Alle Produkte →</a>
+          <a href="/babygeschenke-mit-namen" class="btn btn--cream">Geschenke entdecken</a>
+          <a href="/shop.html" class="btn btn--glass">Alle Produkte</a>
         </div>
       </div>
     </section>
@@ -383,11 +385,11 @@
       <div class="container">
         <div class="sec-head"><h2>Wonach suchst du?</h2></div>
         <div class="cat-grid">
-          <a class="cat-tile" data-cat="geburt" href="/geschenke-zur-geburt" style="background-image:linear-gradient(140deg,#E9DDCB,#D4BE9F)"><span class="cat-tile__label">Zur Geburt →</span></a>
-          <a class="cat-tile" data-cat="taufe" href="/taufgeschenke" style="background-image:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe →</span></a>
-          <a class="cat-tile" data-cat="geburtstag" href="/geschenke-1-geburtstag" style="background-image:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag →</span></a>
-          <a class="cat-tile" data-cat="mama-papa" href="/geschenke-fuer-junge-eltern" style="background-image:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa →</span></a>
-          <a class="cat-tile" data-cat="babyshower" href="/babyparty-geschenke" style="background-image:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Babyshower →</span></a>
+          <a class="cat-tile" data-cat="geburt" href="/geschenke-zur-geburt" style="background-image:linear-gradient(140deg,#E9DDCB,#D4BE9F)"><span class="cat-tile__label">Zur Geburt</span><span class="cat-tile__cta">Entdecken</span></a>
+          <a class="cat-tile" data-cat="taufe" href="/taufgeschenke" style="background-image:linear-gradient(140deg,#E4DCCE,#C9B79C)"><span class="cat-tile__label">Zur Taufe</span><span class="cat-tile__cta">Entdecken</span></a>
+          <a class="cat-tile" data-cat="geburtstag" href="/geschenke-1-geburtstag" style="background-image:linear-gradient(140deg,#E7D8C2,#CDB393)"><span class="cat-tile__label">Geburtstag</span><span class="cat-tile__cta">Entdecken</span></a>
+          <a class="cat-tile" data-cat="mama-papa" href="/geschenke-fuer-junge-eltern" style="background-image:linear-gradient(140deg,#DFD6C6,#BFAd93)"><span class="cat-tile__label">Für Mama &amp; Papa</span><span class="cat-tile__cta">Entdecken</span></a>
+          <a class="cat-tile" data-cat="babyshower" href="/babyparty-geschenke" style="background-image:linear-gradient(140deg,#EADFCB,#D2BC9A)"><span class="cat-tile__label">Babyshower</span><span class="cat-tile__cta">Entdecken</span></a>
         </div>
       </div>
     </section>
@@ -416,7 +418,7 @@
           </div>
           <div>
             <span class="label-style">Qualität</span>
-            <h2 style="margin:8px 0 16px">Was Babys berührt,<br>wählen wir besonders sorgfältig.</h2>
+            <h2 style="margin:8px 0 16px">Was Babys berührt, wählen wir besonders sorgfältig.</h2>
             <p style="color:var(--color-muted)">Wir verwenden Materialien, die sich gut anfühlen, langlebig sind und den Alltag mitmachen. Zertifiziert, transparent und mit Liebe ausgewählt.</p>
             <div class="quality__badges">
               <span class="badge-cert">OEKO-TEX® Standard 100</span>
@@ -426,6 +428,18 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <!-- ===== SO FUNKTIONIERT'S ===== -->
+    <section class="making reveal" id="making">
+      <h2>So entsteht dein Lieblingsstück</h2>
+      <ol class="making__steps">
+        <li class="making__step"><div><strong>Stück wählen</strong><span>Decke, Handtuch, Polster oder ein fertiges Geschenk-Set.</span></div></li>
+        <li class="making__step"><div><strong>Personalisieren</strong><span>Name, Schrift, Garnfarbe und Motiv selbst gestalten.</span></div></li>
+        <li class="making__step"><div><strong>Wir sticken</strong><span>Mit Sorgfalt in unserer Werkstatt in Österreich.</span></div></li>
+        <li class="making__step"><div><strong>Geschenkfertig geliefert</strong><span>Liebevoll verpackt – ab 119 € versandkostenfrei.</span></div></li>
+      </ol>
+      <div class="making__cta"><a href="/shop.html" class="btn btn--cream">Jetzt gestalten</a></div>
     </section>
 
     <!-- ===== BESTSELLER ===== -->
@@ -591,6 +605,15 @@
 
     // Kategorie-Bilder aus dem Admin (Kategorien → Bild) auf die Kacheln legen.
     // Ohne Bild bleibt der Farbverlauf stehen.
+    // Hintergrundfoto für "So entsteht dein Lieblingsstück"
+    let makingBgFixed = false;
+    function setMakingBg(url, fixed) {
+      const el = document.getElementById('making');
+      if (!el || !url || makingBgFixed) return;
+      el.style.backgroundImage = 'url("' + String(url).replace(/"/g, '%22') + '")';
+      if (fixed) makingBgFixed = true;
+    }
+
     async function applyCategoryImages() {
       try {
         const { data } = await db.from('categories').select('slug, image_url').eq('active', true);
@@ -599,6 +622,8 @@
           const tile = document.querySelector('.cat-tile[data-cat="' + CSS.escape(c.slug) + '"]');
           if (tile) tile.style.backgroundImage = 'url("' + String(c.image_url).replace(/"/g, '%22') + '")';
         });
+        const pick = (data || []).find(c => c.slug === 'geburtstag' && c.image_url) || (data || []).find(c => c.image_url);
+        if (pick) setMakingBg(pick.image_url);
       } catch (_) {}
     }
     applyCategoryImages();
@@ -672,6 +697,9 @@
       updateCartBadge();
       await applySiteImages();
       startHeroShow();
+      // Echtes Hero-Foto aus dem Admin bevorzugen (sonst setzt applyCategoryImages ein Kategorie-Foto)
+      const heroImg = (HERO_SLIDES.find(s => /^https?:/.test(s.img || '')) || {}).img;
+      if (heroImg) setMakingBg(heroImg, true);
 
       let products = await loadProducts();
       if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
