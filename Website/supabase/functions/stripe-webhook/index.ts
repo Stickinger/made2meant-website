@@ -5,6 +5,12 @@
 //          supabase secrets set STRIPE_WEBHOOK_SECRET=whsec_...
 // Im Stripe-Dashboard einen Webhook auf die Funktions-URL anlegen,
 // Event: checkout.session.completed
+//
+// Stripe schickt Events bei Fehlern/Timeouts erneut. Deshalb wird nur
+// eine noch offene (pending) Bestellung auf "processing" gesetzt — nur
+// dann wird der Rabattcode gezählt und die Mail ausgelöst. Wiederholte
+// Events ändern nichts mehr (kein Doppelzählen, kein Zurücksetzen eines
+// schon "versendet"-Status).
 // ============================================================
 import Stripe from 'https://esm.sh/stripe@16.9.0?target=denonext'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
@@ -26,29 +32,33 @@ Deno.serve(async (req) => {
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
     const orderId = session.metadata?.order_id
-    if (orderId) {
+    // Nur tatsächlich bezahlte Sessions (bei verzögerten Zahlarten ist
+    // payment_status hier noch "unpaid")
+    if (orderId && session.payment_status === 'paid') {
       const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-      await admin.from('orders')
-        .update({ status: 'processing' })
+      const { data: updated } = await admin.from('orders')
+        .update({ status: 'processing', stripe_session_id: session.id })
         .eq('id', orderId)
+        .eq('status', 'pending')
+        .select('discount_code')
 
-      // Rabattcode-Nutzung zählen (nur bei bezahlter Bestellung)
-      const { data: o } = await admin.from('orders').select('discount_code').eq('id', orderId).single()
-      if (o?.discount_code) {
-        await admin.rpc('increment_discount_use', { p_code: o.discount_code })
+      // Nur beim ersten Event dieser Bestellung weitermachen
+      if (updated && updated.length) {
+        const code = updated[0].discount_code
+        if (code) await admin.rpc('increment_discount_use', { p_code: code })
+
+        // Benachrichtigung an den Shop-Betreiber auslösen (bezahlte Bestellung)
+        try {
+          await fetch(Deno.env.get('SUPABASE_URL')! + '/functions/v1/notify-order', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ order_id: orderId }),
+          })
+        } catch (_) { /* Benachrichtigung darf die Zahlung nie blockieren */ }
       }
-
-      // Benachrichtigung an den Shop-Betreiber auslösen (bezahlte Bestellung)
-      try {
-        await fetch(Deno.env.get('SUPABASE_URL')! + '/functions/v1/notify-order', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer ' + Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ order_id: orderId }),
-        })
-      } catch (_) { /* Benachrichtigung darf die Zahlung nie blockieren */ }
     }
   }
 

@@ -91,6 +91,9 @@
   <script src="/js/cart.js"></script>
   <script>
     let discNotice = ''; // Meldung, die nach dem Neu-Rendern angezeigt wird
+    let cartKeys = [];   // Schlüssel je Zeile (Optionen können ' oder " enthalten)
+
+    function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     async function renderCart() {
       const cart = getCart();
@@ -108,17 +111,18 @@
         return;
       }
 
-      const rows = cart.map(item => `
+      cartKeys = cart.map(item => item.key || item.id);
+      const rows = cart.map((item, idx) => `
         <tr>
           <td>
             <div style="display:flex; align-items:center; gap:12px;">
-              <img src="${item.image_url || '/assets/images/placeholder.png'}"
-                   alt="${item.name}" class="cart-item-img">
+              <img src="${esc(item.image_url || '/assets/images/placeholder.png')}"
+                   alt="${esc(item.name)}" class="cart-item-img">
               <div>
-                <strong>${item.name}</strong><br>
+                <strong>${esc(item.name)}</strong><br>
                 ${item.options && Object.keys(item.options).length ? `
                   <span style="color:var(--color-muted); font-size:0.8rem;">
-                    ${Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(' · ')}
+                    ${Object.entries(item.options).map(([k,v]) => `${esc(k)}: ${esc(v)}`).join(' · ')}
                   </span><br>` : ''}
                 <span style="color:var(--color-muted); font-size:0.85rem;">
                   €${item.price.toFixed(2)} / Stück
@@ -132,13 +136,13 @@
               class="qty-input"
               value="${item.quantity}"
               min="1"
-              aria-label="Menge für ${item.name}"
-              onchange="handleQtyChange('${item.key || item.id}', this.value)"
+              aria-label="Menge für ${esc(item.name)}"
+              onchange="handleQtyChange(${idx}, this.value)"
             >
           </td>
           <td><strong>€${(item.price * item.quantity).toFixed(2)}</strong></td>
           <td>
-            <button class="remove-btn" onclick="handleRemove('${item.key || item.id}')" title="Entfernen" aria-label="${item.name} entfernen">✕</button>
+            <button class="remove-btn" onclick="handleRemove(${idx})" title="Entfernen" aria-label="${esc(item.name)} entfernen">✕</button>
           </td>
         </tr>
       `).join('');
@@ -180,17 +184,17 @@
             </div>
             ${disc.amount > 0 ? `
               <div class="cart-summary__row" style="color:var(--color-success)">
-                <span>Rabatt (${disc.code})</span>
+                <span>Rabatt (${esc(disc.code)})</span>
                 <span>−€${disc.amount.toFixed(2)}</span>
               </div>` : ''}
             <div class="disc-box">
               <input type="text" id="cart-disc-input" placeholder="Rabattcode" autocomplete="off"
-                     value="${disc.code || ''}"
+                     value="${esc(disc.code || '')}"
                      oninput="this.value=this.value.toUpperCase()"
                      onkeydown="if(event.key==='Enter'){event.preventDefault();applyCartDiscount();}">
               <button type="button" class="btn btn--ghost" onclick="applyCartDiscount()">${disc.amount > 0 ? 'Ändern' : 'Einlösen'}</button>
             </div>
-            ${notice ? `<div class="disc-msg" style="color:${noticeColor}">${notice}</div>` : '<div class="disc-msg"></div>'}
+            ${notice ? `<div class="disc-msg" style="color:${noticeColor}">${esc(notice)}</div>` : '<div class="disc-msg"></div>'}
             ${disc.amount > 0 ? `<button class="disc-remove" onclick="removeCartDiscount()">Rabatt entfernen</button>` : ''}
             <div class="cart-summary__row" style="margin-top:12px;">
               <span>Versand</span>
@@ -217,15 +221,16 @@
       `;
     }
 
-    function handleQtyChange(id, value) {
+    function handleQtyChange(idx, value) {
+      const key = cartKeys[idx];
       const qty = parseInt(value);
-      if (qty > 0) updateQuantity(id, qty);
-      else removeFromCart(id);
+      if (qty > 0) updateQuantity(key, qty);
+      else removeFromCart(key);
       renderCart();
     }
 
-    function handleRemove(id) {
-      removeFromCart(id);
+    function handleRemove(idx) {
+      removeFromCart(cartKeys[idx]);
       renderCart();
     }
 
@@ -248,7 +253,7 @@
         return renderCart();
       }
       setDiscountCode(data.code);
-      discNotice = 'Code „' + data.code + '" angewendet: −€' + Number(data.amount).toFixed(2);
+      discNotice = 'Code „' + data.code + '“ angewendet: −€' + Number(data.amount).toFixed(2);
       renderCart();
     }
 

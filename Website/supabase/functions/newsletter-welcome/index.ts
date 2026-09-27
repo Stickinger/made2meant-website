@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
           <div style="font-size:24px;font-weight:bold;letter-spacing:2px;color:#c56a47">${WELCOME_CODE}</div>
         </div>
         <p style="font-size:13px;color:#8a8580;margin:6px 0 26px">Einfach an der Kasse eingeben.</p>
-        <a href="https://made2meant.at" style="background:#c56a47;color:#fff;padding:12px 26px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:bold">Jetzt entdecken</a>
+        <a href="https://made2meant.com" style="background:#c56a47;color:#fff;padding:12px 26px;border-radius:8px;text-decoration:none;font-size:15px;font-weight:bold">Jetzt entdecken</a>
         <p style="font-size:11px;color:#a9a49c;margin-top:32px">
           Du erhältst diese E-Mail, weil du dich für den made2meant-Newsletter angemeldet hast.
         </p>

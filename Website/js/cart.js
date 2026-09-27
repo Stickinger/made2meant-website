@@ -4,8 +4,14 @@
 // ============================================================
 
 // Warenkorb aus dem Browser laden
+// (kaputte/fremde Daten im Speicher dürfen die Seite nicht lahmlegen)
 function getCart() {
-  return JSON.parse(localStorage.getItem('cart') || '[]');
+  try {
+    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    return Array.isArray(cart) ? cart : [];
+  } catch (e) {
+    return [];
+  }
 }
 
 // Warenkorb speichern

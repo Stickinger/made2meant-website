@@ -123,6 +123,7 @@
     let appliedDiscount = null; // { code, amount }
 
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
+    function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
     async function applyDiscount() {
       const msg = document.getElementById('disc-msg');
@@ -142,7 +143,7 @@
 
       appliedDiscount = { code: data.code, amount: Number(data.amount) };
       setDiscountCode(data.code);
-      setMsg('Code „' + data.code + '" angewendet: − ' + euro(data.amount), 'var(--color-accent)');
+      setMsg('Code „' + data.code + '“ angewendet: − ' + euro(data.amount), 'var(--color-accent)');
       btn.disabled = false;
       renderSummary();
     }
@@ -157,7 +158,7 @@
     function renderSummary() {
       const items = cart.map(item => `
         <div class="summary__item">
-          <span>${item.name}${item.options && Object.keys(item.options).length ? '<br><span class="summary__opts">' + Object.entries(item.options).map(([k,v]) => `${k}: ${v}`).join(' · ') + '</span>' : ''} × ${item.quantity}</span>
+          <span>${esc(item.name)}${item.options && Object.keys(item.options).length ? '<br><span class="summary__opts">' + Object.entries(item.options).map(([k,v]) => `${esc(k)}: ${esc(v)}`).join(' · ') + '</span>' : ''} × ${item.quantity}</span>
           <span>${euro(item.price * item.quantity)}</span>
         </div>`).join('');
       const total = getCartTotal();
@@ -241,9 +242,15 @@
           // falls der Kunde die Bezahlung bei Stripe abbricht und zurückgeht.
           window.location.href = data.url;
         } else {
-          // Vorkasse: Betreiber sofort benachrichtigen (Stripe-Bestellungen
-          // werden erst nach erfolgreicher Zahlung im Webhook gemeldet).
-          db.functions.invoke('notify-order', { body: { order_id: order.id } }).catch(() => {});
+          // Vorkasse: Beträge serverseitig nachrechnen lassen (wie bei Stripe),
+          // danach den Betreiber benachrichtigen (Stripe-Bestellungen werden
+          // erst nach erfolgreicher Zahlung im Webhook gemeldet).
+          try {
+            await db.functions.invoke('create-checkout-session', { body: { order_id: order.id, transfer: true } });
+          } catch (_) { /* Bestellung ist angelegt — Nachrechnen darf sie nicht blockieren */ }
+          try {
+            await db.functions.invoke('notify-order', { body: { order_id: order.id } });
+          } catch (_) {}
           window.location.href = '/order-success.html?id=' + order.id;
         }
       } catch (ex) {

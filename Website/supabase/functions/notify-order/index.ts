@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
           ${esc(order.zip || '')} ${esc(order.city || '')}, ${esc(order.country || '')}
         </p>
 
-        <p style="margin:24px 0 0"><a href="https://made2meant.at/admin" style="background:#c56a47;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px">Im Admin ansehen</a></p>
+        <p style="margin:24px 0 0"><a href="https://made2meant.com/admin" style="background:#c56a47;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px">Im Admin ansehen</a></p>
       </div>`
 
     const res = await fetch('https://api.resend.com/emails', {
