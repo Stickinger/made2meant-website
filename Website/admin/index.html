@@ -939,8 +939,23 @@
           <textarea id="cat-desc" rows="2"></textarea>
         </div>
         <div class="field form-full">
-          <label>Bild URL</label>
-          <input type="url" id="cat-image">
+          <label>Bild (Kategorie-Kachel)</label>
+          <div id="cat-image-drop" class="dropzone" tabindex="0" role="button"
+               aria-label="Bild hochladen: hierher ziehen oder klicken"
+               onclick="this.querySelector('input[type=file]').click()"
+               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
+               ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+               ondragleave="this.classList.remove('dropzone--over')"
+               ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleCategoryFile(event.dataTransfer.files[0])">
+            <span>Bild hierher ziehen oder klicken
+              <small>PNG, JPEG, WEBP oder PDF — max. 10 MB</small>
+            </span>
+            <input type="file" id="cat-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="handleCategoryFile(this.files[0]); this.value=''">
+          </div>
+          <span id="cat-image-status" style="display:inline-block;margin-top:6px;font-size:0.85rem;color:var(--color-muted);"></span>
+          <input type="url" id="cat-image" placeholder="…oder Bild-URL einfügen" style="margin-top:8px">
+          <img id="cat-image-preview" alt="" style="display:none;margin-top:8px;max-width:120px;border-radius:6px;">
+          <button type="button" id="cat-image-rotate" class="btn-sm btn-sm--outline" style="display:none;margin-top:6px" onclick="rotateCategoryImage()">↻ Drehen</button>
         </div>
         <div class="field">
           <label>Sortierung (niedrig = zuerst)</label>
@@ -1645,6 +1660,38 @@ async function handleMainFile(file) {
   }
 }
 
+// Kategorie-Bild hochladen (Datei-Auswahl ODER Drag & Drop)
+async function handleCategoryFile(file) {
+  if (!file) return;
+  const status = document.getElementById('cat-image-status');
+  if (status) { status.style.color = 'var(--color-muted)'; status.textContent = 'Lädt hoch…'; }
+  const url = await uploadToStorage(file);
+  if (url) {
+    document.getElementById('cat-image').value = url;
+    const prev = document.getElementById('cat-image-preview'); prev.src = url; prev.style.display = 'block';
+    const rb = document.getElementById('cat-image-rotate'); if (rb) rb.style.display = 'inline-block';
+    if (status) status.textContent = 'Hochgeladen ✓';
+  } else if (status) { status.textContent = ''; }
+}
+
+async function rotateCategoryImage() {
+  const url = document.getElementById('cat-image').value;
+  if (!url) return;
+  const btn = document.getElementById('cat-image-rotate');
+  const status = document.getElementById('cat-image-status');
+  if (btn) btn.disabled = true;
+  if (status) { status.style.color = 'var(--color-muted)'; status.textContent = 'Wird gedreht…'; }
+  try {
+    const neu = await rotateStoredImage(url);
+    if (neu) {
+      document.getElementById('cat-image').value = neu;
+      const prev = document.getElementById('cat-image-preview'); prev.src = neu; prev.style.display = 'block';
+      if (status) status.textContent = 'Gedreht ✓';
+    }
+  } catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (status) status.textContent = ''; }
+  finally { if (btn) btn.disabled = false; }
+}
+
 // Bild-Zeile verarbeiten (aus Datei-Auswahl ODER Drag & Drop)
 async function handleRowFile(i, file) {
   if (!file) return;
@@ -1921,7 +1968,14 @@ function openCategoryModal(cat = null) {
   document.getElementById('cat-name').value     = cat?.name || '';
   document.getElementById('cat-slug').value     = cat?.slug || '';
   document.getElementById('cat-desc').value     = cat?.description || '';
-  document.getElementById('cat-image').value    = cat?.image_url || '';
+  const catImg = cat?.image_url || '';
+  document.getElementById('cat-image').value    = catImg;
+  const catPrev = document.getElementById('cat-image-preview');
+  const catRot  = document.getElementById('cat-image-rotate');
+  const catStat = document.getElementById('cat-image-status');
+  if (catStat) catStat.textContent = '';
+  if (catImg) { catPrev.src = catImg; catPrev.style.display = 'block'; if (catRot) catRot.style.display = 'inline-block'; }
+  else { catPrev.removeAttribute('src'); catPrev.style.display = 'none'; if (catRot) catRot.style.display = 'none'; }
   document.getElementById('cat-sort').value     = cat?.sort_order ?? 0;
   document.getElementById('cat-featured').checked = cat?.featured ?? false;
   document.getElementById('cat-active').checked   = cat?.active ?? true;
