@@ -18,11 +18,33 @@ async function loadProducts() {
 
     const { data, error } = await Promise.race([query, timeout]);
     if (error || !data || data.length === 0) return [];
-    return data.map(p => ({
-      ...p,
-      category_slug: p.categories?.slug || null,
-      category_name: p.categories?.name || null,
-    }));
+
+    // Kategorien-Map für Mehrfach-Zuordnung (products.category_ids)
+    let cats = [];
+    try {
+      const ct = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 2500));
+      const res = await Promise.race([db.from('categories').select('id, slug, name'), ct]);
+      cats = res.data || [];
+    } catch { cats = []; }
+    const catMap = {};
+    cats.forEach(c => { catMap[c.id] = c; });
+
+    return data.map(p => {
+      const ids = (Array.isArray(p.category_ids) && p.category_ids.length)
+        ? p.category_ids
+        : (p.category_id ? [p.category_id] : []);
+      const slugs = ids.map(id => catMap[id]?.slug).filter(Boolean);
+      const names = ids.map(id => catMap[id]?.name).filter(Boolean);
+      const primarySlug = p.categories?.slug || slugs[0] || null;
+      return {
+        ...p,
+        category_slugs: slugs.length ? slugs : (primarySlug ? [primarySlug] : []),
+        category_names: names.length ? names : (p.categories?.name ? [p.categories.name] : []),
+        // Kompatibel: 'bundles', falls IRGENDEINE Zuordnung bundles ist, sonst Primärkategorie
+        category_slug: slugs.includes('bundles') ? 'bundles' : primarySlug,
+        category_name: p.categories?.name || names[0] || null,
+      };
+    });
   } catch {
     return [];
   }

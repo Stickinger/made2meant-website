@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Produkt — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://xqeedhnajvftvcsjzfly.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://xqeedhnajvftvcsjzfly.supabase.co">
   <meta name="description" id="seo-desc" content="Personalisierte Babytextilien mit Namen bestickt – made2meant.">
@@ -67,6 +65,13 @@
     .pinfo__eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-primary); margin-bottom: 8px; }
     .pinfo__title { font-size: clamp(1.9rem, 3.4vw, 2.5rem); line-height: 1.12; margin-bottom: 10px; }
     .pinfo__tag { color: var(--color-muted); margin-bottom: 18px; }
+    .set-save { display: inline-block; margin: -4px 0 8px; padding: 4px 12px; border-radius: 99px; background: rgba(74,127,90,0.12); color: #3F6B4C; font-size: 0.82rem; font-weight: 700; }
+    .set-box { border: 1px solid var(--color-border); border-radius: 18px; padding: 14px 18px; margin: 14px 0 6px; background: var(--color-surface); }
+    .set-box__title { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 8px; }
+    .set-box ul { list-style: none; margin: 0; padding: 0; }
+    .set-box li { padding: 5px 0; border-top: 1px solid var(--color-border); font-size: 0.92rem; }
+    .set-box li:first-child { border-top: 0; }
+    .set-box__qty { display: inline-block; min-width: 26px; font-weight: 700; color: var(--color-heading); }
     .pinfo__price { font-size: 1.9rem; font-weight: 800; font-family: var(--font-main); color: var(--color-text); }
     .pinfo__pricenote { font-size: 0.8rem; color: var(--color-muted); margin: 2px 0 18px; }
     .pinfo__chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px; }
@@ -177,6 +182,7 @@
     @media (max-width: 720px) { .ptrust__inner { grid-template-columns: 1fr; gap: 14px; } }
   </style>
   <link rel="stylesheet" href="/css/design-v2.css">
+  <script src="/js/consent.js" defer></script>
 </head>
 <body>
 
@@ -245,6 +251,7 @@
         <li><a href="/impressum.html">Impressum</a></li>
         <li><a href="/datenschutz.html">Datenschutz</a></li>
         <li><a href="/agb.html">AGB</a></li>
+        <li><a href="#cookie-einstellungen" data-cookie-settings>Cookie-Einstellungen</a></li>
       </ul>
     </div>
   </footer>
@@ -293,6 +300,7 @@
     let MOTIFS = [];
     let currentProduct = null;
     let productImages = [];
+    let galleryImages = [];   // einfache Zusatzbilder (Galerie) in Reihenfolge
     let capOption = null;
     let qty = 1;
 
@@ -366,6 +374,12 @@
       const { data: imgs } = await db.from('product_images')
         .select('url, option_values, sort_order').eq('product_id', currentProduct.id).order('sort_order');
       productImages = imgs || [];
+      // Galerie = einfache Zusatzbilder ohne Options-Tags (Reihenfolge = sort_order),
+      // das Titelbild selbst wird nicht doppelt als Thumb gezeigt.
+      galleryImages = productImages
+        .filter(im => !im.option_values || Object.keys(im.option_values).length === 0)
+        .map(im => im.url)
+        .filter(url => url && url !== currentProduct.image_url);
 
       const opts = currentProduct.options || [];
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
@@ -431,6 +445,9 @@
     function renderPage() {
       const p = currentProduct;
       const personalizable = POSITIONS.length > 0;
+      // Geschenk-Set: Inhalt aus dem Admin (products.bundle_items)
+      const setItems = Array.isArray(p.bundle_items) ? p.bundle_items.filter(i => i && i.name) : [];
+      const escHtml = v => String(v ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
       const hasMotifs = personalizable && MOTIFS.length > 0;
       const wished = localStorage.getItem('wish-' + p.slug) === '1';
 
@@ -536,9 +553,14 @@
         <div class="pinfo">
           <div class="pinfo__eyebrow">${personalizable ? 'Individuell bestickt' : 'made2meant'}</div>
           <h1 class="pinfo__title">${p.name}</h1>
-          ${p.description ? `<p class="pinfo__tag">${p.description}</p>` : ''}
+          ${p.description && !(setItems.length && /^Enthält:/.test(p.description)) ? `<p class="pinfo__tag">${p.description}</p>` : ''}
           <div class="pinfo__price" id="price-display">${euro(currentPrice())}</div>
+          ${setItems.length && Number(p.compare_price) > Number(p.price) ? `<div class="set-save">Einzeln ${euro(p.compare_price)} · du sparst ${euro(p.compare_price - p.price)}</div>` : ''}
           <div class="pinfo__pricenote" id="price-note">${priceNote}</div>
+          ${setItems.length ? `<div class="set-box">
+            <div class="set-box__title">Das ist im Set</div>
+            <ul>${setItems.map(i => `<li><span class="set-box__qty">${Math.max(1, parseInt(i.qty) || 1)}×</span> ${escHtml(i.name)}</li>`).join('')}</ul>
+          </div>` : ''}
           <div class="pinfo__chips">
             <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>Hochwertige Materialien</span>
             <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>Persönlich in Österreich bestickt</span>
@@ -614,7 +636,10 @@
       const posThumbs = POSITIONS.map(p =>
         `<button class="thumb ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')" aria-label="${p.view}"><img src="${photoFor(p.id)}" alt="${p.view}"></button>`
       ).join('');
-      el.innerHTML = display + posThumbs;
+      const galleryThumbs = galleryImages.map((url, i) =>
+        `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
+      ).join('');
+      el.innerHTML = display + posThumbs + galleryThumbs;
     }
 
     function renderCanvas() {
@@ -623,8 +648,11 @@
       const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, W, H);
 
-      const view = cfg.previewPos;                       // null = Titelfoto, sonst leeres Positionsfoto
-      const url = view === null ? displayImage() : photoFor(view);
+      const view = cfg.previewPos;                       // null = Titelfoto, 'g<i>' = Galeriefoto, sonst leeres Positionsfoto
+      const isGallery = typeof view === 'string' && view[0] === 'g';
+      const url = view === null ? displayImage()
+                : isGallery ? galleryImages[+view.slice(1)]
+                : photoFor(view);
       const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
         const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
@@ -637,8 +665,8 @@
         ctx.fillText('Foto wird geladen…', W / 2, H / 2);
       }
 
-      // Titelfoto: keinen Text zeichnen (zeigt Beispiel-Stickerei aus dem Foto)
-      if (view === null) return;
+      // Titelfoto & Galeriefotos: keinen Text zeichnen (schlichtes Produktfoto)
+      if (view === null || isGallery) return;
 
       const pos = POSITIONS.find(p => p.id === view);
       if (!pos) return;
@@ -850,6 +878,9 @@
 
     function handleAddToCart() {
       const options = {};
+      // Geschenk-Set: Inhalt mitschicken, damit er in Bestellung & Bestell-Mail steht
+      const setContent = Array.isArray(currentProduct.bundle_items) ? currentProduct.bundle_items.filter(i => i && i.name) : [];
+      if (setContent.length) options['Set-Inhalt'] = setContent.map(i => (i.qty > 1 ? i.qty + '× ' : '') + i.name).join(', ');
       if (capOption) options[capOption.name] = cfg.capColor;
       if (POSITIONS.length > 0 && cfg.mode === 'ohne') {
         options['Bestickung'] = 'Ohne Bestickung';

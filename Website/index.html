@@ -41,8 +41,6 @@
     "sameAs": []
   }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://xqeedhnajvftvcsjzfly.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://xqeedhnajvftvcsjzfly.supabase.co">
   <style>
@@ -286,6 +284,7 @@
   </style>
 
   <link rel="stylesheet" href="/css/design-v2.css">
+  <script src="/js/consent.js" defer></script>
 </head>
 <body class="home">
 
@@ -481,6 +480,7 @@
             <button type="submit" class="btn btn--primary">10% sichern</button>
           </form>
           <p id="nl-msg" style="margin-top:12px;font-size:0.85rem;color:var(--color-accent);min-height:1em"></p>
+          <p style="margin-top:6px;font-size:0.75rem;color:var(--color-muted)">Du bekommst eine E-Mail zur Bestätigung. Abmeldung jederzeit über den Link in jeder Mail. Mehr in der <a href="/datenschutz.html#newsletter">Datenschutzerklärung</a>.</p>
         </div>
       </div>
     </section>
@@ -507,7 +507,7 @@
       </div>
       <div class="footer2__bottom">
         <span>© 2026 made2meant · Made personal. Meant forever.</span>
-        <span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="/agb.html">AGB</a></span>
+        <span><a href="/impressum.html">Impressum</a> · <a href="/datenschutz.html">Datenschutz</a> · <a href="/agb.html">AGB</a> · <a href="#cookie-einstellungen" data-cookie-settings>Cookie-Einstellungen</a></span>
       </div>
     </div>
   </footer>
@@ -530,12 +530,12 @@
 
     function shopCard(p) {
       const img = p.image_url
-        ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>`
+        ? `<div class="pcard__img" style="background-image:url('${p.image_url}')">${p.bestseller ? '<span class="pcard__badge">Bestseller</span>' : ''}</div>`
         : `<div class="pcard__img"><span class="stitch-name">${firstName(p)}</span></div>`;
       return `<a class="pcard" href="/product.html?slug=${p.slug}">
         ${img}
         <div class="pcard__name">${p.name}</div>
-        <div class="pcard__price">${euro(p.price)}</div>
+        <div class="pcard__price">${euro(p.price)}${Number(p.compare_price) > Number(p.price) ? ` <s class="pcard__was">${euro(p.compare_price)}</s>` : ''}</div>
       </a>`;
     }
 
@@ -545,18 +545,15 @@
       const msg = document.getElementById('nl-msg');
       msg.style.color = 'var(--color-muted)';
       msg.textContent = 'Einen Moment…';
+      // Double-Opt-in: erst nach Klick auf den Link in der Mail ist man angemeldet
+      // und bekommt den Code (siehe Funktion newsletter-welcome)
       try {
-        try {
-          const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
-          if (error) throw error;
-        } catch (err) {
-          // Fallback: zumindest eintragen, Code trotzdem vergeben
-          const { error: e2 } = await db.from('newsletter_subscribers').insert({ email });
-          if (e2 && !/duplicate|unique/i.test(e2.message || '')) throw e2;
-        }
-        try { if (typeof setDiscountCode === 'function') setDiscountCode('WILLKOMMEN10'); } catch (_) {}
+        const { data, error } = await db.functions.invoke('newsletter-welcome', { body: { action: 'subscribe', email } });
+        if (error || (data && data.error)) throw error || new Error(data.error);
         msg.style.color = 'var(--color-accent)';
-        msg.innerHTML = 'Danke! Dein 10%-Code <strong>WILLKOMMEN10</strong> ist unterwegs zu dir. 🤍';
+        msg.innerHTML = data && data.already
+          ? 'Du bist schon angemeldet – schön, dass du dabei bist! 🤍'
+          : 'Fast geschafft! Bitte bestätige deine Anmeldung über den Link in der E-Mail, die wir dir gerade geschickt haben. Danach bekommst du deinen 10%-Code.';
         document.getElementById('nl-email').value = '';
       } catch (err) {
         msg.style.color = 'var(--color-primary)';
@@ -718,7 +715,8 @@
       fill('bundle-grid', products.filter(isBundle).slice(0, 5), 'Unsere Geschenk-Sets sind bald verfügbar.');
 
       // Bestseller (Flag; sonst die beliebtesten Einzelprodukte)
-      let best = products.filter(p => p.bestseller && !isBundle(p));
+      // Bestseller legst du im Admin per Stern fest (auch Sets möglich)
+      let best = products.filter(p => p.bestseller);
       if (!best.length) best = products.filter(p => !isBundle(p));
       fill('bestseller-grid', best.slice(0, 5), 'Bald verfügbar.');
     }

@@ -11,6 +11,10 @@
 //   4) GET  /api/v1/shipments/{id}/pdf   → Label als PDF (Base64 an den Admin)
 //
 // Nur Admins (Tabelle admins) dürfen die Funktion auslösen.
+//
+// DATENSCHUTZ: E-Mail und Telefon gehen nur an den Paketdienst, wenn der
+// Kunde an der Kasse eingewilligt hat (orders.shipping_notify_consent).
+// Sonst nur Name + Lieferadresse.
 // ============================================================
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
@@ -62,6 +66,7 @@ Deno.serve(async (req) => {
     const houseNumber = m ? m[2].replace(/\s+/g, '') : ''
 
     const weight = Number(weightGrams) > 0 ? Math.round(Number(weightGrams)) : 500
+    const mayNotify = order.shipping_notify_consent === true
 
     const sdHeaders = { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json', 'Accept': 'application/json' }
 
@@ -72,8 +77,8 @@ Deno.serve(async (req) => {
         carrierType,
         totalWeight: weight,
         recipientName: [order.first_name, order.last_name].filter(Boolean).join(' ') || undefined,
-        recipientEmail: order.email || undefined,
-        recipientPhoneNumber: (phone && String(phone).trim()) || undefined,
+        recipientEmail: mayNotify ? (order.email || undefined) : undefined,
+        recipientPhoneNumber: mayNotify ? ((phone && String(phone).trim()) || undefined) : undefined,
         reference: '#' + String(order.id).slice(0, 8).toUpperCase(),
         recipientAddress: {
           firstName: order.first_name || undefined,
@@ -123,7 +128,10 @@ Deno.serve(async (req) => {
       label_created_at: new Date().toISOString(),
     }).eq('id', order_id)
 
-    return json({ ok: true, shipmentId, tracking, trackingLink, pdfBase64 })
+    return json({
+      ok: true, shipmentId, tracking, trackingLink, pdfBase64,
+      ...(mayNotify ? {} : { notice: 'Ohne Einwilligung des Kunden wurden E-Mail/Telefon nicht an den Paketdienst übermittelt.' }),
+    })
   } catch (e) {
     return json({ error: String((e as Error)?.message || e) }, 500)
   }

@@ -5,13 +5,12 @@
 // Der Code WILLKOMMEN10 muss im Admin unter Rabattcodes angelegt sein.
 // ============================================================
 (function () {
-  const WELCOME_CODE = 'WILLKOMMEN10';
   const WELCOME_PCT  = 10;
   const DONE_KEY     = 'nl_popup_done';   // gesetzt nach Schließen/Erfolg
   const DELAY_MS     = 1500;
 
   // Nicht im Kauf-/Konto-Bereich stören
-  const BLOCKED = ['/checkout', '/cart', '/account', '/login', '/register', '/order-success', '/admin'];
+  const BLOCKED = ['/checkout', '/cart', '/account', '/login', '/register', '/order-success', '/admin', '/newsletter'];
   const path = location.pathname.toLowerCase();
   if (BLOCKED.some(p => path.includes(p))) return;
 
@@ -88,7 +87,7 @@
             <div class="nlp-msg" aria-live="polite"></div>
           </form>
           <button class="nlp-decline" type="button">Nein danke</button>
-          <div class="nlp-fine">Abmeldung jederzeit möglich. Kein Spam.</div>
+          <div class="nlp-fine">Du bekommst eine E-Mail zur Bestätigung. Abmeldung jederzeit möglich. Mehr in der <a href="/datenschutz.html#newsletter" style="color:inherit">Datenschutzerklärung</a>.</div>
         </div>
       </div>`;
     document.body.appendChild(overlay);
@@ -131,46 +130,33 @@
     const btn = form.querySelector('.nlp-btn');
     btn.disabled = true; msg.style.color = 'var(--color-muted, #8a8580)'; msg.textContent = 'Einen Moment…';
 
-    // Anmelden + Willkommens-Mail (Funktion trägt ein und verschickt den Code).
-    // Fallback: falls die Funktion (noch) nicht erreichbar ist, trotzdem
-    // eintragen und den Code zeigen — nur die Mail kommt dann später.
+    // Double-Opt-in: die Funktion trägt unbestätigt ein und schickt die
+    // Bestätigungsmail. Den Code gibt es erst nach dem Klick auf den Link
+    // (Seite /newsletter.html) — deshalb hier KEIN Code und kein Fallback.
     try {
-      const { error } = await db.functions.invoke('newsletter-welcome', { body: { email } });
-      if (error) throw error;
+      const { data, error } = await db.functions.invoke('newsletter-welcome', { body: { action: 'subscribe', email } });
+      if (error || (data && data.error)) throw error || new Error(data.error);
+      showSuccess(email, data && data.already);
     } catch (err) {
-      try {
-        const { error: e2 } = await db.from('newsletter_subscribers').insert({ email });
-        if (e2 && !/duplicate|unique/i.test(e2.message || '')) throw e2;
-      } catch (e3) {
-        btn.disabled = false;
-        msg.style.color = 'var(--color-primary, #C56A47)';
-        msg.textContent = 'Das hat nicht geklappt — bitte später erneut versuchen.';
-        return;
-      }
+      btn.disabled = false;
+      msg.style.color = 'var(--color-primary, #C56A47)';
+      msg.textContent = 'Das hat nicht geklappt — bitte später erneut versuchen.';
     }
-
-    // Code direkt in den Warenkorb legen (falls cart.js vorhanden)
-    try { if (typeof setDiscountCode === 'function') setDiscountCode(WELCOME_CODE); } catch (e) {}
-
-    showSuccess();
   });
 
-  function showSuccess() {
+  function showSuccess(email, already) {
     markDone(); // Erfolg: nicht mehr nerven
-    body.innerHTML = `
-      <div class="nlp-eyebrow">Willkommen bei made2meant 🤍</div>
-      <h2 class="nlp-title">Dein Code ist da</h2>
-      <p class="nlp-text">Wir haben ihn dir per E-Mail geschickt und schon in deinem Warenkorb hinterlegt. Gib ihn an der Kasse ein und spare ${WELCOME_PCT}%.</p>
-      <div class="nlp-codebox">
-        <span class="nlp-code">${WELCOME_CODE}</span>
-        <button class="nlp-copy" type="button">Kopieren</button>
-      </div>
-      <button class="nlp-btn" type="button" style="margin-top:16px;">Weiter shoppen</button>
-      <div class="nlp-fine">Der Code gilt für deine nächste Bestellung.</div>`;
-
-    body.querySelector('.nlp-copy').addEventListener('click', (ev) => {
-      try { navigator.clipboard.writeText(WELCOME_CODE); ev.target.textContent = 'Kopiert ✓'; } catch (e) {}
-    });
+    const safe = String(email).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    body.innerHTML = already ? `
+      <div class="nlp-eyebrow">Willkommen zurück 🤍</div>
+      <h2 class="nlp-title">Du bist schon dabei</h2>
+      <p class="nlp-text">Diese E-Mail-Adresse ist bereits für unseren Newsletter angemeldet.</p>
+      <button class="nlp-btn" type="button" style="margin-top:6px;">Weiter shoppen</button>` : `
+      <div class="nlp-eyebrow">Fast geschafft 🤍</div>
+      <h2 class="nlp-title">Bitte bestätige deine E-Mail</h2>
+      <p class="nlp-text">Wir haben dir eine E-Mail an <b>${safe}</b> geschickt. Klicke dort auf „Anmeldung bestätigen“ – danach bekommst du deinen ${WELCOME_PCT}%-Gutschein.</p>
+      <button class="nlp-btn" type="button" style="margin-top:6px;">Weiter shoppen</button>
+      <div class="nlp-fine">Keine Mail da? Schau auch im Spam-Ordner nach.</div>`;
     body.querySelector('.nlp-btn').addEventListener('click', close);
   }
 

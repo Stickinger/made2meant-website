@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Impressum — made2meant</title>
-  <meta name="description" content="Impressum der Made2Meant GmbH.">
-  <meta name="robots" content="index,follow">
+  <title>Newsletter — made2meant</title>
+  <meta name="description" content="Newsletter-Anmeldung bestätigen oder abbestellen.">
+  <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="/css/style.css">
   <link rel="preconnect" href="https://xqeedhnajvftvcsjzfly.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://xqeedhnajvftvcsjzfly.supabase.co">
-  <link rel="canonical" href="https://made2meant.com/impressum.html">
+  <link rel="canonical" href="https://made2meant.com/newsletter.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="made2meant">
-  <meta property="og:title" content="Impressum — made2meant">
-  <meta property="og:url" content="https://made2meant.com/impressum.html">
+  <meta property="og:title" content="Newsletter — made2meant">
+  <meta property="og:url" content="https://made2meant.com/newsletter.html">
   <style>
     .announcebar { background: var(--color-surface-2); color: var(--color-muted); font-size: 0.8rem; border-bottom: 1px solid var(--color-border); }
     .announcebar__inner { display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; padding: 9px 24px; }
@@ -39,6 +39,11 @@
     .legal .idcard { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 22px 26px; margin-bottom: 26px; }
     .legal .idcard p { margin-bottom: 6px; }
     .legal .idcard strong { color: var(--color-heading); }
+    .nl-status { text-align: center; max-width: 520px; margin: 0 auto; padding: 30px 0 70px; }
+    .nl-status h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 10px 0 14px; }
+    .nl-status p { color: var(--color-muted); line-height: 1.8; margin-bottom: 18px; }
+    .nl-code { display: inline-flex; align-items: center; gap: 12px; border: 1.5px dashed var(--color-text); border-radius: 16px; padding: 12px 18px; margin: 4px 0 22px; }
+    .nl-code strong { font-size: 1.4rem; letter-spacing: .08em; color: var(--color-heading); }
   </style>
   <link rel="stylesheet" href="/css/design-v2.css">
   <script src="/js/consent.js" defer></script>
@@ -87,37 +92,10 @@
 
   <main id="main">
     <div class="container">
-      <section class="legal-hero">
-        <span class="label-style">Rechtliches</span>
-        <h1>Impressum</h1>
+      <section class="nl-status" id="nl-status" aria-live="polite">
+        <span class="label-style">Newsletter</span>
+        <h1>Einen Moment …</h1>
       </section>
-      <div class="legal">
-        <p class="legal__meta">Angaben gemäß § 5 E-Commerce-Gesetz (ECG), § 25 Mediengesetz und § 63 Gewerbeordnung.</p>
-        <div class="idcard">
-          <p><strong>Made2Meant GmbH</strong></p>
-          <p>Franz Broschek-Platz 5a</p>
-          <p>2514 Möllersdorf, Österreich</p>
-          <p>Sitz: Traiskirchen</p>
-        </div>
-        <h2>Firmendaten</h2>
-        <p><strong>Firmenbuchnummer:</strong> FN 684401 y</p>
-        <p><strong>Firmenbuchgericht:</strong> Landesgericht Wiener Neustadt</p>
-        <p><strong>Geschäftsführer:</strong> Lukas Hölzl, Leonard Strokan</p>
-        <p><strong>UID-Nr.:</strong> ATU83641329</p>
-        <h2>Kontakt</h2>
-        <p><strong>E-Mail:</strong> <a href="mailto:office@made2meant.com">office@made2meant.com</a></p>
-        <p><strong>Telefon:</strong> <a href="tel:+4367761429936">+43 677 61429936</a></p>
-        <h2>Unternehmensgegenstand</h2>
-        <p>Veredlung und Individualisierung von Textilien, Lederwaren und sonstigen Materialien sowie Handel mit Textilwaren jeglicher Art.</p>
-        <h2>Kammer, Behörde &amp; Berufsrecht</h2>
-        <p>Mitglied der Wirtschaftskammer Niederösterreich und der Wirtschaftskammer Österreich.</p>
-        <p>Aufsichts- und Gewerbebehörde: Bezirkshauptmannschaft Baden.</p>
-        <p>Berufsrecht: Gewerbeordnung 1994, abrufbar im Rechtsinformationssystem des Bundes (<a href="https://www.ris.bka.gv.at" target="_blank" rel="noopener">ris.bka.gv.at</a>).</p>
-        <h2>Medieninhaber</h2>
-        <p>Made2Meant GmbH, Sitz: Traiskirchen. Unternehmensgegenstand: wie oben.</p>
-        <h2>Online-Streitbeilegung</h2>
-        <p>Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit: <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener">ec.europa.eu/consumers/odr</a>. Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
-      </div>
     </div>
   </main>
 
@@ -137,6 +115,41 @@
   <script src="/js/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/cart.js"></script>
-  <script>updateNav(); updateCartBadge();</script>
+  <script>
+    updateNav(); updateCartBadge();
+
+    // Link aus der Mail: ?bestaetigen=TOKEN oder ?abmelden=TOKEN
+    (async function () {
+      const box = document.getElementById('nl-status');
+      const params = new URLSearchParams(location.search);
+      const confirmToken = params.get('bestaetigen');
+      const unsubToken = params.get('abmelden');
+      const show = (title, html) => { box.innerHTML = `<span class="label-style">Newsletter</span><h1>${title}</h1>${html}`; };
+
+      if (!confirmToken && !unsubToken) {
+        show('Newsletter', '<p>Diese Seite öffnest du über den Link in unserer E-Mail.</p><a class="btn btn--primary" href="/">Zur Startseite</a>');
+        return;
+      }
+      try {
+        const action = confirmToken ? 'confirm' : 'unsubscribe';
+        const { data, error } = await db.functions.invoke('newsletter-welcome', { body: { action, token: confirmToken || unsubToken } });
+        if (error || !data || data.error) throw new Error((data && data.error) || 'Fehler');
+
+        if (action === 'confirm') {
+          try { setDiscountCode(data.code); } catch (e) {}
+          show('Danke, du bist dabei! 🤍',
+            `<p>Deine Anmeldung ist bestätigt. Deinen Willkommensgutschein schicken wir dir auch per E-Mail – und er liegt schon in deinem Warenkorb.</p>
+             <div class="nl-code"><span>Dein Code</span><strong>${data.code}</strong></div><br>
+             <a class="btn btn--primary" href="/shop.html">Jetzt stöbern</a>`);
+        } else {
+          show('Du bist abgemeldet',
+            '<p>Du bekommst ab sofort keinen Newsletter mehr von uns. Schade, dass du gehst – du kannst dich jederzeit wieder anmelden.</p><a class="btn btn--primary" href="/">Zur Startseite</a>');
+        }
+      } catch (e) {
+        show('Das hat nicht geklappt',
+          '<p>Der Link ist ungültig oder abgelaufen. Melde dich gern einfach neu an – oder schreib uns an <a href="mailto:office@made2meant.com">office@made2meant.com</a>.</p><a class="btn btn--primary" href="/">Zur Startseite</a>');
+      }
+    })();
+  </script>
 </body>
 </html>

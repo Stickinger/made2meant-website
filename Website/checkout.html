@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Kasse — made2meant</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://xqeedhnajvftvcsjzfly.supabase.co" crossorigin>
   <link rel="dns-prefetch" href="https://xqeedhnajvftvcsjzfly.supabase.co">
   <style>
@@ -39,7 +37,14 @@
     .disc-box button { padding: 0 16px; white-space: nowrap; font-size: 0.85rem; }
     #disc-msg { font-size: 0.8rem; min-height: 1.1em; margin-bottom: 4px; }
   </style>
+  <style>
+    .co-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; font-size: 0.82rem; line-height: 1.55; color: var(--color-muted); cursor: pointer; }
+    .co-consent input { width: 17px; height: 17px; margin-top: 2px; flex: 0 0 auto; accent-color: var(--color-text); }
+    .co-consent a, .co-privacy a { color: var(--color-text); }
+    .co-privacy { font-size: 0.78rem; color: var(--color-muted); margin: 0 0 12px; }
+  </style>
   <link rel="stylesheet" href="/css/design-v2.css">
+  <script src="/js/consent.js" defer></script>
 </head>
 <body>
 
@@ -73,6 +78,10 @@
               <div class="form-group"><label for="city">Stadt</label><input type="text" id="city" placeholder="Wien" required></div>
             </div>
             <div class="form-group"><label for="country">Land</label><select id="country" required><option value="AT">Österreich</option><option value="DE">Deutschland</option><option value="CH">Schweiz</option></select></div>
+            <label class="co-consent">
+              <input type="checkbox" id="ship-notify">
+              <span>Ja, der Paketdienst darf meine E-Mail-Adresse (und ggf. Telefonnummer) erhalten, um mich über die Zustellung zu informieren (z.&nbsp;B. Sendungsverfolgung, Zustelltermin). Freiwillig, jederzeit widerrufbar. <a href="/datenschutz.html#versand" target="_blank" rel="noopener">Mehr dazu</a></span>
+            </label>
           </div>
 
           <div class="co-section">
@@ -87,6 +96,7 @@
             </label>
           </div>
 
+          <p class="co-privacy">Wir verarbeiten deine Angaben zur Abwicklung der Bestellung. Mehr in unserer <a href="/datenschutz.html" target="_blank" rel="noopener">Datenschutzerklärung</a>.</p>
           <div class="form-error" id="error-msg"></div>
           <button type="submit" class="btn btn--primary" style="width:100%; padding:16px; font-size:1rem;" id="submit-btn">
             Weiter zur Bezahlung →
@@ -184,7 +194,7 @@
       const total = getCartTotal();
       const shipping = total >= 119 ? 0 : 3.90;
       const disc = appliedDiscount ? appliedDiscount.amount : 0;
-      const { data: order, error } = await db.from('orders').insert({
+      const row = {
         user_id: user?.id || null,
         email: f.email, first_name: f.firstName, last_name: f.lastName,
         address: f.address, zip: f.zip, city: f.city, country: f.country,
@@ -194,7 +204,15 @@
         total: Math.max(0, total - disc) + shipping,
         status: 'pending',
         notes: payMethod === 'stripe' ? 'Zahlung: Stripe' : 'Zahlung: Überweisung',
-      }).select().single();
+        shipping_notify_consent: !!f.shipNotify,
+      };
+      let { data: order, error } = await db.from('orders').insert(row).select().single();
+      // Falls datenschutz-setup.sql noch nicht ausgeführt ist: ohne das neue Feld
+      // speichern (dann gilt „keine Einwilligung“ — der datensparsame Standard)
+      if (error && /shipping_notify_consent/.test(error.message || '')) {
+        delete row.shipping_notify_consent;
+        ({ data: order, error } = await db.from('orders').insert(row).select().single());
+      }
       if (error) throw error;
 
       const items = cart.map(i => ({
@@ -222,6 +240,7 @@
         zip: document.getElementById('zip').value,
         city: document.getElementById('city').value,
         country: document.getElementById('country').value,
+        shipNotify: document.getElementById('ship-notify').checked,
       };
 
       try {

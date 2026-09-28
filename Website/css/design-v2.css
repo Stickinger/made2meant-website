@@ -144,8 +144,11 @@ h2 { font-size: clamp(1.6rem, 3.2vw, 2.6rem); }
 .pgrid { gap: 14px; }
 .pcard { display: block; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 8px 8px 16px; }
 .pcard:hover { transform: none; border-color: #C9C1B4; }
-.pcard__img { aspect-ratio: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border-radius: 18px; margin-bottom: 14px; }
+.pcard__img { position: relative; aspect-ratio: 1; overflow: hidden; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border-radius: 18px; margin-bottom: 14px; }
 .pcard:hover .pcard__img { box-shadow: none; }
+.pcard__was { color: var(--color-muted); font-size: 0.8em; margin-left: 4px; }
+.pcard__badge { position: absolute; top: 10px; left: 10px; padding: 5px 10px; border-radius: 999px; background: var(--cream); color: var(--ink);
+  font-size: 0.64rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: 0 2px 8px rgba(43,18,14,0.10); }
 .pcard__name { font-family: var(--font-head); text-transform: uppercase; font-weight: 400; font-size: 0.8rem; letter-spacing: 0; line-height: 1.25; padding: 0 8px; }
 .pcard__price { font-weight: 400; color: var(--color-muted); font-size: 0.85rem; padding: 0 8px; margin-top: 6px; }
 

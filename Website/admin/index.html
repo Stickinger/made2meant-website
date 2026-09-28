@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin — MADE2MEANT</title>
   <link rel="stylesheet" href="/css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- PDF-Rendering (erste Seite → PNG beim Upload) -->
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
@@ -302,6 +299,35 @@
     .color-pick input { display: none; }
     .color-pick__dot { width: 18px; height: 18px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); }
     .color-pick:has(input:checked) { border-color: var(--color-text, #2A2724); background: var(--color-surface-2, #F1ECE3); font-weight: 700; }
+    .set-step { display: flex; gap: 14px; margin-bottom: 20px; }
+    .set-step__num { flex: 0 0 28px; height: 28px; border-radius: 50%; background: var(--color-text, #2A2724); color: #fff;
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; }
+    .set-step__body { flex: 1; min-width: 0; }
+    .set-step__body input[type=text], .set-step__body input[type=number] { width: 100%; background: #faf9f6; border: 1px solid var(--color-border);
+      border-radius: var(--radius); padding: 9px 12px; color: var(--color-text); font-family: var(--font-main); font-size: 0.9rem; }
+    .set-step__body input[type=text]:focus, .set-step__body input[type=number]:focus { outline: none; border-color: var(--color-primary); }
+    .set-label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 0.92rem; }
+    .set-picker { max-height: 260px; overflow-y: auto; border: 1px solid var(--color-border); border-radius: 10px; }
+    .set-pick { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--color-border); cursor: pointer; }
+    .set-pick:last-child { border-bottom: 0; }
+    .set-pick:has(input[type=checkbox]:checked) { background: var(--color-surface-2, #F1ECE3); }
+    .set-pick img { width: 36px; height: 36px; border-radius: 6px; object-fit: cover; background: #eee; }
+    .set-pick__name { flex: 1; font-size: 0.86rem; }
+    .set-pick__price { font-size: 0.82rem; color: var(--color-muted); }
+    .set-pick__qty { width: 58px !important; padding: 4px 6px !important; }
+    .set-summary { font-size: 0.85rem; color: var(--color-muted); }
+    .set-summary strong { color: var(--color-success, #4A7F5A); }
+    .set-more { border-top: 1px solid var(--color-border); padding-top: 12px; }
+    .set-more summary { cursor: pointer; font-weight: 700; font-size: 0.88rem; }
+    .set-card-items { font-size: 0.8rem; color: var(--color-muted); }
+    .star-btn { background: none; border: 0; cursor: pointer; font-size: 1.25rem; line-height: 1; color: #c9c1b4; padding: 2px 4px; }
+    .star-btn.on { color: #D9A13B; }
+    .star-btn:hover { color: #D9A13B; }
+    .chk-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chk { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border: 1px solid var(--color-border);
+      border-radius: 99px; background: #fff; font-size: 0.8rem; cursor: pointer; user-select: none; }
+    .chk input { accent-color: var(--color-primary); }
+    .chk:has(input:checked) { border-color: var(--color-text, #2A2724); background: var(--color-surface-2, #F1ECE3); font-weight: 700; }
 
     .field { margin-bottom: 16px; }
     .field label {
@@ -470,6 +496,9 @@
       <a href="#" onclick="showTab('products',this)">
         <span class="icon">🧵</span> Produkte
       </a>
+      <a href="#" onclick="showTab('sets',this)">
+        <span class="icon">🎁</span> Geschenk-Sets
+      </a>
       <a href="#" onclick="showTab('categories',this)">
         <span class="icon">🗂️</span> Kategorien
       </a>
@@ -589,6 +618,21 @@
               style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;font-size:0.8rem;width:200px;">
           </div>
           <div id="products-table" style="overflow-x:auto;"></div>
+        </div>
+      </div>
+
+      <!-- ══════════ GESCHENK-SETS ══════════ -->
+      <div id="tab-sets" class="tab-panel">
+        <div class="page-header">
+          <h2>Geschenk-Sets</h2>
+          <button class="btn-sm btn-sm--primary" onclick="openSetModal()">+ Neues Set</button>
+        </div>
+        <p style="color:var(--color-muted);font-size:0.85rem;margin:-6px 0 16px;max-width:680px">
+          Ein Set fasst mehrere deiner Produkte zu einem Geschenk mit eigenem Preis zusammen. Es erscheint auf der Startseite unter
+          „Unsere Geschenk-Sets“, im Shop und auf den Anlass-Seiten, die du beim Set anhakst.
+        </p>
+        <div class="admin-card">
+          <div id="sets-list" style="overflow-x:auto;"></div>
         </div>
       </div>
 
@@ -824,19 +868,17 @@
           <label>Lagerbestand *</label>
           <input type="number" id="p-stock" min="0" placeholder="100">
         </div>
-        <div class="field">
-          <label>Kategorie</label>
-          <select id="p-category">
-            <option value="">Keine Kategorie</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Produktart <small style="color:var(--color-muted);font-weight:400">(Shop-Filter)</small></label>
-          <select id="p-type"><option value="">— keine —</option></select>
+        <div class="field form-full">
+          <label>Kategorien <small style="color:var(--color-muted);font-weight:400">(Mehrfachauswahl möglich)</small></label>
+          <div class="chk-grid" id="p-categories"></div>
         </div>
         <div class="field form-full">
-          <label>Farben <small style="color:var(--color-muted);font-weight:400">(Shop-Filter — alle Farben, in denen es das Produkt gibt)</small></label>
-          <div class="color-picks" id="p-colors"></div>
+          <label>Produktarten <small style="color:var(--color-muted);font-weight:400">(Shop-Filter — Mehrfachauswahl möglich)</small></label>
+          <div class="chk-grid" id="p-types"></div>
+        </div>
+        <div class="field form-full">
+          <label>Farben <small style="color:var(--color-muted);font-weight:400">(Shop-Filter — kommagetrennt eintippen, z.B. Salbei, Creme, Grau)</small></label>
+          <input type="text" id="p-colors-text" placeholder="Salbei, Creme, Grau">
         </div>
         <div class="field form-full">
           <label>Beschreibung</label>
@@ -855,6 +897,27 @@
           <input type="url" id="p-image" placeholder="…oder Bild-URL einfügen" style="margin-top:8px">
           <img id="p-image-preview" alt="" style="display:none;margin-top:8px;max-width:120px;border-radius:6px;">
           <button type="button" id="p-image-rotate" class="btn-sm btn-sm--outline" style="display:none;margin-top:6px" onclick="rotateMainImage()">↻ Drehen</button>
+        </div>
+
+        <div class="field form-full">
+          <label>Weitere Produktbilder <span style="font-weight:400;color:var(--color-muted)">— Galerie, Reihenfolge frei wählbar</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Zusätzliche Fotos fürs Produkt. Mehrere Bilder auf einmal hierher ziehen; mit ↑ / ↓ die Reihenfolge ändern (erstes = zuerst sichtbar).
+          </p>
+          <div id="p-gallery-drop" class="dropzone" tabindex="0" role="button"
+               aria-label="Bilder hochladen: hierher ziehen oder klicken"
+               onclick="document.getElementById('p-gallery-file').click()"
+               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('p-gallery-file').click()}"
+               ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+               ondragleave="this.classList.remove('dropzone--over')"
+               ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleGalleryFiles(event.dataTransfer.files)">
+            <span>Bilder hierher ziehen oder klicken
+              <small>Mehrere möglich · PNG, JPEG, WEBP oder PDF — max. 10 MB</small>
+            </span>
+            <input type="file" id="p-gallery-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden multiple onchange="handleGalleryFiles(this.files); this.value=''">
+          </div>
+          <span id="p-gallery-status" style="display:inline-block;margin-top:6px;font-size:0.85rem;color:var(--color-muted);"></span>
+          <div id="p-gallery" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px"></div>
         </div>
 
         <div class="field form-full">
@@ -921,6 +984,10 @@
           <input type="checkbox" id="p-active" checked>
           <label>Im Shop aktiv</label>
         </div>
+        <div class="field field--toggle">
+          <input type="checkbox" id="p-bestseller">
+          <label for="p-bestseller">⭐ Bestseller <small style="color:var(--color-muted);font-weight:400">(erscheint auf der Startseite unter „Unsere Bestseller“ und im Shop ganz oben)</small></label>
+        </div>
       </div>
     </div>
     <div class="modal__footer">
@@ -931,6 +998,80 @@
 </div>
 
 <!-- ══════════ KATEGORIE MODAL ══════════ -->
+<div class="modal-overlay" id="set-modal">
+  <div class="modal" style="max-width:760px">
+    <div class="modal__header">
+      <h3 id="set-modal-title">Neues Geschenk-Set</h3>
+      <button class="modal__close" onclick="closeModal('set-modal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="set-id">
+      <div class="set-step">
+        <div class="set-step__num">1</div>
+        <div class="set-step__body">
+          <label class="set-label" for="set-name">Wie heißt das Set?</label>
+          <input type="text" id="set-name" placeholder="z. B. Taufset „Kleiner Stern“">
+        </div>
+      </div>
+      <div class="set-step">
+        <div class="set-step__num">2</div>
+        <div class="set-step__body">
+          <label class="set-label">Was ist drin?</label>
+          <input type="text" id="set-search" placeholder="Produkte suchen…" oninput="renderSetPicker()" style="margin-bottom:8px">
+          <div class="set-picker" id="set-picker"></div>
+        </div>
+      </div>
+      <div class="set-step">
+        <div class="set-step__num">3</div>
+        <div class="set-step__body">
+          <label class="set-label" for="set-price">Was kostet das Set?</label>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <input type="number" id="set-price" step="0.01" min="0" placeholder="z. B. 79.90" style="width:140px" oninput="updateSetSummary()">
+            <span id="set-summary" class="set-summary"></span>
+          </div>
+        </div>
+      </div>
+      <div class="set-step">
+        <div class="set-step__num">4</div>
+        <div class="set-step__body">
+          <label class="set-label">Foto vom Set</label>
+          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+            <img id="set-image-preview" alt="" style="display:none;width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--color-border)">
+            <label class="btn-sm btn-sm--outline" style="cursor:pointer">
+              Foto auswählen
+              <input type="file" id="set-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="handleSetImage(this.files[0]); this.value=''">
+            </label>
+            <span id="set-image-status" style="font-size:0.82rem;color:var(--color-muted)"></span>
+          </div>
+          <input type="hidden" id="set-image">
+          <small style="color:var(--color-muted)">Ohne eigenes Foto wird das Bild des ersten Produkts verwendet.</small>
+        </div>
+      </div>
+      <div class="set-step">
+        <div class="set-step__num">5</div>
+        <div class="set-step__body">
+          <label class="set-label">Für welche Anlässe passt es?</label>
+          <div class="chk-grid" id="set-occasions"></div>
+        </div>
+      </div>
+      <details class="set-more">
+        <summary>Beschreibung &amp; Sichtbarkeit (optional)</summary>
+        <div class="field" style="margin-top:12px">
+          <label for="set-desc">Kurzbeschreibung</label>
+          <textarea id="set-desc" rows="3" placeholder="Leer lassen = automatisch „Enthält: …“"></textarea>
+        </div>
+        <div class="field field--toggle"><input type="checkbox" id="set-active" checked><label for="set-active">Im Shop sichtbar</label></div>
+        <div class="field field--toggle"><input type="checkbox" id="set-bestseller"><label for="set-bestseller">⭐ Bestseller</label></div>
+      </details>
+    </div>
+    <div class="modal__footer">
+      <span id="set-edit-more" style="margin-right:auto"></span>
+      <button class="btn-sm btn-sm--outline" onclick="closeModal('set-modal')">Abbrechen</button>
+      <button class="btn-sm btn-sm--primary" id="set-save-btn" onclick="saveSet()">Set speichern</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="category-modal">
   <div class="modal">
     <div class="modal__header">
@@ -1092,7 +1233,7 @@ function showTab(name, link) {
   document.querySelectorAll('.admin-nav a').forEach(a => a.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   const titles = {
-    dashboard:'Dashboard', products:'Produkte', categories:'Kategorien',
+    dashboard:'Dashboard', products:'Produkte', sets:'Geschenk-Sets', categories:'Kategorien',
     orders:'Bestellungen', revenue:'Umsatz', discounts:'Rabattcodes',
     newsletter:'Newsletter', analytics:'Analytics', settings:'Einstellungen'
   };
@@ -1101,6 +1242,7 @@ function showTab(name, link) {
 
   // Lazy-load
   if (name === 'products')   loadProductsTable();
+  if (name === 'sets')       loadSets();
   if (name === 'categories') loadCategoriesTable();
   if (name === 'orders')     loadOrdersTable();
   if (name === 'discounts')  loadDiscountsTable();
@@ -1236,15 +1378,16 @@ async function loadProductsTable() {
 function renderProductsTable(products) {
   document.getElementById('products-table').innerHTML = products.length ? `
     <table class="data-table">
-      <thead><tr><th>Produkt</th><th>Kategorie</th><th>Preis</th><th>Lager</th><th>Status</th><th>Aktionen</th></tr></thead>
+      <thead><tr><th title="Bestseller">⭐</th><th>Produkt</th><th>Kategorie</th><th>Preis</th><th>Lager</th><th>Status</th><th>Aktionen</th></tr></thead>
       <tbody>${products.map(p => `
         <tr>
+          <td>${bestsellerStar(p)}</td>
           <td>
             <div style="display:flex;align-items:center;gap:10px;">
               <img src="${p.image_url||'https://placehold.co/40x40/e4dfd2/99a497?text=📦'}"
                    style="width:36px;height:36px;border-radius:4px;object-fit:cover;">
               <div>
-                <strong style="font-size:0.85rem;">${p.name}</strong><br>
+                <strong style="font-size:0.85rem;">${p.name}</strong>${isSetProduct(p) ? ' <span class="badge badge--yellow">Set</span>' : ''}<br>
                 <small style="color:var(--color-muted);">${p.slug}</small>
               </div>
             </div>
@@ -1267,6 +1410,271 @@ function renderProductsTable(products) {
         </tr>`).join('')}
       </tbody>
     </table>` : '<div class="empty-state"><div class="empty-state__icon">🧵</div><p>Noch keine Produkte.</p></div>';
+}
+
+// ══════════════════════════════════════════
+// GESCHENK-SETS
+// Ein Set ist ein normales Produkt (damit Warenkorb & Kasse wie gewohnt
+// funktionieren) mit: Kategorie "bundles", den gewählten Anlass-Kategorien,
+// Anlass-Tags (für die Anlass-Seiten), Produktart "set" und bundle_items.
+// ══════════════════════════════════════════
+let allSets = [], setProducts = [], setCategories = [], setSelection = {};
+
+function isSetProduct(p) {
+  const bundle = (allCategories.concat(setCategories)).find(c => c.slug === 'bundles');
+  return (Array.isArray(p.bundle_items) && p.bundle_items.length > 0)
+    || (bundle && (p.category_id === bundle.id || (p.category_ids || []).includes(bundle.id)));
+}
+
+async function loadSets() {
+  const [pRes, cRes] = await Promise.all([
+    db.from('products').select('*').order('created_at', { ascending: false }),
+    db.from('categories').select('*').order('sort_order'),
+  ]);
+  setCategories = cRes.data || [];
+  const all = pRes.data || [];
+  allSets = all.filter(isSetProduct);
+  setProducts = all.filter(p => !isSetProduct(p));
+  renderSetsList();
+}
+
+function setOccasionNames(p) {
+  const ids = p.category_ids || [];
+  return setCategories.filter(c => c.slug !== 'bundles' && ids.includes(c.id)).map(c => c.name);
+}
+
+function renderSetsList() {
+  const box = document.getElementById('sets-list');
+  if (!allSets.length) {
+    box.innerHTML = `<div class="empty-state"><div class="empty-state__icon">🎁</div><p>Noch keine Geschenk-Sets.</p>
+      <button class="btn-sm btn-sm--primary" style="margin-top:10px" onclick="openSetModal()">+ Erstes Set anlegen</button></div>`;
+    return;
+  }
+  box.innerHTML = `<table class="data-table">
+    <thead><tr><th title="Bestseller">⭐</th><th>Set</th><th>Inhalt</th><th>Preis</th><th>Anlässe</th><th>Status</th><th>Aktionen</th></tr></thead>
+    <tbody>${allSets.map(p => {
+      const items = (p.bundle_items || []).map(i => (i.qty > 1 ? i.qty + '× ' : '') + esc(i.name)).join(', ') || '—';
+      const occ = setOccasionNames(p);
+      return `<tr>
+        <td>${bestsellerStar(p)}</td>
+        <td><div style="display:flex;align-items:center;gap:10px">
+          <img src="${esc(p.image_url || 'https://placehold.co/40x40/e4dfd2/99a497?text=🎁')}" style="width:40px;height:40px;border-radius:6px;object-fit:cover">
+          <strong style="font-size:0.88rem">${esc(p.name)}</strong></div></td>
+        <td class="set-card-items">${items}</td>
+        <td><strong>${fmt(p.price)}</strong>${p.compare_price ? `<br><small style="color:var(--color-muted);text-decoration:line-through">${fmt(p.compare_price)}</small>` : ''}</td>
+        <td style="font-size:0.8rem;color:var(--color-muted)">${occ.length ? occ.map(esc).join(', ') : '—'}</td>
+        <td>${p.active ? '<span class="badge badge--green">Sichtbar</span>' : '<span class="badge badge--grey">Versteckt</span>'}</td>
+        <td><div class="btn-actions">
+          <button class="btn-sm btn-sm--outline" onclick="openSetModal('${p.id}')">Bearbeiten</button>
+          <button class="btn-sm btn-sm--danger" onclick="deleteSet('${p.id}')">Löschen</button>
+        </div></td>
+      </tr>`; }).join('')}</tbody></table>`;
+}
+
+async function openSetModal(id = null) {
+  if (!setProducts.length && !allSets.length) await loadSets();
+  const p = id ? allSets.find(x => x.id === id) : null;
+  document.getElementById('set-modal-title').textContent = p ? 'Set bearbeiten' : 'Neues Geschenk-Set';
+  document.getElementById('set-id').value = p?.id || '';
+  document.getElementById('set-name').value = p?.name || '';
+  document.getElementById('set-price').value = p?.price ?? '';
+  document.getElementById('set-desc').value = p?.description || '';
+  document.getElementById('set-active').checked = p ? !!p.active : true;
+  document.getElementById('set-bestseller').checked = !!p?.bestseller;
+  document.getElementById('set-image').value = p?.image_url || '';
+  const prev = document.getElementById('set-image-preview');
+  prev.src = p?.image_url || ''; prev.style.display = p?.image_url ? 'block' : 'none';
+  document.getElementById('set-image-status').textContent = '';
+  document.getElementById('set-search').value = '';
+
+  setSelection = {};
+  (p?.bundle_items || []).forEach(i => { setSelection[i.product_id] = Math.max(1, parseInt(i.qty) || 1); });
+  renderSetPicker();
+
+  const chosen = p?.category_ids || [];
+  const occ = setCategories.filter(c => c.slug !== 'bundles' && c.active !== false);
+  document.getElementById('set-occasions').innerHTML = occ.length
+    ? occ.map(c => `<label class="chk"><input type="checkbox" value="${c.id}" data-slug="${esc(c.slug)}" ${chosen.includes(c.id) ? 'checked' : ''}> ${esc(c.name)}</label>`).join('')
+    : '<span style="font-size:0.8rem;color:var(--color-muted)">Noch keine Anlass-Kategorien angelegt.</span>';
+
+  // Für Fortgeschrittene: Stickstellen, Galerie usw. im normalen Produkt-Editor
+  document.getElementById('set-edit-more').innerHTML = p
+    ? `<a href="#" style="font-size:0.8rem" onclick="closeModal('set-modal'); openProductModal(allSets.find(x => x.id === '${p.id}')); return false;">Stickstellen &amp; weitere Details →</a>` : '';
+  updateSetSummary();
+  openModal('set-modal');
+}
+
+function renderSetPicker() {
+  const q = (document.getElementById('set-search').value || '').toLowerCase().trim();
+  const list = setProducts.filter(p => p.active || setSelection[p.id])
+    .filter(p => !q || p.name.toLowerCase().includes(q) || setSelection[p.id]);
+  document.getElementById('set-picker').innerHTML = list.length ? list.map(p => {
+    const on = !!setSelection[p.id];
+    return `<label class="set-pick">
+      <input type="checkbox" ${on ? 'checked' : ''} onchange="toggleSetItem('${p.id}', this.checked)">
+      <img src="${esc(p.image_url || 'https://placehold.co/40x40/e4dfd2/99a497?text=📦')}" alt="">
+      <span class="set-pick__name">${esc(p.name)}</span>
+      <span class="set-pick__price">${fmt(p.price)}</span>
+      ${on ? `<input type="number" class="set-pick__qty" min="1" value="${setSelection[p.id]}" title="Anzahl"
+        onchange="setSelection['${p.id}'] = Math.max(1, parseInt(this.value) || 1); updateSetSummary()">` : ''}
+    </label>`;
+  }).join('') : '<div style="padding:12px;font-size:0.85rem;color:var(--color-muted)">Keine passenden Produkte. Lege zuerst unter „Produkte“ die Einzelprodukte an.</div>';
+}
+
+function toggleSetItem(id, on) {
+  if (on) setSelection[id] = 1; else delete setSelection[id];
+  renderSetPicker();
+  updateSetSummary();
+}
+
+function setItemsSum() {
+  return Object.entries(setSelection).reduce((s, [id, qty]) => {
+    const p = setProducts.find(x => x.id === id);
+    return s + (p ? (Number(p.price) || 0) * qty : 0);
+  }, 0);
+}
+
+function updateSetSummary() {
+  const sum = setItemsSum();
+  const price = parseFloat(document.getElementById('set-price').value);
+  const el = document.getElementById('set-summary');
+  if (!sum) { el.textContent = 'Wähle oben die Produkte, dann siehst du hier den Einzelpreis.'; return; }
+  let txt = `Einzeln zusammen: ${fmt(sum)}`;
+  if (price > 0 && price < sum) {
+    const save = sum - price;
+    txt += ` · <strong>Kunde spart ${fmt(save)} (${Math.round(save / sum * 100)} %)</strong>`;
+  } else if (price >= sum) {
+    txt += ' · Set ist nicht günstiger als die Einzelteile';
+  }
+  el.innerHTML = txt;
+}
+
+async function handleSetImage(file) {
+  if (!file) return;
+  const status = document.getElementById('set-image-status');
+  status.textContent = 'Lädt hoch…';
+  const url = await uploadToStorage(file);
+  if (!url) { status.textContent = ''; return; }
+  document.getElementById('set-image').value = url;
+  const prev = document.getElementById('set-image-preview');
+  prev.src = url; prev.style.display = 'block';
+  status.textContent = 'Hochgeladen ✓';
+}
+
+function setSlugify(name) {
+  return String(name).toLowerCase()
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'set';
+}
+
+async function ensureBundleCategory() {
+  let cat = setCategories.find(c => c.slug === 'bundles');
+  if (cat) return cat;
+  const { data, error } = await db.from('categories')
+    .insert({ name: 'Geschenk-Sets', slug: 'bundles', description: 'Wird automatisch vom Bereich „Geschenk-Sets“ verwendet.', featured: false, active: true, sort_order: 6 })
+    .select().single();
+  if (error) throw new Error('Kategorie für Sets konnte nicht angelegt werden: ' + error.message);
+  setCategories.push(data);
+  return data;
+}
+
+async function saveSet() {
+  const id = document.getElementById('set-id').value;
+  const existing = id ? allSets.find(x => x.id === id) : null;
+  const name = document.getElementById('set-name').value.trim();
+  const price = parseFloat(document.getElementById('set-price').value);
+  const ids = Object.keys(setSelection);
+  if (!name) { alert('Bitte gib dem Set einen Namen.'); return; }
+  const totalQty = ids.reduce((sum, pid) => sum + setSelection[pid], 0);
+  if (totalQty < 2) { alert('Ein Set braucht mindestens zwei Teile – wähle zwei Produkte oder erhöhe die Anzahl.'); return; }
+  if (!(price > 0)) { alert('Bitte gib einen Preis ein.'); return; }
+
+  const btn = document.getElementById('set-save-btn');
+  btn.disabled = true;
+  try {
+    const bundle = await ensureBundleCategory();
+    const items = ids.map(pid => {
+      const p = setProducts.find(x => x.id === pid);
+      return { product_id: pid, name: p ? p.name : 'Produkt', qty: setSelection[pid] };
+    });
+    const sum = setItemsSum();
+    const occBoxes = [...document.querySelectorAll('#set-occasions input:checked')];
+    const occIds = occBoxes.map(i => i.value);
+    const occSlugs = occBoxes.map(i => i.dataset.slug);
+    // Tags: Anlässe (für Anlass-Seiten & Shop-Filter) + eigene Tags aus dem Produkt-Editor behalten
+    const keepTags = (existing?.tags || []).filter(t => !setCategories.some(c => c.slug === t) && t !== 'geschenkset');
+    const firstImg = items.map(i => setProducts.find(x => x.id === i.product_id)?.image_url).find(Boolean) || null;
+    const desc = document.getElementById('set-desc').value.trim()
+      || 'Enthält: ' + items.map(i => (i.qty > 1 ? i.qty + '× ' : '') + i.name).join(', ') + '.';
+
+    let slug = existing?.slug;
+    if (!slug) {
+      slug = setSlugify(name);
+      const { data: clash } = await db.from('products').select('id').eq('slug', slug).maybeSingle();
+      if (clash) slug += '-' + Math.random().toString(36).slice(2, 6);
+    }
+
+    const data = {
+      name, slug, price,
+      compare_price: sum > price ? Math.round(sum * 100) / 100 : null,
+      description: desc,
+      image_url: document.getElementById('set-image').value || existing?.image_url || firstImg,
+      stock: existing?.stock ?? 999,
+      active: document.getElementById('set-active').checked,
+      bestseller: document.getElementById('set-bestseller').checked,
+      bundle_items: items,
+      category_id: bundle.id,
+      category_ids: [bundle.id, ...occIds],
+      tags: [...new Set([...keepTags, 'geschenkset', ...occSlugs])],
+      product_type: 'set',
+      product_types: ['set'],
+    };
+
+    const { data: saved, error } = id
+      ? await db.from('products').update(data).eq('id', id).select()
+      : await db.from('products').insert(data).select();
+    if (error) {
+      alert(/bundle_items|bestseller|category_ids|product_types|product_type/.test(error.message || '')
+        ? 'Bitte zuerst geschenksets-setup.sql im Supabase SQL-Editor ausführen.\n\n(' + error.message + ')'
+        : 'Fehler: ' + error.message);
+      return;
+    }
+    if (!saved || !saved.length) { alert('Speichern fehlgeschlagen: Keine Berechtigung (RLS).'); return; }
+    closeModal('set-modal');
+    await loadSets();
+  } catch (e) {
+    alert(e.message || e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function deleteSet(id) {
+  const p = allSets.find(x => x.id === id);
+  if (!confirm(`Set „${p ? p.name : ''}“ wirklich löschen? Die enthaltenen Einzelprodukte bleiben erhalten.`)) return;
+  const { error } = await db.from('products').delete().eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  await loadSets();
+}
+
+// ── Bestseller: Stern in den Listen (Klick = an/aus) ──
+function bestsellerStar(p) {
+  const on = !!p.bestseller;
+  return `<button type="button" class="star-btn ${on ? 'on' : ''}" title="${on ? 'Bestseller — klicken zum Entfernen' : 'Als Bestseller markieren'}"
+    aria-pressed="${on}" onclick="toggleBestseller('${p.id}', ${!on})">${on ? '★' : '☆'}</button>`;
+}
+async function toggleBestseller(id, on) {
+  const { data, error } = await db.from('products').update({ bestseller: on }).eq('id', id).select('id');
+  if (error) {
+    alert(/bestseller/.test(error.message || '')
+      ? 'Bitte zuerst geschenksets-setup.sql im Supabase SQL-Editor ausführen.'
+      : 'Fehler: ' + error.message);
+    return;
+  }
+  if (!data || !data.length) { alert('Keine Berechtigung (RLS).'); return; }
+  [allProducts, allSets].forEach(list => list.forEach(p => { if (p.id === id) p.bestseller = on; }));
+  renderProductsTable(allProducts);
+  if (document.getElementById('sets-list')) renderSetsList();
 }
 
 function filterProducts(q) {
@@ -1675,6 +2083,51 @@ async function handleMainFile(file) {
   }
 }
 
+// ── Produkt-Galerie (mehrere Bilder + Reihenfolge) ──
+let galleryImages = [];   // [url, …] — Reihenfolge = Anzeige-Reihenfolge
+
+async function handleGalleryFiles(files) {
+  const list = [...(files || [])].filter(Boolean);
+  if (!list.length) return;
+  const status = document.getElementById('p-gallery-status');
+  let done = 0;
+  for (const f of list) {
+    if (status) { status.style.color = 'var(--color-muted)'; status.textContent = `Lädt hoch… (${done + 1}/${list.length})`; }
+    const url = await uploadToStorage(f);
+    if (url) { galleryImages.push(url); renderGallery(); }
+    done++;
+  }
+  if (status) status.textContent = done ? `${done} Bild(er) hinzugefügt ✓` : '';
+}
+function removeGalleryImage(i) { galleryImages.splice(i, 1); renderGallery(); }
+function moveGalleryImage(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= galleryImages.length) return;
+  [galleryImages[i], galleryImages[j]] = [galleryImages[j], galleryImages[i]];
+  renderGallery();
+}
+async function rotateGalleryImage(i, btn) {
+  const url = galleryImages[i];
+  if (!url) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { const neu = await rotateStoredImage(url); if (neu) { galleryImages[i] = neu; renderGallery(); } }
+  catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
+}
+function renderGallery() {
+  const box = document.getElementById('p-gallery');
+  if (!box) return;
+  box.innerHTML = galleryImages.map((url, i) => `
+    <div style="width:96px">
+      <img src="${url}" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--color-border)">
+      <div style="display:flex;gap:3px;margin-top:4px;justify-content:center">
+        <button type="button" class="btn-sm btn-sm--outline" title="nach vorne" ${i === 0 ? 'disabled' : ''} onclick="moveGalleryImage(${i},-1)">↑</button>
+        <button type="button" class="btn-sm btn-sm--outline" title="nach hinten" ${i === galleryImages.length - 1 ? 'disabled' : ''} onclick="moveGalleryImage(${i},1)">↓</button>
+        <button type="button" class="btn-sm btn-sm--outline" title="drehen" onclick="rotateGalleryImage(${i}, this)">↻</button>
+        <button type="button" class="btn-sm btn-sm--danger" title="entfernen" onclick="removeGalleryImage(${i})">✕</button>
+      </div>
+    </div>`).join('') || '<span style="font-size:0.8rem;color:var(--color-muted)">Noch keine weiteren Bilder.</span>';
+}
+
 // Kategorie-Bild hochladen (Datei-Auswahl ODER Drag & Drop)
 async function handleCategoryFile(file) {
   if (!file) return;
@@ -1796,28 +2249,37 @@ async function openProductModal(product = null) {
   document.getElementById('p-seo-desc').value      = product?.seo_description || '';
   document.getElementById('p-tags').value          = (product?.tags || []).join(', ');
   document.getElementById('p-active').checked      = product?.active ?? true;
+  document.getElementById('p-bestseller').checked  = !!product?.bestseller;
 
-  // Produktart & Farben (Listen aus /js/catalog.js)
-  const typeSel = document.getElementById('p-type');
-  typeSel.innerHTML = '<option value="">— keine —</option>' +
-    PRODUCT_TYPES.map(t => `<option value="${t.key}" ${product?.product_type === t.key ? 'selected' : ''}>${t.label}</option>`).join('');
-  const chosen = (product?.colors || []).map(c => String(c).toLowerCase());
-  document.getElementById('p-colors').innerHTML = PRODUCT_COLORS.map(c =>
-    `<label class="color-pick"><input type="checkbox" value="${c.name}" ${chosen.includes(c.name.toLowerCase()) ? 'checked' : ''}><span class="color-pick__dot" style="background:${c.hex}"></span>${c.name}</label>`
+  // Produktarten (Mehrfach) — Liste aus /js/catalog.js
+  const chosenTypes = (product?.product_types && product.product_types.length)
+    ? product.product_types
+    : (product?.product_type ? [product.product_type] : []);
+  document.getElementById('p-types').innerHTML = PRODUCT_TYPES.map(t =>
+    `<label class="chk"><input type="checkbox" value="${t.key}" ${chosenTypes.includes(t.key) ? 'checked' : ''}> ${t.label}</label>`
   ).join('');
 
-  // Kategorien laden
-  const sel = document.getElementById('p-category');
-  sel.innerHTML = '<option value="">Keine Kategorie</option>' +
-    allCategories.map(c => `<option value="${c.id}" ${product?.category_id===c.id?'selected':''}>${c.name}</option>`).join('');
+  // Farben als Freitext (kommagetrennt)
+  document.getElementById('p-colors-text').value = (product?.colors || []).join(', ');
 
-  // Bilder laden
-  modalImages = [];
+  // Kategorien (Mehrfach)
+  const chosenCats = (product?.category_ids && product.category_ids.length)
+    ? product.category_ids
+    : (product?.category_id ? [product.category_id] : []);
+  document.getElementById('p-categories').innerHTML = allCategories.length
+    ? allCategories.map(c =>
+        `<label class="chk"><input type="checkbox" value="${c.id}" ${chosenCats.includes(c.id) ? 'checked' : ''}> ${c.name}</label>`
+      ).join('')
+    : '<span style="font-size:0.8rem;color:var(--color-muted)">Noch keine Kategorien angelegt.</span>';
+
+  // Bilder laden (alle product_images des Produkts)
+  let allImgs = [];
   if (product?.id) {
     const { data: imgs } = await db.from('product_images')
       .select('*').eq('product_id', product.id).order('sort_order');
-    modalImages = (imgs || []).map(r => ({ id: r.id, url: r.url, option_values: r.option_values || {} }));
+    allImgs = (imgs || []).map(r => ({ id: r.id, url: r.url, option_values: r.option_values || {}, sort_order: r.sort_order }));
   }
+  modalImages = allImgs;   // dient unten zur Rekonstruktion der Farb-Varianten
 
   // Stickstellen aus Produkt laden
   stitchPositions = (product?.positions || []).map(p => ({
@@ -1855,8 +2317,18 @@ async function openProductModal(product = null) {
   (product?.options || []).filter(o => !/kappe|farbe/i.test(o.name))
     .forEach(o => addOptionRow(o.name, (o.values || []).join(', ')));
 
-  // Erweiterte Bilder: nur solche ohne Stelle-Tag (Stellen-Fotos verwaltet der Farben-Bereich)
-  modalImages = modalImages.filter(m => !Object.values(m.option_values || {}).some(v => labelSet.has(v)));
+  // Galerie = einfache Zusatzbilder (ohne Options-Tags), in gespeicherter Reihenfolge
+  galleryImages = allImgs
+    .filter(m => Object.keys(m.option_values || {}).length === 0)
+    .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    .map(m => m.url);
+  renderGallery();
+
+  // Erweiterte Bilder: nur solche MIT Options-Tag, aber ohne Stelle-Tag (Stellen-Fotos verwaltet der Farben-Bereich)
+  modalImages = allImgs.filter(m => {
+    const vals = Object.values(m.option_values || {});
+    return vals.length && !vals.some(v => labelSet.has(v));
+  });
   renderImagesEditor();
 
   openModal('product-modal');
@@ -1888,7 +2360,12 @@ async function saveProduct() {
   const colorNames = colorVariants.map(c => (c.name || '').trim()).filter(Boolean);
   if (colorNames.length) options.push({ name: 'Farbe', values: colorNames });
 
-  // Hauptbild ggf. automatisch aus dem ersten vorhandenen Farb-/Stellen-Foto setzen
+  // Mehrfach-Auswahl: Kategorien & Produktarten, Farben als Freitext
+  const catIds   = [...document.querySelectorAll('#p-categories input:checked')].map(i => i.value);
+  const typeKeys = [...document.querySelectorAll('#p-types input:checked')].map(i => i.value);
+  const colors   = document.getElementById('p-colors-text').value.split(',').map(s => s.trim()).filter(Boolean);
+
+  // Hauptbild ggf. automatisch aus Farb-/Stellen-Foto oder erstem Galeriebild setzen
   let mainImage = document.getElementById('p-image').value || null;
   if (!mainImage) {
     for (const c of colorVariants) {
@@ -1896,6 +2373,7 @@ async function saveProduct() {
       if (first) { mainImage = first; break; }
     }
   }
+  if (!mainImage && galleryImages.length) mainImage = galleryImages[0];
 
   const data = {
     name:            document.getElementById('p-name').value,
@@ -1907,14 +2385,17 @@ async function saveProduct() {
     image_url:       mainImage,
     seo_title:       document.getElementById('p-seo-title').value || null,
     seo_description: document.getElementById('p-seo-desc').value || null,
-    category_id:     document.getElementById('p-category').value || null,
-    product_type:    document.getElementById('p-type').value || null,
-    colors:          [...document.querySelectorAll('#p-colors input:checked')].map(i => i.value),
+    category_id:     catIds[0] || null,
+    category_ids:    catIds,
+    product_type:    typeKeys[0] || null,
+    product_types:   typeKeys,
+    colors,
     tags,
     options,
     positions,
     motifs,
     active:          document.getElementById('p-active').checked,
+    bestseller:      document.getElementById('p-bestseller').checked,
   };
 
   // .select() zwingt Supabase, die betroffenen Zeilen zurückzugeben —
@@ -1924,8 +2405,8 @@ async function saveProduct() {
     : await db.from('products').insert(data).select();
 
   if (error) {
-    if (/product_type|colors/.test(error.message || '')) {
-      alert('Produktart/Farben können noch nicht gespeichert werden: Bitte zuerst shop-filter-setup.sql im Supabase SQL-Editor ausführen.\n\n(' + error.message + ')');
+    if (/product_type|product_types|colors|category_ids|bestseller|bundle_items/.test(error.message || '')) {
+      alert('Einige neue Felder gibt es in der Datenbank noch nicht: Bitte zuerst geschenksets-setup.sql im Supabase SQL-Editor ausführen.\n\n(' + error.message + ')');
     } else alert('Fehler: ' + error.message);
     return;
   }
@@ -1934,10 +2415,12 @@ async function saveProduct() {
     return;
   }
 
-  // Bilder synchronisieren: erweiterte Bilder + aus Farben/Stellen erzeugte (Farbe + Stelle getaggt)
+  // Bilder synchronisieren: Galerie zuerst (sort_order = Reihenfolge), dann erweiterte + Farb-/Stellen-Fotos
   const productId = saved[0].id;
-  const imgs = modalImages.filter(m => m.url.trim())
-    .map(m => ({ url: m.url.trim(), option_values: m.option_values || {} }));
+  const imgs = [];
+  galleryImages.forEach(url => { if (url && url.trim()) imgs.push({ url: url.trim(), option_values: {} }); });
+  modalImages.filter(m => m.url && m.url.trim())
+    .forEach(m => imgs.push({ url: m.url.trim(), option_values: m.option_values || {} }));
   colorVariants.forEach(c => {
     const nm = (c.name || '').trim();
     if (!nm) return;
@@ -2142,12 +2625,15 @@ async function viewOrder(id) {
           <label style="display:block;font-size:0.7rem;color:var(--color-muted);margin-bottom:4px;">Gewicht (g)</label>
           <input id="lbl-weight" type="number" min="1" step="10" value="500" style="width:92px;padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:0.85rem;">
         </div>
-        <div>
+        ${o.shipping_notify_consent ? `<div>
           <label style="display:block;font-size:0.7rem;color:var(--color-muted);margin-bottom:4px;">Telefon (optional)</label>
           <input id="lbl-phone" type="text" placeholder="z. B. für DHL Express" style="width:160px;padding:8px 10px;border:1px solid var(--color-border);border-radius:6px;font-size:0.85rem;">
-        </div>
+        </div>` : ''}
         <button class="btn-sm btn-sm--primary" id="lbl-btn" onclick="createLabel('${o.id}')">${o.senddrop_shipment_id ? 'Neues Label erstellen' : 'Versandlabel erstellen'}</button>
       </div>
+      <div style="font-size:0.78rem;color:var(--color-muted);margin-top:8px;">${o.shipping_notify_consent
+        ? '✓ Kunde hat eingewilligt: E-Mail (und ggf. Telefon) werden an den Paketdienst übermittelt.'
+        : 'Keine Einwilligung zur Versandbenachrichtigung: Es gehen nur Name und Lieferadresse an den Paketdienst.'}</div>
       <div id="lbl-msg" style="font-size:0.85rem;margin-top:10px;"></div>
     </div>`;
   openModal('order-modal');
@@ -2158,7 +2644,7 @@ async function createLabel(orderId) {
   const btn = document.getElementById('lbl-btn');
   const carrierType = document.getElementById('lbl-carrier').value;
   const weightGrams = parseInt(document.getElementById('lbl-weight').value) || 500;
-  const phone = document.getElementById('lbl-phone').value.trim();
+  const phone = (document.getElementById('lbl-phone')?.value || '').trim();
   msg.style.color = 'var(--color-muted)';
   msg.textContent = 'Label wird erstellt…';
   if (btn) btn.disabled = true;
@@ -2177,7 +2663,7 @@ async function createLabel(orderId) {
       return;
     }
     msg.style.color = 'var(--color-success)';
-    msg.innerHTML = '✓ Label erstellt' + (data.tracking ? ' · Tracking: <strong>' + esc(data.tracking) + '</strong>' : '') + (data.pdfBase64 ? '' : ' (PDF konnte nicht geladen werden – über Senddrop öffnen)');
+    msg.innerHTML = '✓ Label erstellt' + (data.tracking ? ' · Tracking: <strong>' + esc(data.tracking) + '</strong>' : '') + (data.pdfBase64 ? '' : ' (PDF konnte nicht geladen werden – über Senddrop öffnen)') + (data.notice ? '<br><span style="color:var(--color-muted)">' + esc(data.notice) + '</span>' : '');
     if (data.pdfBase64) {
       const bytes = Uint8Array.from(atob(data.pdfBase64), c => c.charCodeAt(0));
       const url = URL.createObjectURL(new Blob([bytes], { type: 'application/pdf' }));
