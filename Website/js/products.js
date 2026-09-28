@@ -2,7 +2,9 @@
 // PRODUKTE — laden aus Supabase-Datenbank
 // ============================================================
 
-// Alle Produkte laden (mit 4 Sekunden Timeout)
+// Alle Produkte laden (mit 4 Sekunden Timeout).
+// Kategorie wird mitgeladen (Slug + Name) — z. B. um Bundles zu erkennen
+// (category_slug === 'bundles') oder für die Suche (category_name).
 async function loadProducts() {
   try {
     const timeout = new Promise((_, reject) =>
@@ -10,13 +12,17 @@ async function loadProducts() {
     );
     const query = db
       .from('products')
-      .select('*')
+      .select('*, categories(slug, name)')
       .eq('active', true)
       .order('created_at', { ascending: false });
 
     const { data, error } = await Promise.race([query, timeout]);
     if (error || !data || data.length === 0) return [];
-    return data;
+    return data.map(p => ({
+      ...p,
+      category_slug: p.categories?.slug || null,
+      category_name: p.categories?.name || null,
+    }));
   } catch {
     return [];
   }

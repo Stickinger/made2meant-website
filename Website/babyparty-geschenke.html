@@ -40,17 +40,10 @@
     .lp-hero h1 { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.12; margin-bottom: 14px; }
     .lp-hero p { font-size: 1.05rem; color: var(--color-muted); line-height: 1.7; }
 
-    .prodgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 30px 0 8px; }
-    @media (max-width: 900px) { .prodgrid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 520px) { .prodgrid { grid-template-columns: 1fr 1fr; } }
-    .prodcard { position: relative; aspect-ratio: 1/1; border-radius: var(--radius-lg); overflow: hidden; display: flex; align-items: flex-end; padding: 14px; color: var(--color-heading); background: linear-gradient(140deg, #EFE7DA, #E1CDB2); box-shadow: inset 0 0 50px rgba(40,30,22,0.05); transition: transform var(--transition), box-shadow var(--transition); }
-    .prodcard:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); text-decoration: none; }
-    .prodcard span { position: relative; z-index: 1; font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
-    .prodcard--main { background: linear-gradient(140deg, #E7D8C2, #CDB393); }
-
-    .lp-sections { max-width: 760px; margin: 34px 0 0; }
-    .lp-sections h2 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); line-height: 1.25; margin: 30px 0 10px; color: var(--color-heading); }
-    .lp-sections p { color: var(--color-text); line-height: 1.85; margin-bottom: 12px; }
+    .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 30px 0 8px; }
+    @media (max-width: 900px) { .pgrid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px) { .pgrid { grid-template-columns: 1fr 1fr; } }
+    .pcard__img { background: linear-gradient(140deg, #EFE7DA, #E1CDB2); }
 
     .lp-faq { max-width: 760px; margin: 40px 0 0; }
     .lp-faq h2 { font-size: clamp(1.4rem, 2.4vw, 1.9rem); margin-bottom: 14px; }
@@ -95,7 +88,7 @@
   <div class="announcebar">
     <div class="announcebar__inner">
       <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>Mit Sorgfalt in Österreich bestickt</span>
-      <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg>Kostenloser Versand ab 119 €</span>
+      <span class="announcebar__item shipbar" id="shipping-bar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 7h13v8H3z"/><path d="M16 10h3l2 3v2h-5"/><circle cx="7" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/></svg><span class="shipbar__label">Kostenloser Versand ab 119 €</span><span class="shipbar__track"><span class="shipbar__fill"></span></span></span>
       <span class="announcebar__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg>Feinste Stoffe für die Kleinen</span>
     </div>
   </div>
@@ -140,28 +133,12 @@
         <p>Bei der Babyparty steht der Name oft noch nicht fest – oder er ist gut gehütetes Geheimnis. Deshalb hast du bei uns drei Möglichkeiten: Du schenkst etwas mit Nachnamen, Datum oder Motiv, du schenkst etwas für die werdende Mama – oder du wählst „Name folgt“ und die Eltern lassen den Namen nach der Geburt einsticken.</p>
       </section>
 
-      <div class="prodgrid">
-        <a class="prodcard prodcard--main" href="/shop.html?anlass=babyshower"><span>Geschenksets</span></a>
-        <a class="prodcard prodcard--main" href="/shop.html?anlass=babyshower"><span>Spucktücher &amp; Lätzchen</span></a>
-        <a class="prodcard prodcard--main" href="/shop.html?anlass=babyshower"><span>Stickgutschein „Name folgt“</span></a>
-        <a class="prodcard prodcard--main" href="/shop.html?anlass=babyshower"><span>Wickeltasche</span></a>
-        <a class="prodcard" href="/shop.html?anlass=babyshower"><span>Babydecke</span></a>
-        <a class="prodcard" href="/shop.html?anlass=babyshower"><span>Kapuzenhandtuch</span></a>
-        <a class="prodcard" href="/shop.html?anlass=babyshower"><span>Bademantel für Mama</span></a>
-        <a class="prodcard" href="/shop.html?anlass=babyshower"><span>Shirt / Kappe „Mama“ bzw. „Papa“</span></a>
-      </div>
-
-      <section class="lp-sections">
-      <h2>Name noch geheim? So funktioniert „Name folgt“</h2>
-      <p>Du suchst das Geschenk aus und bezahlst es. Die Eltern bekommen eine hübsche Karte mit einem persönlichen Code. Sobald das Baby da ist, geben sie den Namen online ein – und wir besticken und verschicken das Stück. So bleibt die Überraschung auf beiden Seiten.</p>
-      <h2>Babyparty-Geschenke ohne Vornamen</h2>
-      <p>Auch ohne Vornamen wird es persönlich: mit dem Familiennamen („Baby Huber“), dem errechneten Geburtstermin, einem „Hallo Baby“ oder einem Motiv. Besonders beliebt sind Spucktücher und Lätzchen im Set – die braucht man vom ersten Tag an.</p>
-      <h2>Geschenke für die werdende Mama</h2>
-      <p>Die Babyparty feiert auch die Mama. Eine bestickte Wickeltasche, ein Bademantel für die ersten Wochen oder ein Spucktuch mit „Mama“ sind Geschenke, die im Alltag wirklich verwendet werden.</p>
-      <h2>Gemeinsam schenken: Gruppengeschenke</h2>
-      <p>Legt ihr als Freundeskreis zusammen? Unsere Geschenksets verbinden mehrere Teile in einer Box – etwa Decke, Kapuzenhandtuch und Lätzchen – und werden zusammen verpackt und verschickt.</p>
-      <h2>Babyparty oder Babyshower?</h2>
-      <p>Beides meint dasselbe: eine Feier für die werdenden Eltern, meist in den letzten Wochen vor dem Geburtstermin. Der Begriff Babyshower kommt aus den USA, im deutschsprachigen Raum sagt man meist Babyparty.</p>
+      <section class="section" style="padding-top:8px">
+        <div class="sec-head sec-head--row">
+          <div><span class="label-style">Geschenksets</span><h2>Babyparty-Sets</h2></div>
+          <a href="/shop.html?anlass=babyshower" class="btn btn--ghost">Alle ansehen →</a>
+        </div>
+        <div class="pgrid" id="bundle-grid"><p class="loading">Wird geladen…</p></div>
       </section>
 
       <section class="lp-faq">
@@ -215,6 +192,24 @@
   <script src="/js/supabase.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/cart.js"></script>
-  <script>updateNav(); updateCartBadge();</script>
+  <script src="/js/products.js"></script>
+  <script>
+    updateNav(); updateCartBadge();
+
+    function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
+    function bundleCard(p) {
+      const img = p.image_url ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>` : `<div class="pcard__img"></div>`;
+      return `<a class="pcard" href="/product.html?slug=${p.slug}">${img}<div class="pcard__name">${p.name}</div><div class="pcard__price">${euro(p.price)}</div></a>`;
+    }
+
+    // Zeigt Produkte aus der Admin-Kategorie "Bundles", die mit dem Anlass-Tag "babyshower" versehen sind.
+    (async function loadBundles() {
+      const grid = document.getElementById('bundle-grid');
+      if (!grid) return;
+      const products = await loadProducts();
+      const bundles = products.filter(p => p.category_slug === 'bundles' && (p.tags || []).map(t => t.toLowerCase()).includes('babyshower'));
+      grid.innerHTML = bundles.length ? bundles.map(bundleCard).join('') : '<p class="empty" style="grid-column:1/-1">Für die Babyparty sind aktuell keine Sets verfügbar. <a href="/shop.html?anlass=babyshower">Alle Babyparty-Geschenke ansehen →</a></p>';
+    })();
+  </script>
 </body>
 </html>

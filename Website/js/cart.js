@@ -109,10 +109,40 @@ async function resolveDiscount(subtotal) {
 // Rotes Zähler-Badge auf dem Warenkorb-Icon updaten
 function updateCartBadge() {
   const badge = document.getElementById('cart-badge');
-  if (!badge) return;
-  const count = getCartCount();
-  badge.textContent = count;
-  badge.style.display = count > 0 ? 'inline' : 'none';
+  if (badge) {
+    const count = getCartCount();
+    badge.textContent = count;
+    badge.style.display = count > 0 ? 'inline' : 'none';
+  }
+  updateShippingBar();
+}
+
+// ── KOSTENLOSER VERSAND: Fortschritt in der Ankündigungsleiste ──
+// (Grenze auch in cart.html/checkout.html/create-checkout-session — beim
+// Ändern überall anpassen)
+const FREE_SHIPPING_THRESHOLD = 119;
+
+function updateShippingBar() {
+  const bar = document.getElementById('shipping-bar');
+  if (!bar) return; // Seite hat keine Ankündigungsleiste
+  const label = bar.querySelector('.shipbar__label');
+  const fill = bar.querySelector('.shipbar__fill');
+  const total = getCartTotal();
+  const pct = Math.max(0, Math.min(100, (total / FREE_SHIPPING_THRESHOLD) * 100));
+  if (fill) fill.style.width = pct + '%';
+
+  if (total <= 0) {
+    bar.classList.remove('shipbar--active', 'shipbar--done');
+    if (label) label.textContent = 'Kostenloser Versand ab 119 €';
+  } else if (total >= FREE_SHIPPING_THRESHOLD) {
+    bar.classList.add('shipbar--active', 'shipbar--done');
+    if (label) label.textContent = 'Du hast kostenlosen Versand! 🎉';
+  } else {
+    bar.classList.add('shipbar--active');
+    bar.classList.remove('shipbar--done');
+    const remaining = FREE_SHIPPING_THRESHOLD - total;
+    if (label) label.textContent = 'Noch € ' + remaining.toFixed(2).replace('.', ',') + ' bis zum kostenlosen Versand';
+  }
 }
 
 // Kleine grüne Meldung unten rechts
