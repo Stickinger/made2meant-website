@@ -46,25 +46,42 @@
     .search-box input { width: 100%; background: #fff; border: 1px solid var(--color-border); border-radius: var(--radius); padding: 11px 16px 11px 40px; font-family: var(--font-main); font-size: 0.92rem; color: var(--color-text); }
     .search-box input:focus { border-color: var(--color-primary); }
     .search-box__icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--color-muted); pointer-events: none; display: flex; }
-    .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-    .filter-tab { padding: 8px 16px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff; color: var(--color-text); font-family: var(--font-main); font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.15s; }
-    .filter-tab:hover { border-color: var(--color-primary); color: var(--color-primary); }
-    .filter-tab.active { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
     .shop-count { color: var(--color-muted); font-size: 0.85rem; margin-bottom: 22px; }
 
-    /* Sortier-Dropdown */
+    /* Filter-Leiste: Dropdowns (Produktart / Farbe / Preis / Anlass) + Sortierung */
+    .filterbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .fdrop { position: relative; }
+    .fdrop__btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid var(--color-border);
+      border-radius: 99px; background: #fff; font-family: var(--font-main); font-size: 0.82rem; font-weight: 600; color: var(--color-text); cursor: pointer; }
+    .fdrop__btn:hover, .fdrop.open .fdrop__btn { border-color: var(--color-text); }
+    .fdrop__btn.has-value { background: var(--color-text); border-color: var(--color-text); color: #fff; }
+    .fdrop__btn svg { width: 12px; height: 12px; transition: transform 0.2s; }
+    .fdrop.open .fdrop__btn svg { transform: rotate(180deg); }
+    .fdrop__panel { display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 50; min-width: 230px; max-height: 340px; overflow-y: auto;
+      background: #fff; border: 1px solid var(--color-border); border-radius: 18px; box-shadow: 0 18px 40px rgba(43,18,14,0.12); padding: 8px; }
+    .fdrop.open .fdrop__panel { display: block; }
+    .fopt { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; cursor: pointer; font-size: 0.88rem; color: var(--color-text); }
+    .fopt:hover { background: var(--color-surface-2); }
+    .fopt input { width: 16px; height: 16px; accent-color: var(--color-text); cursor: pointer; margin: 0; }
+    .fopt__count { margin-left: auto; color: var(--color-muted); font-size: 0.78rem; }
+    .fopt--empty { color: var(--color-muted); font-size: 0.82rem; padding: 9px 10px; }
+    .color-dot { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); flex: 0 0 auto; }
     .sort-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; }
     .sort-wrap label { font-size: 0.8rem; color: var(--color-muted); white-space: nowrap; }
-    .sort-select { padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff; font-family: var(--font-main); font-size: 0.85rem; font-weight: 600; color: var(--color-text); cursor: pointer; }
-    .sort-select:focus { border-color: var(--color-primary); outline: none; }
-
-    /* Filter-Gruppen (Produkt / Anlass / Farbe) */
-    .filter-groups { display: flex; flex-direction: column; gap: 12px; margin-bottom: 22px; }
-    .fgroup { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .fgroup__label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--color-muted); min-width: 70px; }
-    .color-tabs .filter-tab { display: inline-flex; align-items: center; gap: 7px; }
-    .color-dot { width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15); flex: 0 0 auto; }
-    @media (max-width: 620px) { .fgroup__label { min-width: 100%; } }
+    .sort-select { padding: 10px 14px; border: 1px solid var(--color-border); border-radius: 99px; background: #fff; font-family: var(--font-main); font-size: 0.82rem; font-weight: 600; color: var(--color-text); cursor: pointer; }
+    .sort-select:focus { border-color: var(--color-text); outline: none; }
+    .active-filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 0; margin-bottom: 18px; }
+    .afchip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 8px 6px 12px; border-radius: 99px; background: var(--color-surface-2);
+      border: 0; font-family: var(--font-main); font-size: 0.78rem; color: var(--color-text); cursor: pointer; }
+    .afchip span { font-size: 1rem; line-height: 1; color: var(--color-muted); }
+    .afchip:hover span { color: var(--color-text); }
+    .afclear { background: none; border: 0; font-family: var(--font-main); font-size: 0.78rem; color: var(--color-muted); text-decoration: underline; cursor: pointer; }
+    @media (max-width: 620px) {
+      .sort-wrap { margin-left: 0; width: 100%; }
+      .fdrop { position: static; }
+      .filterbar { position: relative; }
+      .fdrop__panel { left: 0; right: 0; min-width: 0; }
+    }
 
     .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 26px; padding-bottom: 40px; }
     @media (max-width: 1000px) { .pgrid { grid-template-columns: repeat(3, 1fr); } }
@@ -150,21 +167,24 @@
           <span class="search-box__icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></span>
           <input type="text" id="search-input" placeholder="Suchen…" aria-label="Produkte durchsuchen" oninput="filterProducts()">
         </div>
+      </div>
+
+      <div class="filterbar" id="filterbar">
+        <div class="fdrop" data-group="typ"><button type="button" class="fdrop__btn" aria-expanded="false">Produktart <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 4.5 3 3 3-3"/></svg></button><div class="fdrop__panel" role="group" aria-label="Nach Produktart filtern"></div></div>
+        <div class="fdrop" data-group="farbe"><button type="button" class="fdrop__btn" aria-expanded="false">Farbe <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 4.5 3 3 3-3"/></svg></button><div class="fdrop__panel" role="group" aria-label="Nach Farbe filtern"></div></div>
+        <div class="fdrop" data-group="preis"><button type="button" class="fdrop__btn" aria-expanded="false">Preis <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 4.5 3 3 3-3"/></svg></button><div class="fdrop__panel" role="group" aria-label="Nach Preis filtern"></div></div>
+        <div class="fdrop" data-group="anlass"><button type="button" class="fdrop__btn" aria-expanded="false">Anlass <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m3 4.5 3 3 3-3"/></svg></button><div class="fdrop__panel" role="group" aria-label="Nach Anlass filtern"></div></div>
         <div class="sort-wrap">
           <label for="sort-select">Sortieren</label>
           <select id="sort-select" class="sort-select" onchange="setSort(this.value)">
             <option value="beliebt">Beliebtheit</option>
+            <option value="neu">Neueste</option>
             <option value="price-asc">Preis: aufsteigend</option>
             <option value="price-desc">Preis: absteigend</option>
           </select>
         </div>
       </div>
-
-      <div class="filter-groups">
-        <div class="fgroup"><span class="fgroup__label">Produkt</span><div class="filter-tabs" id="type-tabs" role="group" aria-label="Nach Produkt filtern"></div></div>
-        <div class="fgroup"><span class="fgroup__label">Anlass</span><div class="filter-tabs" id="occasion-tabs" role="group" aria-label="Nach Anlass filtern"></div></div>
-        <div class="fgroup" id="color-group"><span class="fgroup__label">Farbe</span><div class="filter-tabs color-tabs" id="color-tabs" role="group" aria-label="Nach Farbe filtern"></div></div>
-      </div>
+      <div class="active-filters" id="active-filters"></div>
 
       <p class="shop-count" id="shop-count" aria-live="polite"></p>
       <div class="pgrid" id="product-grid"><p class="loading">Produkte werden geladen…</p></div>
@@ -196,6 +216,7 @@
   <script src="/js/cart.js"></script>
   <script src="/js/newsletter-popup.js"></script>
   <script src="/js/products.js"></script>
+  <script src="/js/catalog.js"></script>
   <script src="/js/track.js"></script>
 
   <script>
@@ -205,68 +226,129 @@
     window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
 
     let allProducts = [];
-    const filters = { typ: 'all', anlass: 'all', farbe: 'all' };
+    // Mehrfachauswahl je Gruppe (wie in den meisten Shops): innerhalb einer
+    // Gruppe "oder", zwischen den Gruppen "und"
+    const filters = { typ: new Set(), farbe: new Set(), preis: new Set(), anlass: new Set() };
     let sortBy = 'beliebt';
 
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
     function firstName(p) { const m = (p.name || '').match(/[A-Za-zÄÖÜäöüß]+/); return m ? m[0] : 'made2meant'; }
+    function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
     function haystack(p) { return (p.name + ' ' + (p.description || '') + ' ' + (p.tags || []).join(' ') + ' ' + (p.category_name || '')).toLowerCase(); }
-    function productColors(p) { const o = (p.options || []).find(o => /kappe|farbe/i.test(o.name)); return o ? (o.values || []) : []; }
 
-    // ── Filter-Definitionen ──
-    const TYPES = [
-      { key: 'all',         label: 'Alle',        match: () => true },
-      { key: 'handtuch',    label: 'Handtuch',    match: p => /handtuch/.test(haystack(p)) },
-      { key: 'kapuzentuch', label: 'Kapuzentuch', match: p => /kapuze/.test(haystack(p)) },
-      { key: 'hauben',      label: 'Hauben',      match: p => /haube/.test(haystack(p)) },
-      { key: 'musselin',    label: 'Musselin',    match: p => /musselin|mull|nuschi|spucktuch|swaddle|puck/.test(haystack(p)) },
-      { key: 'spielzeug',   label: 'Spielzeug',   match: p => /spielzeug|kuscheltier|greifling|rassel|spieluhr|schmusetuch|kuscheltuch/.test(haystack(p)) },
-    ];
     const OCCASIONS = [
-      { key: 'all',        label: 'Alle',       match: () => true },
-      { key: 'taufe',      label: 'Taufe',      match: p => /tauf/.test(haystack(p)) },
-      { key: 'geburt',     label: 'Geburt',     match: p => /geburt|newborn/.test(haystack(p)) },
-      { key: 'babyshower', label: 'Babyshower', match: p => /babyshower|baby.?shower|baby.?party/.test(haystack(p)) },
-      { key: 'geburtstag', label: 'Geburtstag', match: p => /geburtstag/.test(haystack(p)) },
+      { key: 'geburt',     label: 'Geburt',      match: p => /geburt(?!stag)|newborn/.test(haystack(p)) },
+      { key: 'taufe',      label: 'Taufe',       match: p => /tauf/.test(haystack(p)) },
+      { key: 'geburtstag', label: 'Geburtstag',  match: p => /geburtstag/.test(haystack(p)) },
+      { key: 'babyshower', label: 'Babyparty',   match: p => /babyshower|baby.?shower|baby.?party/.test(haystack(p)) },
+      { key: 'mama-papa',  label: 'Mama & Papa', match: p => /mama|papa|eltern/.test(haystack(p)) },
     ];
-    const COLOR_HEX = { 'weiß':'#F0EDE8','weiss':'#F0EDE8','creme':'#EFE7DA','natur':'#E7DCCB','beige':'#C4A882','sand':'#E7DCCB','grau':'#A8A9AD','silber':'#A8A9AD','schwarz':'#1a1a1a','anthrazit':'#3a3a3a','navy':'#1B2A4A','blau':'#5B9EC9','hellblau':'#5B9EC9','rosa':'#D4789E','altrosa':'#C98B93','rot':'#7B1C2E','bordeaux':'#7B1C2E','grün':'#42553d','gruen':'#42553d','salbei':'#8DA190','mint':'#A8CBB7','gelb':'#C9A84C','gold':'#C9A84C','terracotta':'#C56A47','braun':'#8a5a3b' };
-    function colorHex(name) { return COLOR_HEX[(name || '').toLowerCase().trim()] || '#D8CBB8'; }
 
-    function typeMatch(p)  { const t = TYPES.find(x => x.key === filters.typ);       return !t || t.match(p); }
-    function occMatch(p)   { const o = OCCASIONS.find(x => x.key === filters.anlass); return !o || o.match(p); }
-    function colorMatch(p) { return filters.farbe === 'all' || productColors(p).some(c => c.toLowerCase() === filters.farbe.toLowerCase()); }
-
-    function chip(group, key, label, active, swatch) {
-      return `<button class="filter-tab" data-group="${group}" data-key="${key}" aria-pressed="${active ? 'true' : 'false'}" onclick="pickFilter('${group}','${String(key).replace(/'/g, "\\'")}')">${swatch ? `<span class="color-dot" style="background:${swatch}"></span>` : ''}${label}</button>`;
+    // ── Eigenschaften eines Produkts (Admin-Felder zuerst, sonst Fallback) ──
+    function productType(p) {
+      if (p.product_type) return p.product_type;
+      const t = PRODUCT_TYPES.find(t => t.match.test(haystack(p)));
+      return t ? t.key : null;
+    }
+    function productColors(p) {
+      if (Array.isArray(p.colors) && p.colors.length) return p.colors;
+      const o = (p.options || []).find(o => /kappe|farbe/i.test(o.name));
+      return o ? (o.values || []) : [];
+    }
+    function hasOccasion(p, key) {
+      const tags = (p.tags || []).map(t => String(t).toLowerCase());
+      if (tags.includes(key)) return true;
+      const o = OCCASIONS.find(o => o.key === key);
+      return !!o && o.match(p);
     }
 
-    function renderFilterBars() {
-      document.getElementById('type-tabs').innerHTML = TYPES.map(t => chip('typ', t.key, t.label, filters.typ === t.key)).join('');
-      document.getElementById('occasion-tabs').innerHTML = OCCASIONS.map(o => chip('anlass', o.key, o.label, filters.anlass === o.key)).join('');
-      const colors = [];
-      allProducts.forEach(p => productColors(p).forEach(c => { if (c && !colors.some(x => x.toLowerCase() === c.toLowerCase())) colors.push(c); }));
-      const colorGroup = document.getElementById('color-group');
-      if (!colors.length) { colorGroup.style.display = 'none'; return; }
-      colorGroup.style.display = '';
-      document.getElementById('color-tabs').innerHTML =
-        chip('farbe', 'all', 'Alle', filters.farbe === 'all') +
-        colors.map(c => chip('farbe', c, c, filters.farbe.toLowerCase() === c.toLowerCase(), colorHex(c))).join('');
+    const GROUPS = {
+      typ:    { label: 'Produktart', options: () => PRODUCT_TYPES.map(t => ({ key: t.key, label: t.label })),
+                test: (p, k) => productType(p) === k },
+      farbe:  { label: 'Farbe', options: () => PRODUCT_COLORS.map(c => ({ key: c.name.toLowerCase(), label: c.name, swatch: c.hex })),
+                test: (p, k) => productColors(p).some(c => String(c).toLowerCase() === k) },
+      preis:  { label: 'Preis', options: () => PRICE_RANGES.map(r => ({ key: r.key, label: r.label })),
+                test: (p, k) => { const r = PRICE_RANGES.find(r => r.key === k); const pr = Number(p.price) || 0; return !!r && pr >= r.min && pr < r.max; } },
+      anlass: { label: 'Anlass', options: () => OCCASIONS.map(o => ({ key: o.key, label: o.label })),
+                test: (p, k) => hasOccasion(p, k) },
+    };
+
+    function matchesGroup(p, g) {
+      const sel = filters[g];
+      return !sel.size || [...sel].some(k => GROUPS[g].test(p, k));
+    }
+    function searchQuery() { return document.getElementById('search-input').value.toLowerCase().trim(); }
+    function matchesSearch(p, q) {
+      return !q || p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q));
+    }
+    // Produkte, die alle Filter AUSSER der Gruppe `skip` erfüllen (für die Anzahl je Option)
+    function filtered(skip) {
+      const q = searchQuery();
+      return allProducts.filter(p => matchesSearch(p, q) && Object.keys(GROUPS).every(g => g === skip || matchesGroup(p, g)));
     }
 
-    function setActive(group) {
-      document.querySelectorAll(`.filter-tab[data-group="${group}"]`).forEach(t => {
-        const on = t.dataset.key.toLowerCase() === String(filters[group]).toLowerCase();
-        t.classList.toggle('active', on); t.setAttribute('aria-pressed', on ? 'true' : 'false');
+    // ── Dropdowns ──
+    function renderDropdowns() {
+      document.querySelectorAll('.fdrop').forEach(drop => {
+        const g = drop.dataset.group;
+        const base = filtered(g);
+        // Farben/Produktarten nur zeigen, wenn es sie im Sortiment gibt; Preis & Anlass immer
+        let opts = GROUPS[g].options().map(o => ({ ...o, count: base.filter(p => GROUPS[g].test(p, o.key)).length }));
+        if (g === 'typ' || g === 'farbe') {
+          opts = opts.filter(o => o.count > 0 || filters[g].has(o.key)
+            || allProducts.some(p => GROUPS[g].test(p, o.key)));
+        }
+        // Solange kein Produkt eine Farbe/Produktart hat, das Dropdown ausblenden
+        drop.style.display = opts.length ? '' : 'none';
+        const panel = drop.querySelector('.fdrop__panel');
+        panel.innerHTML = opts.length
+          ? opts.map(o => `<label class="fopt"><input type="checkbox" value="${esc(o.key)}" ${filters[g].has(o.key) ? 'checked' : ''} onchange="toggleFilter('${g}', this.value, this.checked)">${o.swatch ? `<span class="color-dot" style="background:${o.swatch}"></span>` : ''}${esc(o.label)}<span class="fopt__count">${o.count}</span></label>`).join('')
+          : '<div class="fopt--empty">Noch keine Auswahl verfügbar.</div>';
+        const btn = drop.querySelector('.fdrop__btn');
+        const n = filters[g].size;
+        btn.classList.toggle('has-value', n > 0);
+        btn.firstChild.textContent = GROUPS[g].label + (n ? ` (${n})` : '') + ' ';
       });
     }
 
-    function pickFilter(group, key) { filters[group] = key; setActive(group); applyFilters(); }
+    function renderActiveFilters() {
+      const chips = [];
+      Object.keys(GROUPS).forEach(g => filters[g].forEach(k => {
+        const o = GROUPS[g].options().find(o => o.key === k);
+        chips.push(`<button type="button" class="afchip" onclick="toggleFilter('${g}', '${esc(k)}', false)">${esc(o ? o.label : k)} <span aria-hidden="true">×</span><span class="sr-only">entfernen</span></button>`);
+      }));
+      document.getElementById('active-filters').innerHTML = chips.length
+        ? chips.join('') + '<button type="button" class="afclear" onclick="clearFilters()">Alle zurücksetzen</button>' : '';
+    }
+
+    function toggleFilter(g, key, on) {
+      if (on) filters[g].add(key); else filters[g].delete(key);
+      applyFilters();
+    }
+    function clearFilters() { Object.values(filters).forEach(s => s.clear()); applyFilters(); }
     function setSort(v) { sortBy = v; applyFilters(); }
+
+    // Öffnen/Schließen: immer nur ein Dropdown offen, Klick daneben oder Esc schließt
+    document.querySelectorAll('.fdrop__btn').forEach(btn => btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const drop = btn.closest('.fdrop');
+      const willOpen = !drop.classList.contains('open');
+      closeDropdowns();
+      drop.classList.toggle('open', willOpen);
+      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    }));
+    document.querySelectorAll('.fdrop__panel').forEach(p => p.addEventListener('click', e => e.stopPropagation()));
+    function closeDropdowns() {
+      document.querySelectorAll('.fdrop.open').forEach(d => { d.classList.remove('open'); d.querySelector('.fdrop__btn').setAttribute('aria-expanded', 'false'); });
+    }
+    document.addEventListener('click', closeDropdowns);
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDropdowns(); });
 
     function sortList(list) {
       const arr = list.slice();
       if (sortBy === 'price-asc') arr.sort((a, b) => (a.price || 0) - (b.price || 0));
       else if (sortBy === 'price-desc') arr.sort((a, b) => (b.price || 0) - (a.price || 0));
+      else if (sortBy === 'neu') arr.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
       else arr.sort((a, b) => (b.bestseller ? 1 : 0) - (a.bestseller ? 1 : 0) || (new Date(b.created_at || 0) - new Date(a.created_at || 0)));
       return arr;
     }
@@ -274,8 +356,8 @@
     function shopCard(p) {
       const img = p.image_url
         ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>`
-        : `<div class="pcard__img"><span class="stitch-name">${firstName(p)}</span></div>`;
-      return `<a class="pcard" href="/product.html?slug=${p.slug}">${img}<div class="pcard__name">${p.name}</div><div class="pcard__price">${euro(p.price)}</div></a>`;
+        : `<div class="pcard__img"><span class="stitch-name">${esc(firstName(p))}</span></div>`;
+      return `<a class="pcard" href="/product.html?slug=${encodeURIComponent(p.slug)}">${img}<div class="pcard__name">${esc(p.name)}</div><div class="pcard__price">${euro(p.price)}</div></a>`;
     }
 
     function renderGrid(list) {
@@ -287,14 +369,14 @@
     }
 
     function applyFilters() {
-      const q = document.getElementById('search-input').value.toLowerCase().trim();
-      let list = allProducts.filter(p => typeMatch(p) && occMatch(p) && colorMatch(p));
-      if (q) list = list.filter(p => p.name.toLowerCase().includes(q) || (p.description || '').toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q)));
-      renderGrid(sortList(list));
+      renderGrid(sortList(filtered(null)));
+      renderDropdowns();
+      renderActiveFilters();
 
       const url = new URL(location);
-      ['typ', 'anlass', 'farbe'].forEach(g => { if (filters[g] && filters[g] !== 'all') url.searchParams.set(g, filters[g]); else url.searchParams.delete(g); });
+      Object.keys(GROUPS).forEach(g => { if (filters[g].size) url.searchParams.set(g, [...filters[g]].join(',')); else url.searchParams.delete(g); });
       if (sortBy !== 'beliebt') url.searchParams.set('sort', sortBy); else url.searchParams.delete('sort');
+      const q = searchQuery();
       if (q) url.searchParams.set('q', q); else url.searchParams.delete('q');
       history.replaceState(null, '', url);
     }
@@ -307,20 +389,20 @@
       allProducts = products;
 
       const params = new URLSearchParams(location.search);
-      if (params.get('typ')) filters.typ = params.get('typ');
-      if (params.get('anlass')) filters.anlass = params.get('anlass');
-      if (params.get('farbe')) filters.farbe = params.get('farbe');
+      Object.keys(GROUPS).forEach(g => {
+        (params.get(g) || '').split(',').map(v => v.trim().toLowerCase()).filter(Boolean).forEach(v => {
+          if (g === 'typ') v = PRODUCT_TYPE_ALIASES[v] || v;
+          if (v !== 'all') filters[g].add(v);
+        });
+      });
       if (params.get('sort')) sortBy = params.get('sort');
 
       const q = params.get('q');
-      const occKeys = OCCASIONS.map(o => o.key);
       if (q) {
-        if (occKeys.includes(q.toLowerCase())) filters.anlass = q.toLowerCase();   // ?q=taufe → Anlass-Filter
+        if (OCCASIONS.some(o => o.key === q.toLowerCase())) filters.anlass.add(q.toLowerCase());   // ?q=taufe → Anlass-Filter
         else document.getElementById('search-input').value = q;
       }
-      if (params.get('cat') === 'bestseller') sortBy = 'beliebt';                  // Legacy-Link
 
-      renderFilterBars();
       const sortSel = document.getElementById('sort-select'); if (sortSel) sortSel.value = sortBy;
       applyFilters();
     }
