@@ -32,10 +32,6 @@
     .lp-breadcrumb a { color: var(--color-muted); }
     .lp-breadcrumb a:hover { color: var(--color-primary); }
     .lp-breadcrumb span { color: var(--color-text); }
-    .lp-hero { padding: 20px 0 8px; max-width: 760px; }
-    .lp-hero .label-style { display: block; margin-bottom: 10px; }
-    .lp-hero h1 { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.12; margin-bottom: 14px; }
-    .lp-hero p { font-size: 1.05rem; color: var(--color-muted); line-height: 1.7; }
 
     .prodgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin: 30px 0 8px; }
     @media (max-width: 900px) { .prodgrid { grid-template-columns: repeat(2, 1fr); } }
@@ -132,11 +128,7 @@
     <div class="container">
       <nav class="lp-breadcrumb" aria-label="Brotkrümel"><a href="/">Start</a> / <span>Geschenke nach Anlass</span></nav>
 
-      <section class="lp-hero">
-        <span class="label-style">Geschenke nach Anlass</span>
-        <h1>Babygeschenke mit Namen – für jeden Anlass</h1>
-        <p>Vom ersten Geschenk vor der Geburt bis zum dritten Geburtstag: Bei uns wird jedes Stück mit Namen, Datum oder Motiv bestickt. Wähle den Anlass – wir zeigen dir, was dazu passt.</p>
-      </section>
+      <h1 class="sr-only">Babygeschenke mit Namen – für jeden Anlass</h1>
 
       <div class="prodgrid">
         <a class="prodcard prodcard--main" href="/babyparty-geschenke"><span>Babyparty →</span></a>

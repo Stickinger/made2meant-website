@@ -33,10 +33,6 @@
     .lp-breadcrumb a { color: var(--color-muted); }
     .lp-breadcrumb a:hover { color: var(--color-primary); }
     .lp-breadcrumb span { color: var(--color-text); }
-    .lp-hero { padding: 20px 0 8px; max-width: 760px; }
-    .lp-hero .label-style { display: block; margin-bottom: 10px; }
-    .lp-hero h1 { font-size: clamp(2rem, 4.2vw, 3rem); line-height: 1.12; margin-bottom: 14px; }
-    .lp-hero p { font-size: 1.05rem; color: var(--color-muted); line-height: 1.7; }
 
     .pgrid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; margin: 30px 0 8px; }
     @media (max-width: 900px) { .pgrid { grid-template-columns: repeat(2, 1fr); } }
@@ -126,13 +122,9 @@
     <div class="container">
       <nav class="lp-breadcrumb" aria-label="Brotkrümel"><a href="/">Start</a> / <a href="/babygeschenke-mit-namen">Geschenke nach Anlass</a> / <span>Babyparty</span></nav>
 
-      <section class="lp-hero">
-        <span class="label-style">Geschenke nach Anlass</span>
-        <h1>Geschenke zur Babyparty</h1>
-        <p>Bei der Babyparty steht der Name oft noch nicht fest – oder er ist gut gehütetes Geheimnis. Deshalb hast du bei uns drei Möglichkeiten: Du schenkst etwas mit Nachnamen, Datum oder Motiv, du schenkst etwas für die werdende Mama – oder du wählst „Name folgt“ und die Eltern lassen den Namen nach der Geburt einsticken.</p>
-      </section>
+      <h1 class="sr-only">Geschenke zur Babyparty</h1>
 
-      <section class="section" style="padding-top:8px">
+      <section class="section" style="padding-top:28px">
         <div class="sec-head sec-head--row">
           <div><span class="label-style">Unsere fertigen Geschenk-Sets</span><h2>Babyparty-Sets</h2></div>
           <a href="/shop.html?anlass=babyshower" class="btn btn--ghost">Alle ansehen →</a>

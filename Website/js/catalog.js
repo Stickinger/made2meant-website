@@ -8,22 +8,18 @@
 // ============================================================
 
 const PRODUCT_TYPES = [
-  { key: 'decke',         label: 'Decke',          match: /decke/ },
-  { key: 'handtuch',      label: 'Handtuch',       match: /(?<!kapuzen)handtuch/ },
-  { key: 'kapuzentuch',   label: 'Kapuzentuch',    match: /kapuze/ },
-  { key: 'haube',         label: 'Haube',          match: /haube/ },
-  { key: 'musselin',      label: 'Musselin',       match: /musselin|mull|nuschi|spucktuch|swaddle|puck/ },
-  { key: 'laetzchen',     label: 'Lätzchen',       match: /lätzchen|laetzchen/ },
-  { key: 'schnuffeltuch', label: 'Schnuffeltuch',  match: /schnuffel|schmusetuch|kuscheltuch/ },
-  { key: 'spielzeug',     label: 'Spielzeug',      match: /spielzeug|kuscheltier|greifling|rassel|spieluhr/ },
-  { key: 'polster',       label: 'Polster',        match: /polster|kissen/ },
-  { key: 'bekleidung',    label: 'Bekleidung',     match: /shirt|hoodie|kappe|bademantel|poncho|schürze/ },
-  { key: 'tasche',        label: 'Tasche',         match: /tasche|rucksack|turnbeutel/ },
-  { key: 'set',           label: 'Geschenkset',    match: /geschenkset|\bset\b|bundle|paket/ },
+  { key: 'musselin',    label: 'Musselintuch', match: /musselin|mull|nuschi|spucktuch|swaddle|puck/ },
+  { key: 'rucksack',    label: 'Rucksack',     match: /rucksack|turnbeutel/ },
+  { key: 'decke',       label: 'Babydecke',    match: /decke/ },
+  { key: 'kapuzentuch', label: 'Kapuzentuch',  match: /kapuze/ },
+  { key: 'bademantel',  label: 'Bademantel',   match: /bademantel|poncho|morgenmantel/ },
+  { key: 'set',         label: 'Geschenkset',  match: /geschenkset|geschenk-set|\bset\b|bundle|paket/ },
+  { key: 'haube',       label: 'Haube',        match: /haube/ },
+  { key: 'laetzchen',   label: 'Lätzchen',     match: /lätzchen|laetzchen/ },
 ];
 
 // Alte Links (z. B. ?typ=hauben) weiter unterstützen
-const PRODUCT_TYPE_ALIASES = { hauben: 'haube' };
+const PRODUCT_TYPE_ALIASES = { hauben: 'haube', handtuch: 'kapuzentuch', tasche: 'rucksack' };
 
 const PRODUCT_COLORS = [
   { name: 'Weiß',       hex: '#F0EDE8' },

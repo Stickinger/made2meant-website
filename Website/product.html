@@ -429,10 +429,29 @@
       return m?.url || currentProduct.image_url || '/assets/images/placeholder.png';
     }
 
+    // ── Bestickung: fixer Preis 9,90 € pro Stelle ──
+    const STITCH_PRICE = 9.90;
+    // Geschenk-Set-Aktion: jede weitere Bestickung 2,00 € günstiger
+    //   1× 9,90 · 2× 17,80 (9,90+7,90) · 3× 23,70 (9,90+7,90+5,90)
+    function isGiftSet() {
+      return Array.isArray(currentProduct?.bundle_items)
+        && currentProduct.bundle_items.filter(i => i && i.name).length > 0;
+    }
+    function embroideryPriceAt(n) {          // n = 1-basierte Reihenfolge der Bestickung
+      if (!isGiftSet()) return STITCH_PRICE;
+      return Math.max(STITCH_PRICE - (n - 1) * 2.00, 3.90);
+    }
+    function embroideryTotal(count) {
+      let sum = 0;
+      for (let i = 1; i <= count; i++) sum += embroideryPriceAt(i);
+      return sum;
+    }
+
     function currentPrice() {
       const base = Number(currentProduct.price) || 0;
       if (cfg.mode === 'ohne') return base;
-      const posAdd = POSITIONS.filter(p => p.id in cfg.positions).reduce((s, p) => s + p.price, 0);
+      const nPos = POSITIONS.filter(p => p.id in cfg.positions).length;
+      const posAdd = embroideryTotal(nPos);
       const motifAdd = MOTIFS.filter(m => cfg.selectedMotifs[m.id]).reduce((s, m) => s + m.price, 0);
       return base + posAdd + motifAdd;
     }
@@ -459,17 +478,19 @@
           </div>
         </div>` : '';
 
+      const setDeal = isGiftSet() ? `
+          <div class="fld__hint" style="color:#3F6B4C;font-weight:700">Set-Aktion: 2 Bestickungen ${euro(17.80)} statt ${euro(19.80)} · 3 Bestickungen nur ${euro(23.70)}.</div>` : '';
       const posBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
-          <div class="fld__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>
+          <div class="fld__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>${setDeal}
           <div class="pos-list">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
                 <label class="pos-card__head">
                   <input type="checkbox" onchange="togglePosition('${pos.id}', this.checked)">
                   <span class="pos-card__name">${pos.label}</span>
-                  <span class="pos-card__price">+ ${euro(pos.price)}</span>
+                  <span class="pos-card__price">+ ${euro(STITCH_PRICE)}</span>
                 </label>
                 <div class="pos-text" id="postext-${pos.id}">
                   <label for="posinput-${pos.id}">Dein Text</label>
