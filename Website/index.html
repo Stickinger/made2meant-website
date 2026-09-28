@@ -399,9 +399,9 @@
         <div class="sec-head sec-head--row">
           <div>
             <span class="label-style">Geschenkfertig</span>
-            <h2>Unsere Geschenk-Sets.</h2>
+            <h2>Unsere fertigen Geschenk-Sets.</h2>
           </div>
-          <a href="/shop.html" class="btn btn--ghost">Alle Sets ansehen →</a>
+          <a href="/shop.html?typ=set" class="btn btn--ghost">Alle Sets ansehen →</a>
         </div>
         <div class="pgrid" id="bundle-grid"><p class="loading">Wird geladen…</p></div>
       </div>
@@ -535,7 +535,7 @@
       return `<a class="pcard" href="/product.html?slug=${p.slug}">
         ${img}
         <div class="pcard__name">${p.name}</div>
-        <div class="pcard__price">${euro(p.price)}${Number(p.compare_price) > Number(p.price) ? ` <s class="pcard__was">${euro(p.compare_price)}</s>` : ''}</div>
+        <div class="pcard__price">${euro(p.price)}</div>${Number(p.compare_price) > Number(p.price) ? `<div class="pcard__was"><span>Einzeln <s>${euro(p.compare_price)}</s></span><span class="pcard__save">Du sparst ${euro(p.compare_price - p.price)}</span></div>` : ''}
       </a>`;
     }
 
@@ -712,7 +712,7 @@
       };
 
       // Geschenk-Bundles
-      fill('bundle-grid', products.filter(isBundle).slice(0, 5), 'Unsere Geschenk-Sets sind bald verfügbar.');
+      fill('bundle-grid', products.filter(isBundle).slice(0, 5), 'Unsere fertigen Geschenk-Sets sind bald verfügbar.');
 
       // Bestseller (Flag; sonst die beliebtesten Einzelprodukte)
       // Bestseller legst du im Admin per Stern fest (auch Sets möglich)

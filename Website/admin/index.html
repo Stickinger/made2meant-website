@@ -317,6 +317,13 @@
     .set-pick__qty { width: 58px !important; padding: 4px 6px !important; }
     .set-summary { font-size: 0.85rem; color: var(--color-muted); }
     .set-summary strong { color: var(--color-success, #4A7F5A); }
+    .set-gallery { display: flex; flex-wrap: wrap; gap: 16px; margin: 12px 0 6px; }
+    .set-gallery__item { width: 96px; }
+    .set-gallery__item img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); display: block; }
+    .set-gallery__item--main img { border: 2px solid var(--color-text, #2A2724); }
+    .set-gallery__tag { font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); text-align: center; margin-top: 3px; }
+    .set-gallery__btns { display: flex; gap: 3px; margin-top: 4px; justify-content: center; }
+    .set-gallery__btns .btn-sm { padding: 3px 7px; min-width: 0; font-size: 0.75rem; line-height: 1.2; }
     .set-more { border-top: 1px solid var(--color-border); padding-top: 12px; }
     .set-more summary { cursor: pointer; font-weight: 700; font-size: 0.88rem; }
     .set-card-items { font-size: 0.8rem; color: var(--color-muted); }
@@ -1034,17 +1041,21 @@
       <div class="set-step">
         <div class="set-step__num">4</div>
         <div class="set-step__body">
-          <label class="set-label">Foto vom Set</label>
-          <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
-            <img id="set-image-preview" alt="" style="display:none;width:96px;height:96px;object-fit:cover;border-radius:10px;border:1px solid var(--color-border)">
-            <label class="btn-sm btn-sm--outline" style="cursor:pointer">
-              Foto auswählen
-              <input type="file" id="set-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="handleSetImage(this.files[0]); this.value=''">
-            </label>
-            <span id="set-image-status" style="font-size:0.82rem;color:var(--color-muted)"></span>
+          <label class="set-label">Fotos vom Set</label>
+          <div class="dropzone" tabindex="0" role="button" aria-label="Fotos hochladen: hierher ziehen oder klicken"
+               onclick="document.getElementById('set-image-file').click()"
+               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();document.getElementById('set-image-file').click()}"
+               ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+               ondragleave="this.classList.remove('dropzone--over')"
+               ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleSetImages(event.dataTransfer.files)">
+            <span>Fotos hierher ziehen oder klicken
+              <small>Mehrere auf einmal möglich · PNG, JPEG, WEBP oder PDF — max. 10 MB</small>
+            </span>
+            <input type="file" id="set-image-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden multiple onchange="handleSetImages(this.files); this.value=''">
           </div>
-          <input type="hidden" id="set-image">
-          <small style="color:var(--color-muted)">Ohne eigenes Foto wird das Bild des ersten Produkts verwendet.</small>
+          <span id="set-image-status" style="display:inline-block;margin-top:6px;font-size:0.82rem;color:var(--color-muted)"></span>
+          <div id="set-gallery" class="set-gallery"></div>
+          <small style="color:var(--color-muted)">Das erste Foto ist das Hauptbild. Mit ← / → änderst du die Reihenfolge. Ohne eigenes Foto wird das Bild des ersten Produkts verwendet.</small>
         </div>
       </div>
       <div class="set-step">
@@ -1461,7 +1472,7 @@ function renderSetsList() {
           <img src="${esc(p.image_url || 'https://placehold.co/40x40/e4dfd2/99a497?text=🎁')}" style="width:40px;height:40px;border-radius:6px;object-fit:cover">
           <strong style="font-size:0.88rem">${esc(p.name)}</strong></div></td>
         <td class="set-card-items">${items}</td>
-        <td><strong>${fmt(p.price)}</strong>${p.compare_price ? `<br><small style="color:var(--color-muted);text-decoration:line-through">${fmt(p.compare_price)}</small>` : ''}</td>
+        <td><strong>${fmt(p.price)}</strong>${p.compare_price ? `<br><small style="color:var(--color-muted)">Einzeln: <s>${fmt(p.compare_price)}</s></small>` : ''}</td>
         <td style="font-size:0.8rem;color:var(--color-muted)">${occ.length ? occ.map(esc).join(', ') : '—'}</td>
         <td>${p.active ? '<span class="badge badge--green">Sichtbar</span>' : '<span class="badge badge--grey">Versteckt</span>'}</td>
         <td><div class="btn-actions">
@@ -1481,9 +1492,18 @@ async function openSetModal(id = null) {
   document.getElementById('set-desc').value = p?.description || '';
   document.getElementById('set-active').checked = p ? !!p.active : true;
   document.getElementById('set-bestseller').checked = !!p?.bestseller;
-  document.getElementById('set-image').value = p?.image_url || '';
-  const prev = document.getElementById('set-image-preview');
-  prev.src = p?.image_url || ''; prev.style.display = p?.image_url ? 'block' : 'none';
+  // Fotos: Hauptbild + Galerie (product_images ohne Options-Tags)
+  setImages = p?.image_url ? [p.image_url] : [];
+  setGalleryRowIds = [];
+  if (p?.id) {
+    const { data: imgs } = await db.from('product_images')
+      .select('id, url, option_values, sort_order').eq('product_id', p.id).order('sort_order');
+    (imgs || []).filter(r => !r.option_values || Object.keys(r.option_values).length === 0).forEach(r => {
+      setGalleryRowIds.push(r.id);
+      if (r.url && !setImages.includes(r.url)) setImages.push(r.url);
+    });
+  }
+  renderSetGallery();
   document.getElementById('set-image-status').textContent = '';
   document.getElementById('set-search').value = '';
 
@@ -1549,16 +1569,41 @@ function updateSetSummary() {
   el.innerHTML = txt;
 }
 
-async function handleSetImage(file) {
-  if (!file) return;
+// Fotos des Sets: setImages[0] = Hauptbild, Rest = Galerie
+let setImages = [], setGalleryRowIds = [];
+
+async function handleSetImages(files) {
+  const list = [...(files || [])].filter(Boolean);
+  if (!list.length) return;
   const status = document.getElementById('set-image-status');
-  status.textContent = 'Lädt hoch…';
-  const url = await uploadToStorage(file);
-  if (!url) { status.textContent = ''; return; }
-  document.getElementById('set-image').value = url;
-  const prev = document.getElementById('set-image-preview');
-  prev.src = url; prev.style.display = 'block';
-  status.textContent = 'Hochgeladen ✓';
+  let done = 0;
+  for (const f of list) {
+    status.textContent = `Lädt hoch… (${done + 1}/${list.length})`;
+    const url = await uploadToStorage(f);
+    if (url) { setImages.push(url); renderSetGallery(); }
+    done++;
+  }
+  status.textContent = `${done} Foto(s) hinzugefügt ✓`;
+}
+function moveSetImage(i, dir) {
+  const j = i + dir;
+  if (j < 0 || j >= setImages.length) return;
+  [setImages[i], setImages[j]] = [setImages[j], setImages[i]];
+  renderSetGallery();
+}
+function removeSetImage(i) { setImages.splice(i, 1); renderSetGallery(); }
+function renderSetGallery() {
+  const box = document.getElementById('set-gallery');
+  box.innerHTML = setImages.map((url, i) => `
+    <div class="set-gallery__item ${i === 0 ? 'set-gallery__item--main' : ''}">
+      <img src="${esc(url)}" alt="">
+      <div class="set-gallery__tag">${i === 0 ? 'Hauptbild' : 'Foto ' + (i + 1)}</div>
+      <div class="set-gallery__btns">
+        <button type="button" class="btn-sm btn-sm--outline" title="nach vorne" ${i === 0 ? 'disabled' : ''} onclick="moveSetImage(${i},-1)">←</button>
+        <button type="button" class="btn-sm btn-sm--outline" title="nach hinten" ${i === setImages.length - 1 ? 'disabled' : ''} onclick="moveSetImage(${i},1)">→</button>
+        <button type="button" class="btn-sm btn-sm--danger" title="entfernen" onclick="removeSetImage(${i})">✕</button>
+      </div>
+    </div>`).join('');
 }
 
 function setSlugify(name) {
@@ -1618,7 +1663,7 @@ async function saveSet() {
       name, slug, price,
       compare_price: sum > price ? Math.round(sum * 100) / 100 : null,
       description: desc,
-      image_url: document.getElementById('set-image').value || existing?.image_url || firstImg,
+      image_url: setImages[0] || firstImg,
       stock: existing?.stock ?? 999,
       active: document.getElementById('set-active').checked,
       bestseller: document.getElementById('set-bestseller').checked,
@@ -1640,6 +1685,20 @@ async function saveSet() {
       return;
     }
     if (!saved || !saved.length) { alert('Speichern fehlgeschlagen: Keine Berechtigung (RLS).'); return; }
+
+    const productId = saved[0].id;
+    if (setGalleryRowIds.length) {
+      const { error: delErr } = await db.from('product_images').delete().in('id', setGalleryRowIds);
+      if (delErr) { alert('Set gespeichert, aber Fotos konnten nicht aktualisiert werden: ' + delErr.message); return; }
+    }
+    const extra = setImages.slice(1);
+    if (extra.length) {
+      const { error: imgErr } = await db.from('product_images').insert(
+        extra.map((url, i) => ({ product_id: productId, url, option_values: {}, sort_order: i }))
+      );
+      if (imgErr) { alert('Set gespeichert, aber Fotos konnten nicht gespeichert werden: ' + imgErr.message); return; }
+    }
+
     closeModal('set-modal');
     await loadSets();
   } catch (e) {
@@ -2516,8 +2575,40 @@ async function saveCategory() {
 }
 
 async function deleteCategory(id) {
-  if (!confirm('Kategorie löschen?')) return;
-  await db.from('categories').delete().eq('id', id);
+  const cat = allCategories.find(c => c.id === id);
+  const name = cat ? cat.name : 'diese Kategorie';
+
+  // Produkte, die der Kategorie zugeordnet sind (sonst blockiert die Datenbank das Löschen)
+  const { data: prods, error: pe } = await db.from('products').select('id, name, category_id, category_ids');
+  if (pe) { alert('Produkte konnten nicht geprüft werden: ' + pe.message); return; }
+  const affected = (prods || []).filter(p => p.category_id === id || (p.category_ids || []).includes(id));
+
+  let msg = `Kategorie „${name}“ wirklich löschen?`;
+  if (affected.length) {
+    const list = affected.slice(0, 5).map(p => '• ' + p.name).join('\n') + (affected.length > 5 ? `\n• … und ${affected.length - 5} weitere` : '');
+    msg += `\n\n${affected.length} Produkt(e) sind ihr zugeordnet:\n${list}\n\nDie Produkte bleiben erhalten – sie verlieren nur diese Kategorie.`;
+  }
+  if (cat?.slug === 'bundles') msg += '\n\n⚠️ Diese Kategorie nutzt der Bereich „Geschenk-Sets“. Sie wird beim nächsten Set automatisch neu angelegt.';
+  if (['geburt', 'taufe', 'geburtstag', 'mama-papa', 'babyshower'].includes(cat?.slug)) {
+    msg += '\n\n⚠️ Diese Kategorie liefert das Bild für eine Kachel auf der Startseite („Wonach suchst du?“). Die Kachel zeigt danach wieder nur den Farbverlauf.';
+  }
+  if (!confirm(msg)) return;
+
+  // Zuordnungen entfernen
+  for (const p of affected) {
+    const ids = (p.category_ids || []).filter(x => x !== id);
+    const upd = { category_ids: ids };
+    if (p.category_id === id) upd.category_id = ids[0] || null;
+    const { error } = await db.from('products').update(upd).eq('id', p.id);
+    if (error) { alert(`Konnte „${p.name}“ nicht aus der Kategorie austragen: ` + error.message); return; }
+  }
+
+  const { data, error } = await db.from('categories').delete().eq('id', id).select('id');
+  if (error) { alert('Löschen fehlgeschlagen: ' + error.message); return; }
+  if (!data || !data.length) {
+    alert('Löschen fehlgeschlagen: keine Berechtigung (RLS). Bist du in der admins-Tabelle eingetragen? Siehe admin-fix.sql.');
+    return;
+  }
   loadCategoriesTable();
 }
 

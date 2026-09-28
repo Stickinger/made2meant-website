@@ -134,7 +134,7 @@
 
       <section class="section" style="padding-top:8px">
         <div class="sec-head sec-head--row">
-          <div><span class="label-style">Geschenksets</span><h2>Babyparty-Sets</h2></div>
+          <div><span class="label-style">Unsere fertigen Geschenk-Sets</span><h2>Babyparty-Sets</h2></div>
           <a href="/shop.html?anlass=babyshower" class="btn btn--ghost">Alle ansehen →</a>
         </div>
         <div class="pgrid" id="bundle-grid"><p class="loading">Wird geladen…</p></div>
@@ -198,7 +198,7 @@
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
     function bundleCard(p) {
       const img = p.image_url ? `<div class="pcard__img" style="background-image:url('${p.image_url}')"></div>` : `<div class="pcard__img"></div>`;
-      return `<a class="pcard" href="/product.html?slug=${p.slug}">${img}<div class="pcard__name">${p.name}</div><div class="pcard__price">${euro(p.price)}${Number(p.compare_price) > Number(p.price) ? ` <s class="pcard__was">${euro(p.compare_price)}</s>` : ''}</div></a>`;
+      return `<a class="pcard" href="/product.html?slug=${p.slug}">${img}<div class="pcard__name">${p.name}</div><div class="pcard__price">${euro(p.price)}</div>${Number(p.compare_price) > Number(p.price) ? `<div class="pcard__was"><span>Einzeln <s>${euro(p.compare_price)}</s></span><span class="pcard__save">Du sparst ${euro(p.compare_price - p.price)}</span></div>` : ''}</a>`;
     }
 
     // Zeigt Produkte aus der Admin-Kategorie "Bundles", die mit dem Anlass-Tag "babyshower" versehen sind.
