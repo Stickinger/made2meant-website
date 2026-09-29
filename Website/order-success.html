@@ -71,7 +71,17 @@
         }
       } catch (e) {}
 
-      const { data: o } = await db.from('orders').select('*, order_items(*)').eq('id', id).single();
+      // Über die geschützte Funktion (klappt auch für Gäste); Fallback: direktes Lesen
+      // (nur für angemeldete Kunden, solange bestellung-setup.sql noch fehlt)
+      let o = null;
+      try {
+        const { data, error } = await db.rpc('get_order_summary', { p_id: id });
+        if (!error && data) o = data;
+      } catch (_) {}
+      if (!o) {
+        const { data } = await db.from('orders').select('*, order_items(*)').eq('id', id).maybeSingle();
+        o = data;
+      }
       if (!o) {
         wrap.innerHTML = `<div class="success-hero"><h1>Danke für deine Bestellung!</h1><p style="color:var(--color-muted)">Wir haben deine Bestellung erhalten.</p><a href="/shop.html" class="btn btn--primary" style="margin-top:20px">Weiter shoppen</a></div>`;
         return;

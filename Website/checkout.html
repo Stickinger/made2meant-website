@@ -206,6 +206,19 @@
         notes: payMethod === 'stripe' ? 'Zahlung: Stripe' : 'Zahlung: Überweisung',
         shipping_notify_consent: !!f.shipNotify,
       };
+      const itemsForOrder = cart.map(i => ({
+        product_id: (typeof i.id === 'string' && i.id.length === 36) ? i.id : null,
+        name: i.name, price: i.price, quantity: i.quantity, options: i.options || {},
+      }));
+
+      // Normalfall: geschützte Datenbank-Funktion (klappt auch für Gäste,
+      // ohne dass Bestellungen für Fremde lesbar werden) — bestellung-setup.sql
+      const { data: newId, error: rpcErr } = await db.rpc('place_order', { p_order: row, p_items: itemsForOrder });
+      if (!rpcErr && newId) return { id: newId };
+      if (rpcErr && !/place_order|function/i.test(rpcErr.message || '')) throw rpcErr;
+
+      // Übergang, solange bestellung-setup.sql noch nicht ausgeführt ist
+      // (funktioniert nur für angemeldete Kunden)
       let { data: order, error } = await db.from('orders').insert(row).select().single();
       // Falls datenschutz-setup.sql noch nicht ausgeführt ist: ohne das neue Feld
       // speichern (dann gilt „keine Einwilligung“ — der datensparsame Standard)
@@ -215,10 +228,7 @@
       }
       if (error) throw error;
 
-      const items = cart.map(i => ({
-        order_id: order.id, product_id: (typeof i.id === 'string' && i.id.length === 36) ? i.id : null,
-        name: i.name, price: i.price, quantity: i.quantity, options: i.options || {},
-      }));
+      const items = itemsForOrder.map(i => ({ ...i, order_id: order.id }));
       const { error: e2 } = await db.from('order_items').insert(items);
       if (e2) throw e2;
       return order;
@@ -275,7 +285,9 @@
         }
       } catch (ex) {
         console.error(ex);
-        err.textContent = ex.message || 'Fehler beim Aufgeben der Bestellung. Bitte versuch es erneut.';
+        err.textContent = /row-level security|permission|policy/i.test(ex.message || '')
+          ? 'Die Bestellung konnte gerade nicht gespeichert werden. Bitte versuch es gleich noch einmal oder schreib uns an office@made2meant.com.'
+          : (ex.message || 'Fehler beim Aufgeben der Bestellung. Bitte versuch es erneut.');
         err.classList.add('visible');
         btn.textContent = orig; btn.disabled = false;
       }
