@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/assets/icons/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+  <meta name="theme-color" content="#F57A45">
   <title>made2meant — Personalisierte Babytextilien & Geschenke, bestickt in Österreich</title>
   <meta name="description" content="Personalisierte Babytextilien & Geschenke mit Namen und Motiv – Kapuzentücher, Musselintücher, Babydecken & mehr, liebevoll in Österreich bestickt statt bedruckt.">
   <link rel="canonical" href="https://made2meant.com/">
@@ -452,6 +457,56 @@
           <a href="/shop.html" class="btn btn--ghost">Alle Produkte ansehen →</a>
         </div>
         <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
+      </div>
+    </section>
+
+
+    <!-- ===== FAQ (Kurzfassung) ===== -->
+    <style>
+      .hfaq { max-width: 760px; margin: 0 auto; }
+      .hfaq__list { margin-top: 26px; }
+      .hfaq details { border-bottom: 1px solid var(--color-border); }
+      .hfaq summary { list-style: none; cursor: pointer; padding: 18px 40px 18px 2px; position: relative; font-weight: 600; color: var(--color-heading); font-size: 1rem; line-height: 1.4; }
+      .hfaq summary::-webkit-details-marker { display: none; }
+      .hfaq summary::after { content: '+'; position: absolute; right: 6px; top: 50%; transform: translateY(-50%); font-size: 1.5rem; font-weight: 300; color: var(--color-muted); }
+      .hfaq details[open] summary::after { content: '−'; }
+      .hfaq summary:hover { color: var(--color-primary); }
+      .hfaq__a { padding: 0 2px 20px; color: var(--color-muted); line-height: 1.8; font-size: 0.95rem; }
+      .hfaq__more { text-align: center; margin-top: 30px; }
+    </style>
+    <section class="section reveal">
+      <div class="container">
+        <div class="hfaq">
+          <div class="sec-head" style="text-align:center">
+            <span class="label-style">Gut zu wissen</span>
+            <h2>Häufige Fragen.</h2>
+          </div>
+          <div class="hfaq__list">
+            <details>
+              <summary>Wie setzt sich der Preis zusammen?</summary>
+              <div class="hfaq__a">Du zahlst den Artikel plus die Bestickung. Jede Stickstelle kostet 9,90 € (inkl. 20 % USt.) – eine Stelle ist z. B. der Name auf dem Handtuch.</div>
+            </details>
+            <details>
+              <summary>Was ist bei den Geschenk-Sets anders?</summary>
+              <div class="hfaq__a">Im Set sind die Artikel günstiger als einzeln, und die Bestickung ist gestaffelt: 2 Bestickungen 17,80 € statt 19,80 €, 3 Bestickungen nur 23,70 €.</div>
+            </details>
+            <details>
+              <summary>Wie lange dauert es bis zur Lieferung?</summary>
+              <div class="hfaq__a">Jedes Stück wird einzeln für dich gestickt. Sobald dein Paket unterwegs ist, bekommst du eine Sendungsnummer. Du brauchst es zu einem bestimmten Termin? Schreib uns dein Wunschdatum dazu – wir bestätigen sofort, ob es klappt.</div>
+            </details>
+            <details>
+              <summary>Kann ich einen bestickten Artikel zurückgeben?</summary>
+              <div class="hfaq__a">Artikel mit deinem Namen oder Motiv werden eigens für dich angefertigt und sind gesetzlich vom Rücktrittsrecht ausgenommen. Bitte prüfe deine Angaben vor dem Absenden sorgfältig. Artikel ohne Stickerei kannst du innerhalb von 14 Tagen zurückschicken.</div>
+            </details>
+            <details>
+              <summary>Hält die Stickerei die Waschmaschine aus?</summary>
+              <div class="hfaq__a">Ja. Wir sticken direkt in den Stoff – nichts wird aufgedruckt oder aufgebügelt. Wasch den Artikel nach Pflegeetikett, auf links gedreht und ohne Bleichmittel.</div>
+            </details>
+          </div>
+          <div class="hfaq__more">
+            <a href="/faq.html" class="btn btn--ghost">Alle Fragen ansehen →</a>
+          </div>
+        </div>
       </div>
     </section>
 
