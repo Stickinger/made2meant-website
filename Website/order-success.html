@@ -47,8 +47,8 @@
   <script src="/js/supabase.js"></script>
   <script src="/js/cart.js"></script>
   <script>
-    // Deine echten Bankdaten für Vorkasse hier eintragen:
-    const BANK = { empfaenger: 'made2meant', iban: '', bic: '', bank: '' };
+    // Bankdaten kommen aus dem Admin (Einstellungen → Bankdaten), über get_order_summary
+    const BANK_FALLBACK = { empfaenger: 'Made2Meant GmbH', iban: '', bic: '', bank: '' };
 
     function euro(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
     function shortId(id) { return '#' + id.slice(0, 8).toUpperCase(); }
@@ -101,6 +101,8 @@
         payHtml = `<div class="paidbox">✓ Zahlung erhalten — wir legen mit deiner Bestellung los.</div>`;
       } else if (isTransfer) {
         const ref = shortId(o.id);
+        const BANK = { ...BANK_FALLBACK, ...(o.bank || {}) };
+        if (!BANK.empfaenger) BANK.empfaenger = BANK_FALLBACK.empfaenger;
         const rows = BANK.iban
           ? `<div class="bank-row"><span>Empfänger</span><strong>${esc(BANK.empfaenger)}</strong></div>
              <div class="bank-row"><span>IBAN</span><strong>${esc(BANK.iban)}</strong></div>

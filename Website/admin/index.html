@@ -810,6 +810,27 @@
           </div>
         </div>
 
+        <div class="admin-card" style="max-width:640px;">
+          <div class="admin-card__header">
+            <h3>Bankdaten für Überweisung (Vorkasse)</h3>
+          </div>
+          <div class="admin-card__body">
+            <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:16px;">
+              Diese Daten bekommen Kunden, die per Überweisung zahlen – in der Bestellbestätigung per E-Mail und auf der Danke-Seite.
+            </p>
+            <div class="form-grid">
+              <div class="field form-full"><label for="bank-empfaenger">Kontoinhaber</label><input type="text" id="bank-empfaenger" placeholder="Made2Meant GmbH"></div>
+              <div class="field form-full"><label for="bank-iban">IBAN</label><input type="text" id="bank-iban" placeholder="AT12 3456 7890 1234 5678"></div>
+              <div class="field"><label for="bank-bic">BIC</label><input type="text" id="bank-bic" placeholder="optional"></div>
+              <div class="field"><label for="bank-bank">Bank</label><input type="text" id="bank-bank" placeholder="optional"></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
+              <button class="btn-sm btn-sm--primary" onclick="saveBankDetails()">Speichern</button>
+              <span id="bank-msg" style="font-size:0.85rem;"></span>
+            </div>
+          </div>
+        </div>
+
         <div class="admin-card" style="max-width:760px;">
           <div class="admin-card__header">
             <h3>Website-Bilder</h3>
@@ -2967,6 +2988,40 @@ async function loadSettings() {
   document.getElementById('settings-emails').value = emails.join('\n');
   document.getElementById('settings-msg').textContent = '';
   loadSiteImages();
+  loadBankDetails();
+}
+
+// ── Bankdaten für Vorkasse (settings.bank_details) ──
+async function loadBankDetails() {
+  const { data } = await db.from('settings').select('value').eq('key', 'bank_details').maybeSingle();
+  const b = data?.value || {};
+  document.getElementById('bank-empfaenger').value = b.empfaenger || '';
+  document.getElementById('bank-iban').value = b.iban || '';
+  document.getElementById('bank-bic').value = b.bic || '';
+  document.getElementById('bank-bank').value = b.bank || '';
+  document.getElementById('bank-msg').textContent = '';
+}
+
+async function saveBankDetails() {
+  const msg = document.getElementById('bank-msg');
+  const iban = document.getElementById('bank-iban').value.replace(/\s+/g, '').toUpperCase();
+  if (iban && !/^[A-Z]{2}\d{2}[A-Z0-9]{10,30}$/.test(iban)) {
+    msg.style.color = 'var(--color-danger)';
+    msg.textContent = 'Die IBAN sieht nicht vollständig aus.';
+    return;
+  }
+  const value = {
+    empfaenger: document.getElementById('bank-empfaenger').value.trim(),
+    iban: iban.replace(/(.{4})/g, '$1 ').trim(),   // lesbar in 4er-Gruppen
+    bic: document.getElementById('bank-bic').value.trim().toUpperCase(),
+    bank: document.getElementById('bank-bank').value.trim(),
+  };
+  const { error } = await db.from('settings')
+    .upsert({ key: 'bank_details', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) { msg.style.color = 'var(--color-danger)'; msg.textContent = 'Fehler: ' + error.message; return; }
+  document.getElementById('bank-iban').value = value.iban;
+  msg.style.color = 'var(--color-success)';
+  msg.textContent = '✓ Gespeichert';
 }
 
 async function saveSettings() {

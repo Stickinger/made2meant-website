@@ -1,16 +1,24 @@
 // ============================================================
-// made2meant — Bestell-Benachrichtigung an den Shop-Betreiber
+// made2meant — Bestell-Mails
+//   1) Benachrichtigung an den Shop (Empfänger: Admin → Einstellungen)
+//   2) Bestellbestätigung an den Kunden
+//
 // Deploy:  supabase functions deploy notify-order --no-verify-jwt
-// Secrets: supabase secrets set RESEND_API_KEY=re_...
-//          (optional) supabase secrets set ORDER_FROM_EMAIL="made2meant <onboarding@resend.dev>"
+// Secrets: RESEND_API_KEY=re_...
+//          ORDER_FROM_EMAIL="made2meant <bestellung@made2meant.com>"
+//            (Absender — Domain muss bei Resend verifiziert sein, sonst
+//             gehen Mails nur an die eigene Resend-Konto-Adresse)
+//          optional REPLY_TO_EMAIL (Standard: office@made2meant.com)
+//          optional SITE_URL      (Standard: https://made2meant.com)
+// Vorher:  customer_notified-Spalte + bank_details (siehe SQL im Chat /
+//          bestellmail-setup.sql)
 //
 // Wird aufgerufen:
 //  - vom stripe-webhook, sobald eine Kartenzahlung bezahlt ist
 //  - von der Kasse bei einer Überweisungs-/Vorkasse-Bestellung
 //
-// Sendet nur, wenn im Admin unter Einstellungen mindestens eine
-// Empfänger-Adresse hinterlegt ist. Jede Bestellung wird nur einmal
-// gemeldet (Spalte orders.order_notified).
+// Jede Mail geht pro Bestellung nur einmal raus
+// (orders.order_notified / orders.customer_notified).
 // ============================================================
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.45.0'
 
@@ -27,6 +35,21 @@ function esc(s: unknown) {
   return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c] as string))
 }
 
+async function sendMail(payload: Record<string, unknown>) {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  if (!apiKey) return { ok: false, detail: 'RESEND_API_KEY nicht gesetzt' }
+  const res = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: Deno.env.get('ORDER_FROM_EMAIL') || 'made2meant <onboarding@resend.dev>',
+      reply_to: Deno.env.get('REPLY_TO_EMAIL') || 'office@made2meant.com',
+      ...payload,
+    }),
+  })
+  return { ok: res.ok, detail: res.ok ? '' : (await res.text()).slice(0, 300) }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
@@ -34,85 +57,140 @@ Deno.serve(async (req) => {
     if (!order_id) return json({ error: 'order_id fehlt' }, 400)
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
+    const site = (Deno.env.get('SITE_URL') || 'https://made2meant.com').replace(/\/$/, '')
 
-    // Bestellung laden
     const { data: order, error } = await admin
       .from('orders').select('*, order_items(*)').eq('id', order_id).single()
     if (error || !order) return json({ error: 'Bestellung nicht gefunden' }, 404)
 
-    // Schon gemeldet? -> nichts tun (verhindert Doppel-Mails)
-    if (order.order_notified) return json({ skipped: 'bereits benachrichtigt' })
-
-    // Empfänger aus den Einstellungen
-    const { data: setting } = await admin.from('settings').select('value').eq('key', 'order_notification_emails').maybeSingle()
-    const recipients: string[] = Array.isArray(setting?.value) ? setting!.value : []
-    if (!recipients.length) return json({ skipped: 'keine Empfänger konfiguriert' })
-
-    const apiKey = Deno.env.get('RESEND_API_KEY')
-    if (!apiKey) return json({ error: 'RESEND_API_KEY nicht gesetzt' }, 500)
-    const from = Deno.env.get('ORDER_FROM_EMAIL') || 'made2meant <onboarding@resend.dev>'
-
     const shortId = '#' + String(order.id).slice(0, 8).toUpperCase()
-    const payLabel = (order.notes || '').includes('Überweisung') ? 'Überweisung (Vorkasse)' : 'Karte (Stripe)'
+    const isTransfer = (order.notes || '').includes('Überweisung')
+    const payLabel = isTransfer ? 'Überweisung (Vorkasse)' : 'Karte (Stripe)'
 
+    // ── Gemeinsame Bausteine ──
     const itemRows = (order.order_items || []).map((i: any) => {
       const opts = i.options && Object.keys(i.options).length
-        ? '<div style="color:#8a8580;font-size:13px">' +
+        ? '<div style="color:#8a8580;font-size:13px;margin-top:2px">' +
           Object.entries(i.options).map(([k, v]) => esc(k) + ': ' + esc(v)).join(' · ') + '</div>'
         : ''
       return `<tr>
-        <td style="padding:8px 0;border-bottom:1px solid #eee">${esc(i.name)}${opts}</td>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:center">${i.quantity}×</td>
-        <td style="padding:8px 0;border-bottom:1px solid #eee;text-align:right">${euro(i.price * i.quantity)}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #eee">${esc(i.name)}${opts}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:center;white-space:nowrap">${i.quantity}×</td>
+        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${euro(i.price * i.quantity)}</td>
       </tr>`
     }).join('')
-
     const discountRow = order.discount_amount > 0
-      ? `<tr><td colspan="2" style="padding:4px 0;color:#c56a47">Rabatt${order.discount_code ? ' (' + esc(order.discount_code) + ')' : ''}</td><td style="padding:4px 0;text-align:right;color:#c56a47">− ${euro(order.discount_amount)}</td></tr>`
+      ? `<tr><td colspan="2" style="padding:4px 0;color:#3F6B4C">Rabatt${order.discount_code ? ' (' + esc(order.discount_code) + ')' : ''}</td><td style="padding:4px 0;text-align:right;color:#3F6B4C">− ${euro(order.discount_amount)}</td></tr>`
       : ''
+    const summaryTable = `
+      <table style="width:100%;border-collapse:collapse;font-size:14px">${itemRows}
+        <tr><td colspan="2" style="padding:10px 0 2px">Zwischensumme</td><td style="padding:10px 0 2px;text-align:right">${euro(order.subtotal)}</td></tr>
+        ${discountRow}
+        <tr><td colspan="2" style="padding:2px 0">Versand</td><td style="padding:2px 0;text-align:right">${order.shipping > 0 ? euro(order.shipping) : 'Kostenlos'}</td></tr>
+        <tr><td colspan="2" style="padding:10px 0;font-weight:bold;border-top:2px solid #2B120E">Gesamt</td><td style="padding:10px 0;text-align:right;font-weight:bold;border-top:2px solid #2B120E">${euro(order.total)}</td></tr>
+      </table>`
+    const addressBlock = `
+      ${esc(order.first_name || '')} ${esc(order.last_name || '')}<br>
+      ${esc(order.address || '')}<br>
+      ${esc(order.zip || '')} ${esc(order.city || '')}, ${esc(order.country || '')}`
 
-    const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
-        <h2 style="color:#c56a47;margin:0 0 4px">Neue Bestellung ${shortId}</h2>
-        <p style="color:#8a8580;margin:0 0 20px">Zahlungsart: ${esc(payLabel)}</p>
+    const result: Record<string, unknown> = {}
 
-        <table style="width:100%;border-collapse:collapse;font-size:14px">${itemRows}
-          <tr><td colspan="2" style="padding:8px 0 2px">Zwischensumme</td><td style="padding:8px 0 2px;text-align:right">${euro(order.subtotal)}</td></tr>
-          ${discountRow}
-          <tr><td colspan="2" style="padding:2px 0">Versand</td><td style="padding:2px 0;text-align:right">${order.shipping > 0 ? euro(order.shipping) : 'Kostenlos'}</td></tr>
-          <tr><td colspan="2" style="padding:8px 0;font-weight:bold;border-top:2px solid #1c1c1c">Gesamt</td><td style="padding:8px 0;text-align:right;font-weight:bold;border-top:2px solid #1c1c1c">${euro(order.total)}</td></tr>
-        </table>
-
-        <h3 style="margin:24px 0 6px">Kunde</h3>
-        <p style="margin:0;font-size:14px;line-height:1.6">
-          ${esc(order.first_name || '')} ${esc(order.last_name || '')}<br>
-          ${esc(order.email || '')}<br>
-          ${esc(order.address || '')}<br>
-          ${esc(order.zip || '')} ${esc(order.city || '')}, ${esc(order.country || '')}
-        </p>
-
-        <p style="margin:24px 0 0"><a href="https://made2meant.com/admin" style="background:#c56a47;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none;font-size:14px">Im Admin ansehen</a></p>
-      </div>`
-
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from,
-        to: recipients,
-        subject: `Neue Bestellung ${shortId} — ${euro(order.total)}`,
-        html,
-      }),
-    })
-
-    if (!res.ok) {
-      const body = await res.text()
-      return json({ error: 'Resend-Fehler', detail: body.slice(0, 300) }, 502)
+    // ── 1) Shop-Benachrichtigung ────────────────────────────
+    if (order.order_notified) {
+      result.shop = 'bereits gesendet'
+    } else {
+      const { data: setting } = await admin.from('settings').select('value').eq('key', 'order_notification_emails').maybeSingle()
+      const recipients: string[] = Array.isArray(setting?.value) ? setting!.value : []
+      if (!recipients.length) {
+        result.shop = 'keine Empfänger konfiguriert'
+      } else {
+        const mail = await sendMail({
+          to: recipients,
+          reply_to: order.email || undefined,
+          subject: `Neue Bestellung ${shortId} — ${euro(order.total)}`,
+          html: `
+            <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
+              <h2 style="color:#2B120E;margin:0 0 4px">Neue Bestellung ${shortId}</h2>
+              <p style="color:#8a8580;margin:0 0 20px">Zahlungsart: ${esc(payLabel)}</p>
+              ${summaryTable}
+              <h3 style="margin:24px 0 6px">Kunde</h3>
+              <p style="margin:0;font-size:14px;line-height:1.6">${addressBlock}<br>${esc(order.email || '')}</p>
+              <p style="margin:24px 0 0"><a href="${site}/admin" style="background:#2B120E;color:#F2F1EC;padding:10px 18px;border-radius:999px;text-decoration:none;font-size:14px">Im Admin ansehen</a></p>
+            </div>`,
+        })
+        if (mail.ok) {
+          await admin.from('orders').update({ order_notified: true }).eq('id', order.id)
+          result.shop = 'gesendet'
+        } else result.shop = 'Fehler: ' + mail.detail
+      }
     }
 
-    // Als benachrichtigt markieren
-    await admin.from('orders').update({ order_notified: true }).eq('id', order_id)
-    return json({ sent: recipients.length })
+    // ── 2) Bestellbestätigung an den Kunden ─────────────────
+    // Kartenzahlung erst, wenn Stripe die Zahlung gemeldet hat (nicht mehr "pending")
+    if (order.customer_notified) {
+      result.customer = 'bereits gesendet'
+    } else if (!order.email) {
+      result.customer = 'keine E-Mail-Adresse'
+    } else if (!isTransfer && order.status === 'pending') {
+      result.customer = 'Zahlung noch offen'
+    } else {
+      let payBlock = ''
+      if (isTransfer) {
+        const { data: bankSetting } = await admin.from('settings').select('value').eq('key', 'bank_details').maybeSingle()
+        const b = (bankSetting?.value || {}) as Record<string, string>
+        const row = (label: string, value: string) => value
+          ? `<tr><td style="padding:4px 12px 4px 0;color:#8a8580">${label}</td><td style="padding:4px 0;font-weight:bold">${esc(value)}</td></tr>` : ''
+        payBlock = `
+          <div style="background:#F2F1EC;border-radius:16px;padding:18px 20px;margin:0 0 24px">
+            <p style="margin:0 0 10px;font-weight:bold">Bitte überweise den Betrag auf unser Konto:</p>
+            ${b.iban ? `<table style="font-size:14px;border-collapse:collapse">
+              ${row('Empfänger', b.empfaenger || 'Made2Meant GmbH')}
+              ${row('IBAN', b.iban)}
+              ${row('BIC', b.bic || '')}
+              ${row('Bank', b.bank || '')}
+              ${row('Betrag', euro(order.total))}
+              ${row('Verwendungszweck', shortId)}
+            </table>` : `<p style="margin:0;font-size:14px">Betrag: <b>${euro(order.total)}</b> · Verwendungszweck: <b>${shortId}</b>. Unsere Bankdaten schicken wir dir in Kürze.</p>`}
+            <p style="margin:12px 0 0;font-size:13px;color:#6b665f">Sobald die Zahlung bei uns ist, beginnen wir mit deiner Bestellung.</p>
+          </div>`
+      } else {
+        payBlock = `<p style="margin:0 0 24px;padding:12px 16px;background:#EAF1EA;border-radius:12px;color:#3F6B4C;font-size:14px">✓ Deine Zahlung ist bei uns eingegangen.</p>`
+      }
+
+      const mail = await sendMail({
+        to: [order.email],
+        subject: `Danke für deine Bestellung ${shortId} bei made2meant 🤍`,
+        html: `
+          <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
+            <p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#7a6d64;margin:0 0 6px">Bestellbestätigung</p>
+            <h1 style="font-size:24px;margin:0 0 10px;color:#2B120E">Danke${order.first_name ? ', ' + esc(order.first_name) : ''}!</h1>
+            <p style="font-size:15px;line-height:1.6;color:#4a4540;margin:0 0 20px">
+              Wir haben deine Bestellung <b>${shortId}</b> erhalten und freuen uns, dein Lieblingsstück
+              mit Sorgfalt in Österreich für dich zu besticken.
+            </p>
+            ${payBlock}
+            ${summaryTable}
+            <h3 style="margin:26px 0 6px;font-size:15px">Lieferadresse</h3>
+            <p style="margin:0;font-size:14px;line-height:1.6">${addressBlock}</p>
+            <p style="margin:26px 0 0;font-size:14px;line-height:1.6;color:#4a4540">
+              Fragen zu deiner Bestellung? Antworte einfach auf diese E-Mail.
+            </p>
+            <p style="margin:26px 0 0;font-size:11px;color:#a9a49c;line-height:1.6">
+              Made2Meant GmbH · Franz-Broschek-Platz 5a · 2514 Möllersdorf · Österreich<br>
+              <a href="${site}/agb.html" style="color:#a9a49c">AGB</a> ·
+              <a href="${site}/datenschutz.html" style="color:#a9a49c">Datenschutz</a> ·
+              <a href="${site}/impressum.html" style="color:#a9a49c">Impressum</a>
+            </p>
+          </div>`,
+      })
+      if (mail.ok) {
+        await admin.from('orders').update({ customer_notified: true }).eq('id', order.id)
+        result.customer = 'gesendet'
+      } else result.customer = 'Fehler: ' + mail.detail
+    }
+
+    return json(result)
   } catch (e) {
     return json({ error: String((e as Error)?.message || e) }, 500)
   }
