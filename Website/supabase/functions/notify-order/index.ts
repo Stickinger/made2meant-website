@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const site = (Deno.env.get('SITE_URL') || 'https://made2meant.com').replace(/\/$/, '')
 
     const { data: order, error } = await admin
-      .from('orders').select('*, order_items(*)').eq('id', order_id).single()
+      .from('orders').select('*, order_items(*, products(image_url))').eq('id', order_id).single()
     if (error || !order) return json({ error: 'Bestellung nicht gefunden' }, 404)
 
     const shortId = '#' + String(order.id).slice(0, 8).toUpperCase()
@@ -73,21 +73,26 @@ Deno.serve(async (req) => {
         ? '<div style="color:#8a8580;font-size:13px;margin-top:2px">' +
           Object.entries(i.options).map(([k, v]) => esc(k) + ': ' + esc(v)).join(' · ') + '</div>'
         : ''
+      const img = (i.products && i.products.image_url) || i.image_url || ''
+      const thumb = img
+        ? `<td style="padding:10px 12px 10px 0;border-bottom:1px solid #eee;width:52px;vertical-align:top"><img src="${esc(img)}" width="48" height="48" alt="" style="width:48px;height:48px;object-fit:cover;border-radius:8px;display:block;border:1px solid #eee"></td>`
+        : `<td style="padding:0;border-bottom:1px solid #eee;width:0"></td>`
       return `<tr>
-        <td style="padding:10px 0;border-bottom:1px solid #eee">${esc(i.name)}${opts}</td>
-        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:center;white-space:nowrap">${i.quantity}×</td>
-        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${euro(i.price * i.quantity)}</td>
+        ${thumb}
+        <td style="padding:10px 0;border-bottom:1px solid #eee;vertical-align:top">${esc(i.name)}${opts}</td>
+        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:center;white-space:nowrap;vertical-align:top">${i.quantity}×</td>
+        <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;vertical-align:top">${euro(i.price * i.quantity)}</td>
       </tr>`
     }).join('')
     const discountRow = order.discount_amount > 0
-      ? `<tr><td colspan="2" style="padding:4px 0;color:#3F6B4C">Rabatt${order.discount_code ? ' (' + esc(order.discount_code) + ')' : ''}</td><td style="padding:4px 0;text-align:right;color:#3F6B4C">− ${euro(order.discount_amount)}</td></tr>`
+      ? `<tr><td colspan="3" style="padding:4px 0;color:#3F6B4C">Rabatt${order.discount_code ? ' (' + esc(order.discount_code) + ')' : ''}</td><td style="padding:4px 0;text-align:right;color:#3F6B4C">− ${euro(order.discount_amount)}</td></tr>`
       : ''
     const summaryTable = `
       <table style="width:100%;border-collapse:collapse;font-size:14px">${itemRows}
-        <tr><td colspan="2" style="padding:10px 0 2px">Zwischensumme</td><td style="padding:10px 0 2px;text-align:right">${euro(order.subtotal)}</td></tr>
+        <tr><td colspan="3" style="padding:10px 0 2px">Zwischensumme</td><td style="padding:10px 0 2px;text-align:right">${euro(order.subtotal)}</td></tr>
         ${discountRow}
-        <tr><td colspan="2" style="padding:2px 0">Versand</td><td style="padding:2px 0;text-align:right">${order.shipping > 0 ? euro(order.shipping) : 'Kostenlos'}</td></tr>
-        <tr><td colspan="2" style="padding:10px 0;font-weight:bold;border-top:2px solid #2B120E">Gesamt</td><td style="padding:10px 0;text-align:right;font-weight:bold;border-top:2px solid #2B120E">${euro(order.total)}</td></tr>
+        <tr><td colspan="3" style="padding:2px 0">Versand</td><td style="padding:2px 0;text-align:right">${order.shipping > 0 ? euro(order.shipping) : 'Kostenlos'}</td></tr>
+        <tr><td colspan="3" style="padding:10px 0;font-weight:bold;border-top:2px solid #2B120E">Gesamt</td><td style="padding:10px 0;text-align:right;font-weight:bold;border-top:2px solid #2B120E">${euro(order.total)}</td></tr>
       </table>`
     const addressBlock = `
       ${esc(order.first_name || '')} ${esc(order.last_name || '')}<br>
@@ -194,14 +199,20 @@ Deno.serve(async (req) => {
             ${summaryTable}
             <h3 style="margin:26px 0 6px;font-size:15px">Lieferadresse</h3>
             <p style="margin:0;font-size:14px;line-height:1.6">${addressBlock}</p>
-            <p style="margin:26px 0 0;font-size:14px;line-height:1.6;color:#4a4540">
+            ${order.tracking_link
+              ? `<p style="margin:24px 0 0"><a href="${esc(order.tracking_link)}" style="background:#2B120E;color:#F2F1EC;padding:11px 20px;border-radius:999px;text-decoration:none;font-size:14px;display:inline-block">📦 Sendung verfolgen</a></p>`
+              : ''}
+            <p style="margin:18px 0 0;font-size:14px;line-height:1.6">
+              <a href="${site}/order-success.html?id=${order.id}" style="color:#8a5a3b">Bestellung &amp; Lieferstatus ansehen →</a>
+            </p>
+            <p style="margin:24px 0 0;font-size:14px;line-height:1.6;color:#4a4540">
               Fragen zu deiner Bestellung? Antworte einfach auf diese E-Mail.
             </p>
             <p style="margin:26px 0 0;font-size:11px;color:#a9a49c;line-height:1.6">
               Made2Meant GmbH · Franz-Broschek-Platz 5a · 2514 Möllersdorf · Österreich<br>
-              <a href="${site}/agb.html" style="color:#a9a49c">AGB</a> ·
-              <a href="${site}/datenschutz.html" style="color:#a9a49c">Datenschutz</a> ·
-              <a href="${site}/impressum.html" style="color:#a9a49c">Impressum</a>
+              <a href="${site}/agb.html" style="color:#a9a49c;text-decoration:none">AGB</a> ·
+              <a href="${site}/datenschutz.html" style="color:#a9a49c;text-decoration:none">Datenschutz</a> ·
+              <a href="${site}/impressum.html" style="color:#a9a49c;text-decoration:none">Impressum</a>
             </p>
           </div>`,
       })

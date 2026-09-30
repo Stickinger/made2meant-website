@@ -18,9 +18,13 @@
     .success-hero .icon { color: var(--color-accent); margin-bottom: 18px; }
     .success-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 26px; margin-bottom: 20px; }
     .success-card h3 { font-family: var(--font-main); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 16px; }
-    .s-item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.92rem; }
+    .s-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 0.92rem; }
     .s-item:last-child { border-bottom: none; }
+    .s-item__img { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; border: 1px solid var(--color-border); flex: none; }
+    .s-item__main { flex: 1; }
     .s-item__opts { color: var(--color-muted); font-size: 0.8rem; }
+    .track-btn { display: inline-block; margin-top: 12px; }
+    .track-row { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; font-size: 0.92rem; }
     .s-row { display: flex; justify-content: space-between; margin-top: 8px; font-size: 0.92rem; }
     .s-row--total { font-weight: 800; font-size: 1.05rem; border-top: 1px solid var(--color-border); padding-top: 10px; margin-top: 10px; }
     .bank-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--color-border); font-size: 0.92rem; }
@@ -84,7 +88,7 @@
         if (!error && data) o = data;
       } catch (_) {}
       if (!o) {
-        const { data } = await db.from('orders').select('*, order_items(*)').eq('id', id).maybeSingle();
+        const { data } = await db.from('orders').select('*, order_items(*, products(image_url))').eq('id', id).maybeSingle();
         o = data;
       }
       if (!o) {
@@ -95,11 +99,23 @@
       const paid = ['processing','shipped','delivered'].includes(o.status);
       const isTransfer = (o.notes || '').includes('Überweisung');
 
-      const items = o.order_items.map(i => `
+      const items = o.order_items.map(i => {
+        const img = i.image || i.image_url || (i.products && i.products.image_url) || '';
+        return `
         <div class="s-item">
-          <div><strong>${esc(i.name)}</strong> × ${i.quantity}${i.options && Object.keys(i.options).length ? `<div class="s-item__opts">${Object.entries(i.options).map(([k,v]) => esc(k)+': '+esc(String(v))).join(' · ')}</div>` : ''}</div>
+          ${img ? `<img class="s-item__img" src="${esc(img)}" alt="" loading="lazy">` : ''}
+          <div class="s-item__main"><strong>${esc(i.name)}</strong> × ${i.quantity}${i.options && Object.keys(i.options).length ? `<div class="s-item__opts">${Object.entries(i.options).map(([k,v]) => esc(k)+': '+esc(String(v))).join(' · ')}</div>` : ''}</div>
           <div>${euro(i.price * i.quantity)}</div>
-        </div>`).join('');
+        </div>`; }).join('');
+
+      // Sendungsverfolgung (sobald ein Label erstellt wurde)
+      const trackHtml = (o.tracking_link || o.tracking_number) ? `
+        <div class="success-card">
+          <h3>Sendungsverfolgung</h3>
+          ${o.shipping_carrier ? `<div class="track-row"><span>Versand</span><strong>${esc(String(o.shipping_carrier))}</strong></div>` : ''}
+          ${o.tracking_number ? `<div class="track-row"><span>Sendungsnummer</span><strong>${esc(String(o.tracking_number))}</strong></div>` : ''}
+          ${o.tracking_link ? `<a href="${esc(o.tracking_link)}" target="_blank" rel="noopener" class="btn btn--primary track-btn">📦 Sendung verfolgen</a>` : ''}
+        </div>` : '';
 
       let payHtml = '';
       if (paid) {
@@ -128,6 +144,8 @@
         </div>
 
         ${payHtml}
+
+        ${trackHtml}
 
         <div class="success-card">
           <h3>Bestellübersicht</h3>

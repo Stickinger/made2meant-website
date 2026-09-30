@@ -82,9 +82,15 @@ AS $$
     'zip', o.zip, 'city', o.city, 'country', o.country,
     'subtotal', o.subtotal, 'shipping', o.shipping, 'discount_code', o.discount_code,
     'discount_amount', o.discount_amount, 'total', o.total, 'created_at', o.created_at,
+    'tracking_number', o.tracking_number, 'tracking_link', o.tracking_link,
+    'shipping_carrier', o.shipping_carrier,
     'order_items', coalesce((
-      SELECT jsonb_agg(jsonb_build_object('name', it.name, 'price', it.price, 'quantity', it.quantity, 'options', it.options))
-      FROM order_items it WHERE it.order_id = o.id), '[]'::jsonb)
+      SELECT jsonb_agg(jsonb_build_object(
+        'name', it.name, 'price', it.price, 'quantity', it.quantity, 'options', it.options,
+        'image', p.image_url))
+      FROM order_items it
+      LEFT JOIN products p ON p.id = it.product_id
+      WHERE it.order_id = o.id), '[]'::jsonb)
   )
   FROM orders o
   WHERE o.id = p_id;
