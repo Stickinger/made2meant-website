@@ -94,6 +94,20 @@ Deno.serve(async (req) => {
       ${esc(order.address || '')}<br>
       ${esc(order.zip || '')} ${esc(order.city || '')}, ${esc(order.country || '')}`
 
+    // Reine Text-Fassung (Mails mit Text + HTML landen seltener im Spam)
+    const itemsText = (order.order_items || []).map((i: any) => {
+      const opts = i.options && Object.keys(i.options).length
+        ? ' (' + Object.entries(i.options).map(([k, v]) => `${k}: ${v}`).join(', ') + ')' : ''
+      return `- ${i.quantity}x ${i.name}${opts}: ${euro(i.price * i.quantity)}`
+    }).join('\n')
+    const totalsText = [
+      `Zwischensumme: ${euro(order.subtotal)}`,
+      order.discount_amount > 0 ? `Rabatt: - ${euro(order.discount_amount)}` : '',
+      `Versand: ${order.shipping > 0 ? euro(order.shipping) : 'kostenlos'}`,
+      `Gesamt: ${euro(order.total)}`,
+    ].filter(Boolean).join('\n')
+    const addressText = `${order.first_name || ''} ${order.last_name || ''}\n${order.address || ''}\n${order.zip || ''} ${order.city || ''}, ${order.country || ''}`
+
     const result: Record<string, unknown> = {}
 
     // ── 1) Shop-Benachrichtigung ────────────────────────────
@@ -108,7 +122,8 @@ Deno.serve(async (req) => {
         const mail = await sendMail({
           to: recipients,
           reply_to: order.email || undefined,
-          subject: `Neue Bestellung ${shortId} — ${euro(order.total)}`,
+          subject: `Neue Bestellung ${shortId} - ${euro(order.total)}`,
+          text: `Neue Bestellung ${shortId}\nZahlungsart: ${payLabel}\n\n${itemsText}\n\n${totalsText}\n\nKunde:\n${addressText}\n${order.email || ''}\n\nIm Admin ansehen: ${site}/admin`,
           html: `
             <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
               <h2 style="color:#2B120E;margin:0 0 4px">Neue Bestellung ${shortId}</h2>
@@ -136,6 +151,7 @@ Deno.serve(async (req) => {
       result.customer = 'Zahlung noch offen'
     } else {
       let payBlock = ''
+      let payText = 'Deine Zahlung ist bei uns eingegangen.'
       if (isTransfer) {
         const { data: bankSetting } = await admin.from('settings').select('value').eq('key', 'bank_details').maybeSingle()
         const b = (bankSetting?.value || {}) as Record<string, string>
@@ -154,13 +170,18 @@ Deno.serve(async (req) => {
             </table>` : `<p style="margin:0;font-size:14px">Betrag: <b>${euro(order.total)}</b> · Verwendungszweck: <b>${shortId}</b>. Unsere Bankdaten schicken wir dir in Kürze.</p>`}
             <p style="margin:12px 0 0;font-size:13px;color:#6b665f">Sobald die Zahlung bei uns ist, beginnen wir mit deiner Bestellung.</p>
           </div>`
+        payText = (b.iban
+          ? `Bitte überweise den Betrag auf unser Konto:\nEmpfänger: ${b.empfaenger || 'Made2Meant GmbH'}\nIBAN: ${b.iban}${b.bic ? '\nBIC: ' + b.bic : ''}\nBetrag: ${euro(order.total)}\nVerwendungszweck: ${shortId}`
+          : `Betrag: ${euro(order.total)}, Verwendungszweck: ${shortId}. Unsere Bankdaten schicken wir dir in Kürze.`)
+          + '\nSobald die Zahlung bei uns ist, beginnen wir mit deiner Bestellung.'
       } else {
         payBlock = `<p style="margin:0 0 24px;padding:12px 16px;background:#EAF1EA;border-radius:12px;color:#3F6B4C;font-size:14px">✓ Deine Zahlung ist bei uns eingegangen.</p>`
       }
 
       const mail = await sendMail({
         to: [order.email],
-        subject: `Danke für deine Bestellung ${shortId} bei made2meant 🤍`,
+        subject: `Deine Bestellung ${shortId} bei made2meant`,
+        text: `Danke${order.first_name ? ', ' + order.first_name : ''}!\n\nWir haben deine Bestellung ${shortId} erhalten und freuen uns, dein Lieblingsstück mit Sorgfalt in Österreich für dich zu besticken.\n\n${payText}\n\nDeine Bestellung:\n${itemsText}\n\n${totalsText}\n\nLieferadresse:\n${addressText}\n\nFragen zu deiner Bestellung? Antworte einfach auf diese E-Mail.\n\nMade2Meant GmbH, Franz-Broschek-Platz 5a, 2514 Möllersdorf, Österreich\n${site}`,
         html: `
           <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#1c1c1c">
             <p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#7a6d64;margin:0 0 6px">Bestellbestätigung</p>

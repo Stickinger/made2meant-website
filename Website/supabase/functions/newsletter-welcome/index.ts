@@ -37,7 +37,7 @@ function clientIp(req: Request) {
 }
 const isUuid = (s: unknown) => typeof s === 'string' && /^[0-9a-f-]{36}$/i.test(s)
 
-async function sendMail(to: string, subject: string, html: string, unsubscribeUrl?: string) {
+async function sendMail(to: string, subject: string, html: string, text: string, unsubscribeUrl?: string) {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) return { ok: false, detail: 'RESEND_API_KEY fehlt' }
   const from = Deno.env.get('ORDER_FROM_EMAIL') || 'made2meant <onboarding@resend.dev>'
@@ -45,7 +45,8 @@ async function sendMail(to: string, subject: string, html: string, unsubscribeUr
     method: 'POST',
     headers: { 'Authorization': 'Bearer ' + apiKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from, to: [to], subject, html,
+      from, to: [to], subject, html, text,
+      reply_to: Deno.env.get('REPLY_TO_EMAIL') || 'office@made2meant.com',
       ...(unsubscribeUrl ? { headers: { 'List-Unsubscribe': `<${unsubscribeUrl}>` } } : {}),
     }),
   })
@@ -102,7 +103,8 @@ Deno.serve(async (req) => {
         <p style="font-size:12px;color:#a9a49c;margin-top:30px;line-height:1.6">
           Du hast dich nicht angemeldet? Dann ignoriere diese E-Mail einfach – ohne Bestätigung
           erhältst du keine weiteren Nachrichten von uns.
-        </p>`))
+        </p>`),
+        `Fast geschafft!\n\nBitte bestätige, dass du den made2meant-Newsletter erhalten möchtest:\n${confirmUrl}\n\nDanach schicken wir dir deinen Willkommensgutschein.\n\nDu hast dich nicht angemeldet? Dann ignoriere diese E-Mail einfach.\n\nMade2Meant GmbH, Franz-Broschek-Platz 5a, 2514 Möllersdorf, Österreich`)
       return json({ ok: true, emailed: mail.ok, ...(mail.ok ? {} : { detail: mail.detail }) })
     }
 
@@ -123,7 +125,7 @@ Deno.serve(async (req) => {
 
       // Gutschein nur einmal pro Adresse
       if (!sub.welcomed) {
-        const mail = await sendMail(sub.email, `Dein ${WELCOME_PCT}%-Gutschein für made2meant 🤍`, frame(`
+        const mail = await sendMail(sub.email, `Dein ${WELCOME_PCT}%-Gutschein für made2meant`, frame(`
           <p style="font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#7a6d64;margin:0 0 6px">Willkommensgeschenk</p>
           <h1 style="font-size:26px;margin:0 0 10px">Willkommen bei made2meant 🤍</h1>
           <p style="font-size:15px;line-height:1.6;color:#6b665f;margin:0 auto 24px;max-width:380px">
@@ -139,7 +141,9 @@ Deno.serve(async (req) => {
           <p style="font-size:11px;color:#a9a49c;margin-top:32px;line-height:1.6">
             Du erhältst diese E-Mail, weil du dich für den made2meant-Newsletter angemeldet hast.<br>
             <a href="${unsubscribeUrl}" style="color:#a9a49c">Newsletter abbestellen</a>
-          </p>`), unsubscribeUrl)
+          </p>`),
+          `Willkommen bei made2meant!\n\nAls Dankeschön schenken wir dir ${WELCOME_PCT}% auf deine erste Bestellung.\nDein Gutscheincode: ${WELCOME_CODE}\nEinfach an der Kasse eingeben: ${site}\n\nNewsletter abbestellen: ${unsubscribeUrl}\n\nMade2Meant GmbH, Franz-Broschek-Platz 5a, 2514 Möllersdorf, Österreich`,
+          unsubscribeUrl)
         if (mail.ok) await admin.from('newsletter_subscribers').update({ welcomed: true }).eq('id', sub.id)
       }
       return json({ ok: true, confirmed: true, code: WELCOME_CODE })
