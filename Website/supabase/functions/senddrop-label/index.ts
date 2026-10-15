@@ -75,7 +75,8 @@ Deno.serve(async (req) => {
       method: 'POST', headers: sdHeaders,
       body: JSON.stringify({
         carrierType,
-        totalWeight: weight,
+        // Senddrop erwartet totalWeight in KILOGRAMM (Admin gibt Gramm ein)
+        totalWeight: Math.round(weight) / 1000,
         recipientName: [order.first_name, order.last_name].filter(Boolean).join(' ') || undefined,
         recipientEmail: mayNotify ? (order.email || undefined) : undefined,
         recipientPhoneNumber: mayNotify ? ((phone && String(phone).trim()) || undefined) : undefined,
