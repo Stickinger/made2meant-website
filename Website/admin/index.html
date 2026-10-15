@@ -966,9 +966,9 @@
         </div>
 
         <div class="field form-full">
-          <label>Farben & Fotos <span style="font-weight:400;color:var(--color-muted)">— je Farbe ein leeres Foto pro Stickstelle</span></label>
+          <label>Farben & Fotos <span style="font-weight:400;color:var(--color-muted)">— für Produkte in mehreren Farben</span></label>
           <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
-            Lade pro Farbe die leeren Produktfotos hoch — für jede Stickstelle eins. Darauf erscheint später der Kundentext live.
+            Pro Farbe: <b>Produktfotos</b> (werden gezeigt, sobald der Kunde diese Farbe wählt) und je Stickstelle ein <b>leeres Foto</b> für die Live-Vorschau mit Namen. Die Farben erscheinen automatisch im Shop-Farbfilter.
           </p>
           <div id="p-colorvariants"></div>
           <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addColorVariant()">+ Farbe hinzufügen</button>
@@ -1810,10 +1810,44 @@ function renderStitchPos() {
   renderPlacement();
 }
 
-// ── FARBEN & FOTOS (je Farbe ein Foto pro Stickstelle) ───────
-function addColorVariant() { colorVariants.push({ name: '', photos: {} }); renderColorVariants(); }
+// ── FARBEN & FOTOS (je Farbe: Produktfotos + ein leeres Foto pro Stickstelle) ───────
+function addColorVariant() { colorVariants.push({ name: '', photos: {}, gallery: [] }); renderColorVariants(); }
 function removeColorVariant(i) { colorVariants.splice(i, 1); renderColorVariants(); }
 function setColorName(i, v) { colorVariants[i].name = v; }
+
+// Bild ist ein reines Farbfoto (nur mit der Farbe getaggt, keine Stickstelle/weitere Option)
+function isColorOnlyImage(im, colorName) {
+  const ov = (im && im.option_values) || {};
+  const keys = Object.keys(ov);
+  return !!colorName && keys.length === 1 && /kappe|farbe/i.test(keys[0]) && ov[keys[0]] === colorName;
+}
+
+// Produktfotos je Farbe (Reihenfolge = Anzeige; erstes = Titelfoto der Farbe)
+async function handleVariantGallery(i, files) {
+  const list = [...(files || [])].filter(Boolean);
+  if (!list.length) return;
+  const c = colorVariants[i];
+  if (!c.gallery) c.gallery = [];
+  for (const f of list) {
+    const url = await uploadToStorage(f);
+    if (url) { c.gallery.push(url); renderColorVariants(); }
+  }
+}
+function moveVariantGallery(i, j, dir) {
+  const g = colorVariants[i].gallery || [];
+  const k = j + dir;
+  if (k < 0 || k >= g.length) return;
+  [g[j], g[k]] = [g[k], g[j]];
+  renderColorVariants();
+}
+function removeVariantGallery(i, j) { (colorVariants[i].gallery || []).splice(j, 1); renderColorVariants(); }
+async function rotateVariantGallery(i, j, btn) {
+  const url = colorVariants[i].gallery && colorVariants[i].gallery[j];
+  if (!url) return;
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  try { const neu = await rotateStoredImage(url); if (neu) { colorVariants[i].gallery[j] = neu; renderColorVariants(); } }
+  catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻'; } }
+}
 
 async function handleVariantPhoto(i, label, file) {
   if (!file) return;
@@ -1832,6 +1866,30 @@ function renderColorVariants() {
                style="flex:1;font-weight:700" onchange="setColorName(${i}, this.value)">
         <button type="button" class="btn-sm btn-sm--outline" onclick="removeColorVariant(${i})">Farbe entfernen</button>
       </div>
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Produktfotos dieser Farbe <span style="text-transform:none;letter-spacing:0;font-weight:400">— erstes = Titelfoto, wenn der Kunde diese Farbe wählt</span></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+        ${(c.gallery || []).map((url, j) => `
+          <div style="width:84px">
+            <img src="${url}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:6px;border:${j === 0 ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'}">
+            <div style="display:flex;gap:2px;margin-top:3px;justify-content:center">
+              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" ${j === 0 ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},-1)">↑</button>
+              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" ${j === (c.gallery.length - 1) ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},1)">↓</button>
+              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" onclick="rotateVariantGallery(${i},${j},this)">↻</button>
+              <button type="button" class="btn-sm btn-sm--danger" style="padding:2px 6px" onclick="removeVariantGallery(${i},${j})">✕</button>
+            </div>
+          </div>`).join('')}
+      </div>
+      <div class="dropzone dropzone--row" tabindex="0" role="button" style="margin-bottom:14px"
+           aria-label="Produktfotos dieser Farbe hochladen"
+           onclick="this.querySelector('input[type=file]').click()"
+           ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+           ondragleave="this.classList.remove('dropzone--over')"
+           ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleVariantGallery(${i}, event.dataTransfer.files)">
+        Fotos dieser Farbe hierher ziehen oder klicken (mehrere möglich)
+        <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden multiple
+               onchange="handleVariantGallery(${i}, this.files); this.value=''">
+      </div>
+      <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Leere Fotos pro Stickstelle <span style="text-transform:none;letter-spacing:0;font-weight:400">— für die Live-Vorschau mit Namen</span></div>
       ${labels.length ? `<div style="display:flex;gap:10px;flex-wrap:wrap;">
         ${labels.map(lbl => `
           <div style="flex:1;min-width:120px;text-align:center;">
@@ -2390,7 +2448,12 @@ async function openProductModal(product = null) {
           Object.values(ov).forEach(v => { if (labelSet.has(v)) photos[v] = im.url; });
         }
       });
-      return { name, photos };
+      // Produktfotos dieser Farbe = Bilder, die NUR mit der Farbe getaggt sind
+      const gallery = allImgs
+        .filter(im => isColorOnlyImage(im, name))
+        .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+        .map(im => im.url);
+      return { name, photos, gallery };
     });
   }
   // Motive laden
@@ -2412,10 +2475,12 @@ async function openProductModal(product = null) {
     .map(m => m.url);
   renderGallery();
 
-  // Erweiterte Bilder: nur solche MIT Options-Tag, aber ohne Stelle-Tag (Stellen-Fotos verwaltet der Farben-Bereich)
+  // Erweiterte Bilder: nur solche MIT Options-Tag, aber ohne Stelle-Tag und keine reinen Farbfotos
+  // (Stellen- und Farbfotos verwaltet der Farben-Bereich)
   modalImages = allImgs.filter(m => {
     const vals = Object.values(m.option_values || {});
-    return vals.length && !vals.some(v => labelSet.has(v));
+    return vals.length && !vals.some(v => labelSet.has(v))
+      && !colorVariants.some(c => isColorOnlyImage(m, c.name));
   });
   renderImagesEditor();
 
@@ -2452,9 +2517,17 @@ async function saveProduct() {
   const catIds   = [...document.querySelectorAll('#p-categories input:checked')].map(i => i.value);
   const typeKeys = [...document.querySelectorAll('#p-types input:checked')].map(i => i.value);
   const colors   = document.getElementById('p-colors-text').value.split(',').map(s => s.trim()).filter(Boolean);
+  // Farben aus „Farben & Fotos" automatisch in den Shop-Farbfilter übernehmen
+  for (const nm of colorNames) {
+    if (!colors.some(c => c.toLowerCase() === nm.toLowerCase())) colors.push(nm);
+  }
 
-  // Hauptbild ggf. automatisch aus Farb-/Stellen-Foto oder erstem Galeriebild setzen
+  // Hauptbild ggf. automatisch aus Farb-Produktfoto, Stellen-Foto oder erstem Galeriebild setzen
   let mainImage = document.getElementById('p-image').value || null;
+  if (!mainImage) {
+    const firstColorPhoto = colorVariants.map(c => (c.gallery || [])[0]).find(Boolean);
+    if (firstColorPhoto) mainImage = firstColorPhoto;
+  }
   if (!mainImage) {
     for (const c of colorVariants) {
       const first = Object.values(c.photos || {}).find(Boolean);
@@ -2512,6 +2585,8 @@ async function saveProduct() {
   colorVariants.forEach(c => {
     const nm = (c.name || '').trim();
     if (!nm) return;
+    // Produktfotos dieser Farbe (nur mit der Farbe getaggt, Reihenfolge bleibt)
+    (c.gallery || []).forEach(url => { if (url) imgs.push({ url, option_values: { Farbe: nm } }); });
     positions.forEach(pos => {
       const url = c.photos[pos.label];
       if (url) imgs.push({ url, option_values: { Farbe: nm, Stelle: pos.label } });

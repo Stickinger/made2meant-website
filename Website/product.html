@@ -411,8 +411,26 @@
 
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }
 
+    // Produktfotos der gewählten Farbe (nur mit der Farbe getaggt, Reihenfolge aus dem Admin)
+    function colorPhotos() {
+      if (!cfg.capColor) return [];
+      return productImages.filter(img => {
+        const keys = Object.keys(img.option_values || {});
+        return keys.length === 1 && /kappe|farbe/i.test(keys[0]) && img.option_values[keys[0]] === cfg.capColor;
+      }).map(img => img.url).filter(Boolean);
+    }
+
+    // Galerie unter dem Hauptbild: weitere Fotos der Farbe + farbunabhängige Fotos
+    function currentGallery() {
+      const main = displayImage();
+      const seen = new Set([main]);
+      return [...colorPhotos().slice(1), ...galleryImages].filter(u => u && !seen.has(u) && seen.add(u));
+    }
+
     // Das schöne Titelfoto (mit Beispiel-Stickerei) – bevorzugt farblich passend.
     function displayImage() {
+      const cp = colorPhotos();
+      if (cp.length) return cp[0];
       if (cfg.capColor) {
         const m = productImages.find(img => {
           const ov = img.option_values || {};
@@ -662,7 +680,7 @@
       const posThumbs = POSITIONS.map(p =>
         `<button class="thumb ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')" aria-label="${p.view}"><img src="${photoFor(p.id)}" alt="${p.view}"></button>`
       ).join('');
-      const galleryThumbs = galleryImages.map((url, i) =>
+      const galleryThumbs = currentGallery().map((url, i) =>
         `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
       ).join('');
       el.innerHTML = display + posThumbs + galleryThumbs;
@@ -677,7 +695,7 @@
       const view = cfg.previewPos;                       // null = Titelfoto, 'g<i>' = Galeriefoto, sonst leeres Positionsfoto
       const isGallery = typeof view === 'string' && view[0] === 'g';
       const url = view === null ? displayImage()
-                : isGallery ? galleryImages[+view.slice(1)]
+                : isGallery ? currentGallery()[+view.slice(1)]
                 : photoFor(view);
       const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
@@ -758,6 +776,8 @@
 
     function selectCap(value) {
       cfg.capColor = value;
+      // Galerie wechselt mit der Farbe → beim Farbwechsel ein Galeriefoto zurück aufs Titelfoto setzen
+      if (typeof cfg.previewPos === 'string' && cfg.previewPos[0] === 'g') cfg.previewPos = null;
       document.querySelectorAll('.cpill').forEach(el => el.classList.toggle('selected', el.dataset.val === value));
       const lbl = document.querySelector('.fld__label'); if (lbl && /Farbe/.test(lbl.textContent)) lbl.textContent = 'Farbe: ' + value;
       renderCanvas(); renderThumbs();
