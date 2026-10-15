@@ -16,10 +16,12 @@ const PRODUCT_TYPES = [
   { key: 'set',         label: 'Geschenkset',  match: /geschenkset|geschenk-set|\bset\b|bundle|paket/ },
   { key: 'haube',       label: 'Haube',        match: /haube/ },
   { key: 'laetzchen',   label: 'Lätzchen',     match: /lätzchen|laetzchen/ },
+  { key: 'sweatshirt',  label: 'Sweatshirt',   match: /sweat|pullover|hoodie/ },
+  { key: 'schmusetuch', label: 'Schmusetuch',  match: /schmusetuch|schnuffel|kuscheltuch/ },
 ];
 
 // Alte Links (z. B. ?typ=hauben) weiter unterstützen
-const PRODUCT_TYPE_ALIASES = { hauben: 'haube', handtuch: 'kapuzentuch', tasche: 'rucksack' };
+const PRODUCT_TYPE_ALIASES = { hauben: 'haube', handtuch: 'kapuzentuch', tasche: 'rucksack', schnuffeltuch: 'schmusetuch' };
 
 const PRODUCT_COLORS = [
   { name: 'Weiß',       hex: '#F0EDE8' },
