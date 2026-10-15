@@ -42,21 +42,38 @@ Deno.serve(async (req) => {
     const productIds = [...new Set((order.order_items || []).map((i: any) => i.product_id).filter(Boolean))]
     const productMap: Record<string, any> = {}
     if (productIds.length) {
-      const { data: prods } = await admin.from('products').select('id, price, positions').in('id', productIds)
+      const { data: prods } = await admin.from('products').select('id, price, positions, bundle_items, motifs').in('id', productIds)
       for (const p of prods || []) productMap[p.id] = p
     }
 
-    // Pro Position den korrekten Stückpreis nachrechnen
+    // Bestickung: fixer Preis 9,90 € pro Stelle; Geschenk-Set-Staffel
+    // (jede weitere Bestickung 2,00 € günstiger, Floor 3,90 €) — identisch zur Website.
+    const STITCH_PRICE = 9.90
+    // Stückpreis serverseitig nach DEN GLEICHEN Regeln wie die Website nachrechnen
+    // (Grundpreis aus den Produktdaten + Bestickung nach Regel + Motive).
     function trueUnitPrice(item: any): number {
       const p = item.product_id ? productMap[item.product_id] : null
       if (!p) return Number(item.price) || 0 // kein Produktbezug → gespeicherten Preis nutzen
       const opts = item.options || {}
       const base = Number(p.price) || 0
-      const add = (p.positions || []).reduce(
-        (s: number, pos: any) => s + (Object.prototype.hasOwnProperty.call(opts, pos.label) ? (Number(pos.price) || 0) : 0),
-        0,
-      )
-      return base + add
+      // Ohne Bestickung → nur Grundpreis
+      if (opts['Bestickung'] === 'Ohne Bestickung') return base
+      // Anzahl gewählter Stickstellen = Positionen, deren Label als Option-Key vorkommt
+      const nPos = (p.positions || []).filter(
+        (pos: any) => Object.prototype.hasOwnProperty.call(opts, pos.label),
+      ).length
+      const isSet = Array.isArray(p.bundle_items) && p.bundle_items.filter((x: any) => x && x.name).length > 0
+      let embroidery = 0
+      for (let k = 1; k <= nPos; k++) embroidery += isSet ? Math.max(STITCH_PRICE - (k - 1) * 2, 3.90) : STITCH_PRICE
+      // Motive (aus product.motifs; options['Motive'] = "Label, Label")
+      let motifAdd = 0
+      if (opts['Motive']) {
+        const byLabel: Record<string, number> = {}
+        for (const m of (p.motifs || [])) byLabel[String(m.label || '').trim()] = Number(m.price) || 0
+        motifAdd = String(opts['Motive']).split(',').map((s) => s.trim()).filter(Boolean)
+          .reduce((s: number, label: string) => s + (byLabel[label] || 0), 0)
+      }
+      return base + embroidery + motifAdd
     }
 
     let subtotal = 0
