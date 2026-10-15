@@ -44,6 +44,8 @@ const PRODUCT_COLORS = [
   { name: 'Senf',       hex: '#C9A84C' },
   { name: 'Terracotta', hex: '#C56A47' },
   { name: 'Braun',      hex: '#8A5A3B' },
+  { name: 'Taupe',      hex: '#8B7D6B' },
+  { name: 'Rostrot',    hex: '#A0522D' },
 ];
 
 const PRICE_RANGES = [
@@ -58,5 +60,9 @@ function colorHex(name) {
   const c = PRODUCT_COLORS.find(c => c.name.toLowerCase() === n);
   if (c) return c.hex;
   const legacy = { 'weiss': '#F0EDE8', 'sand': '#E7DCCB', 'silber': '#A8A9AD', 'rot': '#7B1C2E', 'gruen': '#42553D', 'gold': '#C9A84C' };
-  return legacy[n] || '#D8CBB8';
+  if (legacy[n]) return legacy[n];
+  // Teiltreffer für freie Farbnamen, z. B. „Salbeigrün" → Salbei, „Fuchs Rostrot" → Rostrot
+  const part = PRODUCT_COLORS.slice().sort((a, b) => b.name.length - a.name.length)
+    .find(c => n.includes(c.name.toLowerCase()));
+  return part ? part.hex : '#D8CBB8';
 }

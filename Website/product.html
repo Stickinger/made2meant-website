@@ -342,8 +342,10 @@
     // SEO pro Produkt setzen (Titel, Beschreibung, Canonical, Social, Produkt-Daten für Google)
     function applyProductSEO(p) {
       const url = 'https://made2meant.com/product.html?slug=' + encodeURIComponent(p.slug || '');
-      const title = p.name + ' — made2meant';
-      const desc = String(p.description || (p.name + ' – personalisiert mit Namen, liebevoll in Österreich bestickt.')).slice(0, 160);
+      // SEO-Felder aus dem Admin haben Vorrang; sonst Name/Beschreibung als Fallback
+      const title = (p.seo_title && p.seo_title.trim()) || (p.name + ' — made2meant');
+      const desc = String((p.seo_description && p.seo_description.trim()) || p.description || (p.name + ' – personalisiert mit Namen, liebevoll in Österreich bestickt.')).slice(0, 160);
+      document.title = title;
       const img = p.image_url || 'https://made2meant.com/assets/images/og-made2meant.jpg';
       const set = (id, attr, val) => { const el = document.getElementById(id); if (el) el.setAttribute(attr, val); };
       set('seo-desc', 'content', desc);
@@ -389,6 +391,12 @@
       const opts = currentProduct.options || [];
       capOption = opts.find(o => /kappe|farbe/i.test(o.name)) || null;
       if (capOption && capOption.values?.length) cfg.capColor = capOption.values[0];
+      // Farbe aus dem Shop-Link übernehmen (?farbe=Taupe)
+      const wantedColor = new URLSearchParams(location.search).get('farbe');
+      if (capOption && wantedColor) {
+        const hit = (capOption.values || []).find(v => String(v).toLowerCase() === wantedColor.toLowerCase());
+        if (hit) cfg.capColor = hit;
+      }
 
       // Feste Textposition kommt aus dem Admin (x/y/size, jeweils 0..1). Fallback: Mitte.
       POSITIONS = (currentProduct.positions || []).map((p, i) => ({

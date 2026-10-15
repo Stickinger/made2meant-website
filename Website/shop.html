@@ -96,6 +96,13 @@
     .pcard__img .stitch-name { font-size: 2.2rem; }
     .pcard__name { font-weight: 600; color: var(--color-text); font-size: 0.98rem; }
     .pcard__price { color: var(--color-text); font-weight: 700; margin-top: 2px; }
+    /* Farbpunkte unter der Karte: Hover = Vorschau, Klick = Farbe wählen */
+    .pcard-wrap { display: flex; flex-direction: column; }
+    .pcard__sw { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .pcard__sw span { width: 18px; height: 18px; border-radius: 50%; cursor: pointer; display: inline-block;
+      border: 1px solid rgba(0,0,0,0.18); transition: transform 0.15s; }
+    .pcard__sw span:hover { transform: scale(1.15); }
+    .pcard__sw span.on { outline: 2px solid var(--color-text); outline-offset: 2px; }
     .stitch-name { font-family: 'Caveat', cursive; font-weight: 700; color: #9c6a4a; transform: rotate(-4deg); }
 
     .footer2 { background: var(--color-surface-2); border-top: 1px solid var(--color-border); padding: 56px 0 28px; margin-top: 56px; }
@@ -367,11 +374,63 @@
       return arr;
     }
 
+    // ── Farbfotos je Produkt (aus „Farben & Fotos" im Admin) ──
+    // colorPhotoMap[productId] = { farbe(klein): { name, url } } — erstes Foto je Farbe
+    let colorPhotoMap = {};
+    const cardColor = {};   // per Farbpunkt gewählte Farbe je Produkt
+    async function loadColorPhotos() {
+      try {
+        const t = new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 3000));
+        const { data } = await Promise.race([
+          db.from('product_images').select('product_id, url, option_values, sort_order').order('sort_order'), t]);
+        (data || []).forEach(im => {
+          const ov = im.option_values || {};
+          const keys = Object.keys(ov);
+          if (keys.length !== 1 || !/kappe|farbe/i.test(keys[0]) || !im.url) return;   // nur reine Farbfotos
+          const name = String(ov[keys[0]]);
+          const m = colorPhotoMap[im.product_id] || (colorPhotoMap[im.product_id] = {});
+          if (!m[name.toLowerCase()]) m[name.toLowerCase()] = { name, url: im.url };
+        });
+      } catch (_) { /* ohne Farbfotos: normales Hauptbild */ }
+    }
+    // Welche Farbe zeigt die Karte? Farbpunkt-Klick > aktiver Farbfilter > keine (Hauptbild)
+    function activeColor(p) {
+      const m = colorPhotoMap[p.id];
+      if (!m) return null;
+      if (cardColor[p.id] && m[cardColor[p.id]]) return cardColor[p.id];
+      for (const k of filters.farbe) if (m[k]) return k;
+      return null;
+    }
+    function cardEl(pid) { return document.querySelector(`.pcard-wrap[data-pid="${CSS.escape(String(pid))}"]`); }
+    function rerenderCard(pid) {
+      const p = allProducts.find(x => String(x.id) === String(pid));
+      const el = cardEl(pid);
+      if (p && el) el.outerHTML = shopCard(p);
+    }
+    function setCardColor(pid, k) { cardColor[pid] = decodeURIComponent(k); rerenderCard(pid); }
+    function previewCardColor(pid, k) {
+      const m = colorPhotoMap[pid]; const el = cardEl(pid); k = decodeURIComponent(k);
+      if (!m || !m[k] || !el) return;
+      const box = el.querySelector('.pcard__img');
+      if (box) box.style.backgroundImage = `url('${m[k].url}')`;
+    }
+
     function shopCard(p) {
-      const img = p.image_url
-        ? `<div class="pcard__img" style="background-image:url('${p.image_url}')">${p.bestseller ? '<span class="pcard__badge">Bestseller</span>' : ''}</div>`
+      const m = colorPhotoMap[p.id] || {};
+      const ck = activeColor(p);
+      const imgUrl = (ck && m[ck].url) || p.image_url;
+      const href = '/product.html?slug=' + encodeURIComponent(p.slug) + (ck ? '&farbe=' + encodeURIComponent(m[ck].name) : '');
+      const img = imgUrl
+        ? `<div class="pcard__img" style="background-image:url('${imgUrl}')">${p.bestseller ? '<span class="pcard__badge">Bestseller</span>' : ''}</div>`
         : `<div class="pcard__img"><span class="stitch-name">${esc(firstName(p))}</span></div>`;
-      return `<a class="pcard" href="/product.html?slug=${encodeURIComponent(p.slug)}">${img}<div class="pcard__name">${esc(p.name)}</div><div class="pcard__price">${euro(p.price)}</div>${Number(p.compare_price) > Number(p.price) ? `<div class="pcard__was"><span>Einzeln <s>${euro(p.compare_price)}</s></span><span class="pcard__save">Du sparst ${euro(p.compare_price - p.price)}</span></div>` : ''}</a>`;
+      const colors = Object.entries(m);
+      // Farbpunkte liegen in der Karte (im Link) — Klick wählt die Farbe statt zu navigieren
+      const sw = colors.length > 1 ? `<span class="pcard__sw" onmouseleave="rerenderCard('${p.id}')">${colors.map(([k, v]) =>
+        `<span role="button" tabindex="0" class="${k === ck ? 'on' : ''}" style="background:${colorHex(v.name)}" title="${esc(v.name)}" aria-label="Farbe ${esc(v.name)}"
+           onmouseenter="previewCardColor('${p.id}','${encodeURIComponent(k)}')"
+           onclick="event.preventDefault();event.stopPropagation();setCardColor('${p.id}','${encodeURIComponent(k)}')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();event.stopPropagation();setCardColor('${p.id}','${encodeURIComponent(k)}')}"></span>`).join('')}</span>` : '';
+      return `<div class="pcard-wrap" data-pid="${p.id}"><a class="pcard" href="${href}">${img}<div class="pcard__name">${esc(p.name)}</div><div class="pcard__price">${euro(p.price)}</div>${Number(p.compare_price) > Number(p.price) ? `<div class="pcard__was"><span>Einzeln <s>${euro(p.compare_price)}</s></span><span class="pcard__save">Du sparst ${euro(p.compare_price - p.price)}</span></div>` : ''}${sw}</a></div>`;
     }
 
     function renderGrid(list) {
@@ -398,7 +457,7 @@
     function filterProducts() { applyFilters(); }   // Handler fürs Suchfeld
 
     async function init() {
-      let products = await loadProducts();
+      let [products] = await Promise.all([loadProducts(), loadColorPhotos()]);
       if (products.length === 0) products = (typeof DEMO_PRODUCTS !== 'undefined') ? DEMO_PRODUCTS : [];
       allProducts = products;
 

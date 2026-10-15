@@ -336,6 +336,13 @@
     .star-btn.on { color: #D9A13B; }
     .star-btn:hover { color: #D9A13B; }
     .chk-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    /* Bild-Kacheln (Galerie & Farbfotos): Raster, Buttons passen immer unter ihr Bild */
+    .thumbgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 14px; margin-top: 12px; }
+    .thumbtile { min-width: 0; }
+    .thumbtile img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; border: 1px solid var(--color-border); display: block; }
+    .thumbtile--first img { border: 2px solid var(--color-primary); }
+    .thumbtile__btns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; margin-top: 6px; }
+    .thumbtile__btns .btn-sm { padding: 5px 0; min-width: 0; width: 100%; font-size: 0.85rem; line-height: 1; }
     .chk { display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border: 1px solid var(--color-border);
       border-radius: 99px; background: #fff; font-size: 0.8rem; cursor: pointer; user-select: none; }
     .chk input { accent-color: var(--color-primary); }
@@ -953,7 +960,7 @@
             <input type="file" id="p-gallery-file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden multiple onchange="handleGalleryFiles(this.files); this.value=''">
           </div>
           <span id="p-gallery-status" style="display:inline-block;margin-top:6px;font-size:0.85rem;color:var(--color-muted);"></span>
-          <div id="p-gallery" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px"></div>
+          <div id="p-gallery" class="thumbgrid"></div>
         </div>
 
         <div class="field form-full">
@@ -1299,7 +1306,10 @@ function autoSlug(fromId, toId) {
   const src = document.getElementById(fromId);
   const tgt = document.getElementById(toId);
   if (!document.getElementById(toId.replace('slug','id') || 'p-id')?.value) {
-    tgt.value = src.value.toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    // Umlaute lesbar umschreiben (Lätzchen → laetzchen statt l-tzchen)
+    tgt.value = src.value.toLowerCase().trim()
+      .replace(/ä/g,'ae').replace(/ö/g,'oe').replace(/ü/g,'ue').replace(/ß/g,'ss')
+      .replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   }
 }
 
@@ -1867,18 +1877,18 @@ function renderColorVariants() {
         <button type="button" class="btn-sm btn-sm--outline" onclick="removeColorVariant(${i})">Farbe entfernen</button>
       </div>
       <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Produktfotos dieser Farbe <span style="text-transform:none;letter-spacing:0;font-weight:400">— erstes = Titelfoto, wenn der Kunde diese Farbe wählt</span></div>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
-        ${(c.gallery || []).map((url, j) => `
-          <div style="width:84px">
-            <img src="${url}" alt="" style="width:84px;height:84px;object-fit:cover;border-radius:6px;border:${j === 0 ? '2px solid var(--color-primary)' : '1px solid var(--color-border)'}">
-            <div style="display:flex;gap:2px;margin-top:3px;justify-content:center">
-              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" ${j === 0 ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},-1)">↑</button>
-              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" ${j === (c.gallery.length - 1) ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},1)">↓</button>
-              <button type="button" class="btn-sm btn-sm--outline" style="padding:2px 6px" onclick="rotateVariantGallery(${i},${j},this)">↻</button>
-              <button type="button" class="btn-sm btn-sm--danger" style="padding:2px 6px" onclick="removeVariantGallery(${i},${j})">✕</button>
+      ${(c.gallery || []).length ? `<div class="thumbgrid" style="margin:0 0 10px">
+        ${c.gallery.map((url, j) => `
+          <div class="thumbtile ${j === 0 ? 'thumbtile--first' : ''}">
+            <img src="${url}" alt="">
+            <div class="thumbtile__btns">
+              <button type="button" class="btn-sm btn-sm--outline" title="nach vorne" ${j === 0 ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},-1)">↑</button>
+              <button type="button" class="btn-sm btn-sm--outline" title="nach hinten" ${j === (c.gallery.length - 1) ? 'disabled' : ''} onclick="moveVariantGallery(${i},${j},1)">↓</button>
+              <button type="button" class="btn-sm btn-sm--outline" title="drehen" onclick="rotateVariantGallery(${i},${j},this)">↻</button>
+              <button type="button" class="btn-sm btn-sm--danger" title="entfernen" onclick="removeVariantGallery(${i},${j})">✕</button>
             </div>
           </div>`).join('')}
-      </div>
+      </div>` : ''}
       <div class="dropzone dropzone--row" tabindex="0" role="button" style="margin-bottom:14px"
            aria-label="Produktfotos dieser Farbe hochladen"
            onclick="this.querySelector('input[type=file]').click()"
@@ -2263,15 +2273,15 @@ function renderGallery() {
   const box = document.getElementById('p-gallery');
   if (!box) return;
   box.innerHTML = galleryImages.map((url, i) => `
-    <div style="width:96px">
-      <img src="${url}" alt="" style="width:96px;height:96px;object-fit:cover;border-radius:8px;border:1px solid var(--color-border)">
-      <div style="display:flex;gap:3px;margin-top:4px;justify-content:center">
+    <div class="thumbtile">
+      <img src="${url}" alt="">
+      <div class="thumbtile__btns">
         <button type="button" class="btn-sm btn-sm--outline" title="nach vorne" ${i === 0 ? 'disabled' : ''} onclick="moveGalleryImage(${i},-1)">↑</button>
         <button type="button" class="btn-sm btn-sm--outline" title="nach hinten" ${i === galleryImages.length - 1 ? 'disabled' : ''} onclick="moveGalleryImage(${i},1)">↓</button>
         <button type="button" class="btn-sm btn-sm--outline" title="drehen" onclick="rotateGalleryImage(${i}, this)">↻</button>
         <button type="button" class="btn-sm btn-sm--danger" title="entfernen" onclick="removeGalleryImage(${i})">✕</button>
       </div>
-    </div>`).join('') || '<span style="font-size:0.8rem;color:var(--color-muted)">Noch keine weiteren Bilder.</span>';
+    </div>`).join('') || '<span style="grid-column:1/-1;font-size:0.8rem;color:var(--color-muted)">Noch keine weiteren Bilder.</span>';
 }
 
 // Kategorie-Bild hochladen (Datei-Auswahl ODER Drag & Drop)
