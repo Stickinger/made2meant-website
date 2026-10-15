@@ -38,8 +38,8 @@ function toBase64(bytes: Uint8Array) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
-    const { order_id, carrierType, weightGrams, phone } = await req.json()
-    if (!order_id || !carrierType) return json({ error: 'order_id und carrierType sind nötig' }, 400)
+    const { order_id, carrierType, weightGrams, phone, diagnose } = await req.json()
+    if (!diagnose && (!order_id || !carrierType)) return json({ error: 'order_id und carrierType sind nötig' }, 400)
 
     const url = Deno.env.get('SUPABASE_URL')!
     const service = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -54,6 +54,22 @@ Deno.serve(async (req) => {
 
     const token = Deno.env.get('SENDDROP_API_TOKEN')
     if (!token) return json({ error: 'SENDDROP_API_TOKEN ist nicht gesetzt (Secret in Supabase hinterlegen).' }, 500)
+
+    // ── Diagnose (nur lesend, legt KEINE Sendung an) ──
+    if (diagnose) {
+      const get = async (p: string) => {
+        const r = await fetch(SD_BASE + p, { headers: { 'Authorization': 'Bearer ' + token, 'Accept': 'application/json' } })
+        const t = await r.text()
+        let body: unknown = t.slice(0, 1500)
+        try { body = JSON.parse(t) } catch (_) { /* Text lassen */ }
+        return { status: r.status, body }
+      }
+      return json({
+        carriersAvailable: await get('/api/v1/organization/carriers/available'),
+        carriersStatus: await get('/api/v1/organization/carriers/status'),
+        brands: await get('/api/v1/organization/brands'),
+      })
+    }
 
     // ── Bestellung laden ──
     const { data: order, error } = await service.from('orders').select('*').eq('id', order_id).single()
@@ -89,6 +105,15 @@ Deno.serve(async (req) => {
           postalCode: order.zip || undefined,
           city: order.city || undefined,
           country: order.country || 'AT',
+        },
+        // Absender — im Senddrop-Konto ist (noch) keine Marke/Absenderadresse hinterlegt
+        senderAddress: {
+          companyName: 'Made2Meant GmbH',
+          street: 'Franz-Broschek-Platz',
+          houseNumber: '5a',
+          postalCode: '2514',
+          city: 'Möllersdorf',
+          country: 'AT',
         },
       }),
     })
