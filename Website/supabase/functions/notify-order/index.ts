@@ -53,7 +53,7 @@ async function sendMail(payload: Record<string, unknown>) {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   try {
-    const { order_id } = await req.json()
+    const { order_id, force } = await req.json()
     if (!order_id) return json({ error: 'order_id fehlt' }, 400)
 
     const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
     const result: Record<string, unknown> = {}
 
     // ── 1) Shop-Benachrichtigung ────────────────────────────
-    if (order.order_notified) {
+    if (order.order_notified && !force) {
       result.shop = 'bereits gesendet'
     } else {
       const { data: setting } = await admin.from('settings').select('value').eq('key', 'order_notification_emails').maybeSingle()
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
 
     // ── 2) Bestellbestätigung an den Kunden ─────────────────
     // Kartenzahlung erst, wenn Stripe die Zahlung gemeldet hat (nicht mehr "pending")
-    if (order.customer_notified) {
+    if (order.customer_notified && !force) {
       result.customer = 'bereits gesendet'
     } else if (!order.email) {
       result.customer = 'keine E-Mail-Adresse'

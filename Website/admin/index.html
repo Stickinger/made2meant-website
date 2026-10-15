@@ -758,9 +758,12 @@
             <div class="admin-card" style="margin-bottom:16px;">
               <div class="admin-card__header">
                 <h3>Abonnenten</h3>
-                <span id="nl-sub-count" style="font-size:0.75rem;color:var(--color-muted);">—</span>
+                <span style="display:flex;align-items:center;gap:10px">
+                  <span id="nl-sub-count" style="font-size:0.75rem;color:var(--color-muted);">—</span>
+                  <button class="btn-sm btn-sm--outline" onclick="exportSubscribersCsv()">CSV</button>
+                </span>
               </div>
-              <div id="subscribers-list" style="max-height:240px;overflow-y:auto;"></div>
+              <div id="subscribers-list" style="max-height:320px;overflow-y:auto;"></div>
             </div>
 
             <div class="admin-card">
@@ -2674,6 +2677,27 @@ async function loadOrdersTable() {
     </table>` : '<div class="empty-state"><div class="empty-state__icon">📦</div><p>Keine Bestellungen gefunden.</p></div>';
 }
 
+async function resendConfirmation(orderId, btn) {
+  const msg = document.getElementById('resend-msg');
+  if (!confirm('Bestellbestätigung erneut an den Kunden senden?')) return;
+  if (btn) btn.disabled = true;
+  if (msg) { msg.style.color = 'var(--color-muted)'; msg.textContent = 'Wird gesendet…'; }
+  try {
+    const { data, error } = await db.functions.invoke('notify-order', { body: { order_id: orderId, force: true } });
+    if (error || (data && data.error)) {
+      let detail = (data && data.error) || (error && error.message) || 'unbekannt';
+      try { if (error && error.context) { const r = await error.context.json(); detail = r.error || detail; } } catch (_) {}
+      if (msg) { msg.style.color = 'var(--color-danger)'; msg.textContent = 'Fehler: ' + detail; }
+    } else {
+      if (msg) { msg.style.color = 'var(--color-success)'; msg.textContent = 'Kunde: ' + (data.customer || '—') + ' · Shop: ' + (data.shop || '—'); }
+    }
+  } catch (e) {
+    if (msg) { msg.style.color = 'var(--color-danger)'; msg.textContent = 'Fehler: ' + (e.message || e); }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
 async function updateOrderStatus(id, status) {
   await db.from('orders').update({ status }).eq('id', id);
 }
@@ -2687,6 +2711,10 @@ async function viewOrder(id) {
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Kunde</div>
         <div>${esc(o.first_name)} ${esc(o.last_name)}</div>
         <div style="color:var(--color-muted);font-size:0.85rem;">${esc(o.email)}</div>
+        ${o.email ? `<div style="margin-top:8px;">
+          <button class="btn-sm btn-sm--outline" onclick="resendConfirmation('${o.id}', this)">✉ Bestätigung erneut senden</button>
+          <span id="resend-msg" style="font-size:0.8rem;margin-left:8px;color:var(--color-muted);"></span>
+        </div>` : ''}
       </div>
       <div>
         <div style="font-size:0.7rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">Lieferadresse</div>
@@ -2872,15 +2900,28 @@ async function loadNewsletter() {
   ]);
 
   const subs = subRes.data || [];
-  document.getElementById('nl-sub-count').textContent = subs.filter(s=>s.active).length + ' aktiv';
+  newsletterSubs = subs;
+  const activeConfirmed = subs.filter(s => s.active && s.confirmed !== false).length;
+  document.getElementById('nl-sub-count').textContent = activeConfirmed + ' aktiv · ' + subs.length + ' gesamt';
+  const statusBadge = s => {
+    if (!s.active) return '<span class="badge badge--grey">Abgemeldet</span>';
+    if (s.confirmed === false) return '<span class="badge badge--yellow">Unbestätigt</span>';
+    return '<span class="badge badge--green">Bestätigt</span>';
+  };
   document.getElementById('subscribers-list').innerHTML = subs.length ? `
     <table class="data-table">
-      <thead><tr><th>E-Mail</th><th>Name</th><th>Status</th></tr></thead>
+      <thead><tr><th>E-Mail</th><th>Status</th><th>Angemeldet</th><th></th></tr></thead>
       <tbody>${subs.map(s=>`
         <tr>
-          <td style="font-size:0.8rem;">${s.email}</td>
-          <td style="color:var(--color-muted);font-size:0.8rem;">${s.name||'—'}</td>
-          <td>${s.active ? '<span class="badge badge--green">Aktiv</span>' : '<span class="badge badge--grey">Abgemeldet</span>'}</td>
+          <td style="font-size:0.8rem;">${esc(s.email)}</td>
+          <td>${statusBadge(s)}</td>
+          <td style="color:var(--color-muted);font-size:0.78rem;white-space:nowrap;">${fmtDate(s.consent_at || s.subscribed_at || s.created_at)}</td>
+          <td style="text-align:right;white-space:nowrap;">
+            ${s.active
+              ? `<button class="btn-sm btn-sm--outline" title="Abmelden" onclick="setSubscriberActive('${s.id}', false)">Abmelden</button>`
+              : `<button class="btn-sm btn-sm--outline" title="Reaktivieren" onclick="setSubscriberActive('${s.id}', true)">Reaktivieren</button>`}
+            <button class="btn-sm btn-sm--danger" title="Löschen" onclick="deleteSubscriber('${s.id}', '${esc(s.email)}')">✕</button>
+          </td>
         </tr>`).join('')}
       </tbody>
     </table>` : '<div class="empty-state"><p>Noch keine Abonnenten.</p></div>';
@@ -2900,30 +2941,80 @@ async function loadNewsletter() {
     </table>` : '<div class="empty-state"><p>Noch keine Newsletter.</p></div>';
 }
 
+let newsletterSubs = [];
+
+async function setSubscriberActive(id, active) {
+  const { error } = await db.from('newsletter_subscribers').update({
+    active, unsubscribed_at: active ? null : new Date().toISOString(),
+  }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  loadNewsletter();
+}
+
+async function deleteSubscriber(id, email) {
+  if (!confirm('Abonnent „' + email + '" endgültig löschen?')) return;
+  const { error } = await db.from('newsletter_subscribers').delete().eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  loadNewsletter();
+}
+
+function exportSubscribersCsv() {
+  const rows = newsletterSubs || [];
+  if (!rows.length) { alert('Keine Abonnenten zum Exportieren.'); return; }
+  const header = ['email', 'status', 'bestaetigt', 'aktiv', 'angemeldet_am', 'bestaetigt_am'];
+  const val = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const lines = rows.map(s => [
+    s.email,
+    !s.active ? 'abgemeldet' : (s.confirmed === false ? 'unbestätigt' : 'bestätigt'),
+    s.confirmed === false ? 'nein' : 'ja',
+    s.active ? 'ja' : 'nein',
+    s.consent_at || s.subscribed_at || s.created_at || '',
+    s.confirmed_at || '',
+  ].map(val).join(','));
+  const csv = '﻿' + [header.join(','), ...lines].join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const a = document.createElement('a');
+  a.href = url; a.download = 'newsletter-abonnenten-' + new Date().toISOString().slice(0, 10) + '.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
 async function saveNewsletter(action) {
-  const subject = document.getElementById('nl-subject').value;
-  const content = document.getElementById('nl-content').value;
+  const subject = document.getElementById('nl-subject').value.trim();
+  const content = document.getElementById('nl-content').value.trim();
   if (!subject || !content) { alert('Bitte Betreff und Inhalt ausfüllen.'); return; }
 
-  const { data: subs } = await db.from('newsletter_subscribers').select('*').eq('active', true);
-  const count = subs?.length || 0;
-
-  const { error } = await db.from('newsletters').insert({
-    subject,
-    content,
-    status: action === 'send' ? 'sent' : 'draft',
-    sent_at: action === 'send' ? new Date().toISOString() : null,
-    recipient_count: action === 'send' ? count : 0,
-  });
-
-  if (error) { alert('Fehler: ' + error.message); return; }
-
-  if (action === 'send') {
-    alert(`Newsletter gespeichert! ${count} Abonnenten.\n\nHinweis: Für den tatsächlichen E-Mail-Versand wird eine Supabase Edge Function mit einem E-Mail-Dienst (z.B. Resend) benötigt. Kontaktiere deinen Entwickler für die Einrichtung.`);
-  } else {
+  // Entwurf speichern
+  if (action !== 'send') {
+    const { error } = await db.from('newsletters').insert({ subject, content, status: 'draft', recipient_count: 0 });
+    if (error) { alert('Fehler: ' + error.message); return; }
     alert('Entwurf gespeichert!');
+    document.getElementById('nl-subject').value = '';
+    document.getElementById('nl-content').value = '';
+    loadNewsletter();
+    return;
   }
 
+  // Senden: echter Versand via Edge Function an bestätigte Abonnenten
+  const confirmedCount = (newsletterSubs || []).filter(s => s.active && s.confirmed !== false).length;
+  if (!confirmedCount) { alert('Es gibt noch keine bestätigten Abonnenten.'); return; }
+  if (!confirm(`Newsletter „${subject}" jetzt an ${confirmedCount} bestätigte Abonnenten senden?`)) return;
+
+  // Datensatz anlegen (Entwurf) für eine ID; die Function markiert ihn bei Erfolg als „gesendet"
+  const { data: rec, error: insErr } = await db.from('newsletters')
+    .insert({ subject, content, status: 'draft', recipient_count: 0 }).select().single();
+  if (insErr) { alert('Fehler: ' + insErr.message); return; }
+
+  const { data, error } = await db.functions.invoke('newsletter-broadcast', {
+    body: { subject, content, newsletter_id: rec.id },
+  });
+  if (error || (data && data.error)) {
+    let detail = (data && data.error) || (error && error.message) || 'unbekannt';
+    try { if (error && error.context) { const r = await error.context.json(); detail = r.error || detail; } } catch (_) {}
+    alert('Versand fehlgeschlagen: ' + detail);
+    loadNewsletter();
+    return;
+  }
+  alert(`Newsletter gesendet an ${data.sent || 0} Abonnenten` + (data.failed ? ` · ${data.failed} fehlgeschlagen` : '') + '.');
   document.getElementById('nl-subject').value = '';
   document.getElementById('nl-content').value = '';
   loadNewsletter();
