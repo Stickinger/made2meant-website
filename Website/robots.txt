@@ -3,3 +3,4 @@ Allow: /
 Disallow: /admin/
 
 Sitemap: https://made2meant.com/sitemap.xml
+Sitemap: https://made2meant.com/sitemap-produkte.txt

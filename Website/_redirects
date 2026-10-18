@@ -1,0 +1,5 @@
+# Netlify-Weiterleitungen
+# Produkt-Sitemap kommt live aus der Datenbank (Supabase Edge Function
+# sitemap-products) und ist so immer aktuell. Status 200 = Inhalt wird
+# unter made2meant.com ausgeliefert (Proxy), die Adresse bleibt gleich.
+/sitemap-produkte.txt  https://xqeedhnajvftvcsjzfly.supabase.co/functions/v1/sitemap-products  200

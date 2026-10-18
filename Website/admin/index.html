@@ -682,6 +682,15 @@
         <div class="admin-card">
           <div id="orders-table" style="overflow-x:auto;"></div>
         </div>
+
+        <!-- Widerrufe (über widerruf.html eingegangen) -->
+        <div class="admin-card" style="margin-top:20px;">
+          <div class="admin-card__header">
+            <h3>Widerrufe</h3>
+            <span id="withdrawals-count" style="font-size:0.75rem;color:var(--color-muted);">—</span>
+          </div>
+          <div id="withdrawals-table" style="overflow-x:auto;"></div>
+        </div>
       </div>
 
       <!-- ══════════ UMSATZ ══════════ -->
@@ -1291,7 +1300,7 @@ function showTab(name, link) {
   if (name === 'products')   loadProductsTable();
   if (name === 'sets')       loadSets();
   if (name === 'categories') loadCategoriesTable();
-  if (name === 'orders')     loadOrdersTable();
+  if (name === 'orders')     { loadOrdersTable(); loadWithdrawals(); }
   if (name === 'discounts')  loadDiscountsTable();
   if (name === 'newsletter') loadNewsletter();
   if (name === 'revenue')    loadRevenue();
@@ -2729,6 +2738,47 @@ async function deleteCategory(id) {
 // ══════════════════════════════════════════
 // BESTELLUNGEN
 // ══════════════════════════════════════════
+
+// ── WIDERRUFE (gesetzlicher Widerrufsbutton → Tabelle withdrawals) ──
+const WITHDRAWAL_STATUS = { neu: 'Neu', in_bearbeitung: 'In Bearbeitung', erledigt: 'Erledigt', abgelehnt: 'Abgelehnt' };
+async function loadWithdrawals() {
+  const box = document.getElementById('withdrawals-table');
+  const cnt = document.getElementById('withdrawals-count');
+  if (!box) return;
+  const { data, error } = await db.from('withdrawals').select('*').order('created_at', { ascending: false });
+  if (error) {
+    box.innerHTML = `<div class="empty-state"><p>Widerrufe konnten nicht geladen werden: ${esc(error.message)}</p></div>`;
+    if (cnt) cnt.textContent = '—';
+    return;
+  }
+  const rows = data || [];
+  const open = rows.filter(w => w.status === 'neu').length;
+  if (cnt) cnt.textContent = rows.length ? `${open} neu · ${rows.length} gesamt` : 'keine';
+  box.innerHTML = rows.length ? `
+    <table class="data-table">
+      <thead><tr><th>Eingang</th><th>Bestellung</th><th>Kunde</th><th>Bestellt / Erhalten</th><th>Anmerkung</th><th>Status</th></tr></thead>
+      <tbody>${rows.map(w => `
+        <tr>
+          <td style="white-space:nowrap;font-size:0.8rem;">${fmtDate(w.created_at)}</td>
+          <td><strong>${esc(w.order_ref)}</strong></td>
+          <td style="font-size:0.85rem;">${esc((w.first_name || '') + ' ' + (w.last_name || ''))}<br>
+            <a href="mailto:${esc(w.email)}" style="color:var(--color-muted);font-size:0.78rem;">${esc(w.email)}</a></td>
+          <td style="font-size:0.78rem;color:var(--color-muted);white-space:nowrap;">${w.order_date ? fmtDate(w.order_date) : '—'} / ${w.received_date ? fmtDate(w.received_date) : '—'}</td>
+          <td style="font-size:0.8rem;max-width:260px;">${esc(w.note || '—')}</td>
+          <td>
+            <select onchange="setWithdrawalStatus('${w.id}', this.value)" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.8rem;">
+              ${Object.entries(WITHDRAWAL_STATUS).map(([k, l]) => `<option value="${k}" ${w.status === k ? 'selected' : ''}>${l}</option>`).join('')}
+            </select>
+          </td>
+        </tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="empty-state"><p>Noch keine Widerrufe eingegangen.</p></div>';
+}
+async function setWithdrawalStatus(id, status) {
+  const { error } = await db.from('withdrawals').update({ status }).eq('id', id);
+  if (error) { alert('Fehler: ' + error.message); return; }
+  loadWithdrawals();
+}
 
 async function loadOrdersTable() {
   const filter = document.getElementById('order-filter')?.value;
