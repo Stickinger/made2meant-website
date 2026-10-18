@@ -36,11 +36,16 @@ Deno.serve(async (req) => {
     // payment_status hier noch "unpaid")
     if (orderId && session.payment_status === 'paid') {
       const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
-      const { data: updated } = await admin.from('orders')
+      const { data: updated, error: upErr } = await admin.from('orders')
         .update({ status: 'processing', stripe_session_id: session.id })
         .eq('id', orderId)
         .eq('status', 'pending')
         .select('discount_code')
+      // DB-Fehler NICHT verschlucken: 500 → Stripe zeigt den Fehler an und stellt erneut zu
+      if (upErr) {
+        console.error('Bestellung konnte nicht verbucht werden:', upErr.message)
+        return new Response('DB-Fehler: ' + upErr.message, { status: 500 })
+      }
 
       // Nur beim ersten Event dieser Bestellung weitermachen
       if (updated && updated.length) {
