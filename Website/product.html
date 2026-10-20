@@ -185,6 +185,41 @@
     .ptrust__item strong { display: block; color: var(--color-text); }
     .ptrust__item span { color: var(--color-muted); font-size: 0.8rem; }
     @media (max-width: 720px) { .ptrust__inner { grid-template-columns: 1fr; gap: 14px; } }
+
+    /* „Das könnte dir auch gefallen" */
+    .related { padding: 56px 0 64px; border-top: 1px solid var(--color-border); }
+    .related__title { text-align: center; font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 30px; }
+    .related__wrap { position: relative; }
+    .related__track { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 4 * 22px) / 5); gap: 22px;
+      overflow-x: auto; scroll-snap-type: x mandatory; scroll-behavior: smooth; scrollbar-width: none; padding: 4px 2px 8px; }
+    .related__track::-webkit-scrollbar { display: none; }
+    .related__track:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 4px; border-radius: 12px; }
+    .rcard { scroll-snap-align: start; color: inherit; text-decoration: none; display: block; min-width: 0; }
+    .rcard:hover { text-decoration: none; }
+    .rcard__img { position: relative; aspect-ratio: 1; border-radius: var(--radius-lg); overflow: hidden;
+      background: linear-gradient(140deg, #EFE7DA, #E1CDB2); }
+    .rcard__img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+    .rcard:hover .rcard__img img { transform: scale(1.05); }
+    .rcard__badge { position: absolute; top: 12px; left: 12px; width: 58px; height: 58px; border-radius: 50%;
+      background: var(--color-primary); color: #fff; display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.92rem; line-height: 1; box-shadow: var(--shadow); }
+    .rcard__name { margin-top: 12px; font-size: 0.95rem; color: var(--color-text); line-height: 1.35; }
+    .rcard__price { margin-top: 6px; font-weight: 700; color: var(--color-text); }
+    .rcard__price--sale { color: var(--color-primary); }
+    .rcard__was { margin-left: 6px; font-weight: 400; color: var(--color-muted); font-size: 0.85rem; text-decoration: line-through; }
+    .related__arrow { position: absolute; top: calc(50% - 40px); z-index: 2; width: 44px; height: 44px; border-radius: 50%;
+      border: 1px solid var(--color-border); background: var(--color-surface, #fff); color: var(--color-text);
+      display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow);
+      transition: opacity 0.2s; }
+    .related__arrow svg { width: 20px; height: 20px; }
+    .related__arrow--prev { left: -22px; }
+    .related__arrow--next { right: -22px; }
+    .related__arrow[disabled] { opacity: 0; pointer-events: none; }
+    @media (max-width: 1000px) { .related__track { grid-auto-columns: calc((100% - 2 * 18px) / 3); gap: 18px; } }
+    @media (max-width: 640px) {
+      .related__track { grid-auto-columns: 62%; gap: 14px; }
+      .related__arrow { display: none; }   /* auf dem Handy wischen */
+    }
   </style>
   <link rel="stylesheet" href="/css/design-v2.css">
   <script src="/js/consent.js" defer></script>
@@ -247,11 +282,27 @@
         <div class="ptrust__item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4"/></svg><div><strong>30 Tage Rückgabe</strong><span>auf nicht personalisierte Artikel</span></div></div>
       </div>
     </section>
+
+    <!-- „Das könnte dir auch gefallen" — passende Produkte als wischbarer Reiter -->
+    <section class="related" id="related" hidden>
+      <div class="container">
+        <h2 class="related__title">Das könnte dir auch gefallen</h2>
+        <div class="related__wrap">
+          <button type="button" class="related__arrow related__arrow--prev" aria-label="Zurück" onclick="relScroll(-1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="related__track" id="related-track" tabindex="0" aria-label="Weitere Produkte"></div>
+          <button type="button" class="related__arrow related__arrow--next" aria-label="Weiter" onclick="relScroll(1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
   </main>
 
   <footer class="footer">
     <div class="container footer__inner">
-      <span class="footer__copy">© 2026 made2meant · Made personal. Meant forever.</span>
+      <span class="footer__copy">© 2026 Made2Meant GmbH · Made personal. Meant forever.</span>
       <ul class="footer__links">
         <li><a href="/faq.html">FAQ</a></li><li><a href="/widerruf.html">Vertrag widerrufen</a></li><li><a href="/impressum.html">Impressum</a></li>
         <li><a href="/datenschutz.html">Datenschutz</a></li>
@@ -415,6 +466,66 @@
         `<a href="/index.html">Startseite</a> / <a href="/index.html#products">Shop</a> / <span>${currentProduct.name}</span>`;
 
       renderPage();
+      renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
+    }
+
+    // ── „Das könnte dir auch gefallen" ──────────────────────────────
+    // Bewertet jedes andere Produkt nach Gemeinsamkeiten mit dem aktuellen:
+    // gleiche Kategorie > gleiche Produktart > gleicher Anlass (Tags). Auffüllen mit Bestsellern/Neuheiten.
+    const RELATED_MAX = 10;
+    const OCCASION_TAGS = ['geburt', 'taufe', 'geburtstag', 'babyshower', 'babyparty', 'mama-papa'];
+    async function renderRelated() {
+      const sec = document.getElementById('related');
+      const track = document.getElementById('related-track');
+      if (!sec || !track || typeof loadProducts !== 'function') return;
+      const all = (await loadProducts()).filter(p => p.id !== currentProduct.id && p.slug && p.slug !== currentProduct.slug);
+      if (!all.length) return;
+
+      const arr = v => Array.isArray(v) ? v : (v ? [v] : []);
+      const cats  = new Set([...arr(currentProduct.category_ids), ...arr(currentProduct.category_id)]);
+      const types = new Set([...arr(currentProduct.product_types), ...arr(currentProduct.product_type)]);
+      const occ   = new Set(arr(currentProduct.tags).map(t => String(t).toLowerCase()).filter(t => OCCASION_TAGS.includes(t)));
+      const score = p => {
+        let s = 0;
+        [...arr(p.category_ids), ...arr(p.category_id)].forEach(c => { if (cats.has(c)) s += 3; });
+        [...arr(p.product_types), ...arr(p.product_type)].forEach(t => { if (types.has(t)) s += 2; });
+        arr(p.tags).forEach(t => { if (occ.has(String(t).toLowerCase())) s += 1; });
+        if (p.bestseller) s += 0.5;
+        return s;
+      };
+      // Doppelte (z. B. Kategorie zweimal gezählt) egal — es geht nur um die Reihenfolge
+      const list = all.map(p => ({ p, s: score(p) }))
+        .sort((a, b) => b.s - a.s || new Date(b.p.created_at || 0) - new Date(a.p.created_at || 0))
+        .slice(0, RELATED_MAX).map(x => x.p);
+
+      track.innerHTML = list.map(p => {
+        const price = Number(p.price) || 0, was = Number(p.compare_price) || 0;
+        const sale = was > price;
+        const pct = sale ? Math.round((1 - price / was) * 100) : 0;
+        return `<a class="rcard" href="/product.html?slug=${encodeURIComponent(p.slug)}">
+          <div class="rcard__img">
+            ${p.image_url ? `<img src="${escH(p.image_url)}" alt="${escH(p.name)}" loading="lazy">` : ''}
+            ${sale && pct >= 5 ? `<span class="rcard__badge">−${pct}%</span>` : ''}
+          </div>
+          <div class="rcard__name">${escH(p.name)}</div>
+          <div class="rcard__price ${sale ? 'rcard__price--sale' : ''}">${euro(price)}${sale ? `<span class="rcard__was">${euro(was)}</span>` : ''}</div>
+        </a>`;
+      }).join('');
+      sec.hidden = false;
+      track.addEventListener('scroll', updateRelArrows, { passive: true });
+      window.addEventListener('resize', updateRelArrows);
+      updateRelArrows();
+    }
+    function relScroll(dir) {
+      const track = document.getElementById('related-track');
+      if (track) track.scrollBy({ left: dir * track.clientWidth * 0.8, behavior: 'smooth' });
+    }
+    function updateRelArrows() {
+      const track = document.getElementById('related-track');
+      if (!track) return;
+      const max = track.scrollWidth - track.clientWidth - 2;
+      document.querySelector('.related__arrow--prev').disabled = track.scrollLeft <= 2;
+      document.querySelector('.related__arrow--next').disabled = track.scrollLeft >= max;
     }
 
     function euro(n) { return '€ ' + Number(n).toFixed(2).replace('.', ','); }

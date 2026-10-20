@@ -7,7 +7,8 @@
 (function () {
   const WELCOME_PCT  = 10;
   const DONE_KEY     = 'nl_popup_done';   // gesetzt nach Schließen/Erfolg
-  const DELAY_MS     = 1500;
+  const DELAY_MS     = 60000;             // 1 Minute — gezählt ab dem ersten Seitenaufruf der Sitzung
+  const START_KEY    = 'nl_popup_start';  // sessionStorage: Zeitpunkt des Besuchsbeginns
 
   // Nicht im Kauf-/Konto-Bereich stören
   const BLOCKED = ['/checkout', '/cart', '/account', '/login', '/register', '/order-success', '/admin', '/newsletter'];
@@ -22,8 +23,9 @@
   // ── Styles ────────────────────────────────────────────────
   const css = `
   .nlp-overlay { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center; justify-content: center;
-    padding: 20px; background: rgba(28,28,28,0.55); opacity: 0; transition: opacity .35s ease; }
-  .nlp-overlay.nlp-show { opacity: 1; }
+    padding: 20px; background: rgba(28,28,28,0.55); opacity: 0; transition: opacity .35s ease, visibility .35s;
+    visibility: hidden; pointer-events: none; }   /* bis zum Öffnen: unsichtbar UND nicht klickbar */
+  .nlp-overlay.nlp-show { opacity: 1; visibility: visible; pointer-events: auto; }
   .nlp-card { position: relative; width: 100%; max-width: 430px; background: var(--color-surface, #FBF9F6);
     border-radius: var(--radius-lg, 16px); box-shadow: 0 24px 70px rgba(28,28,28,.28); padding: 40px 34px 30px;
     text-align: center; transform: translateY(14px) scale(.98); transition: transform .35s ease; overflow: hidden; }
@@ -162,5 +164,19 @@
 
   // ── Anzeigen ──────────────────────────────────────────────
   if (typeof db === 'undefined') return; // ohne Supabase kein Popup
-  setTimeout(open, DELAY_MS);
+
+  // Timer läuft über Seitenwechsel hinweg weiter (sonst käme das Popup beim Stöbern nie)
+  let start = Date.now();
+  try {
+    const s = Number(sessionStorage.getItem(START_KEY));
+    if (s > 0) start = s; else sessionStorage.setItem(START_KEY, String(start));
+  } catch (e) {}
+
+  // Nicht gleichzeitig mit dem Cookie-Banner öffnen — dann kurz später erneut versuchen
+  function openWhenFree() {
+    const ck = document.querySelector('.ck-box');
+    if (ck && getComputedStyle(ck).display !== 'none') { setTimeout(openWhenFree, 5000); return; }
+    open();
+  }
+  setTimeout(openWhenFree, Math.max(0, DELAY_MS - (Date.now() - start)));
 })();
