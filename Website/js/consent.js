@@ -19,7 +19,7 @@
   const TRACKING = {
     ga4:          '',   // Google Analytics 4, z. B. 'G-XXXXXXXXXX'    → Statistik
     googleAds:    '',   // Google Ads,         z. B. 'AW-XXXXXXXXXX'   → Marketing
-    gtm:          '',   // Google Tag Manager, z. B. 'GTM-XXXXXXX'     → lädt bei jeder Einwilligung
+    gtm:          'GTM-NWSP4XH9',   // Google Tag Manager → lädt bei jeder Einwilligung (Statistik ODER Marketing)
     metaPixel:    '',   // Meta Pixel,         z. B. '123456789012345' → Marketing
     tiktokPixel:  '',   // TikTok Pixel,       z. B. 'CXXXXXXXXXXXXXXXXXXX' → Marketing
   };
