@@ -229,8 +229,7 @@
       <div class="container">
 
         <div class="about-grid">
-          <div class="about-image">
-            <img src="/assets/images/team-leo-lukas.jpg" alt="Leo und Lukas, die Gründer von made2meant" onerror="this.remove()">
+          <div class="about-image" data-alt="Leo und Lukas, die Gründer von made2meant">
             <span class="about-image__mark">Leo &amp; Lukas</span>
           </div>
           <div class="about-text">
@@ -243,8 +242,7 @@
         </div>
 
         <div class="about-grid about-grid--reverse">
-          <div class="about-image about-image--moss">
-            <img src="/assets/images/team-werkstatt.jpg" alt="In unserer Stickerei in Wien" onerror="this.remove()">
+          <div class="about-image about-image--moss" data-alt="In unserer Stickerei in Wien">
             <span class="about-image__mark">Handgemacht in Wien</span>
           </div>
           <div class="about-text">
@@ -330,6 +328,7 @@
         if (!box) return;
         let img = box.querySelector('img');
         if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
+        img.alt = box.dataset.alt || '';
         img.src = url;
       };
       setImg('.about-image:not(.about-image--moss)', v.aboutVeronika);

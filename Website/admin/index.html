@@ -862,7 +862,7 @@
           </div>
           <div class="admin-card__body">
             <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:18px;">
-              Hier änderst du die Bilder der Startseite und der Über-uns-Seite — ganz ohne Code.
+              Hier änderst du die Bilder der Startseite, der Über-uns- und der Qualitätsseite — ganz ohne Code.
               Bilder werden automatisch verkleinert (WebP). Nach dem Speichern sind sie sofort live.
             </p>
 
@@ -876,6 +876,10 @@
 
             <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 10px;">Qualitäts-Foto (Startseite)</label>
             <div id="si-quality" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
+
+            <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 4px;">Qualitätsseite (6 Fotos)</label>
+            <p style="font-size:0.8rem;color:var(--color-muted);margin:0 0 12px">Je ein Foto pro Abschnitt der Seite „Qualität". Ohne Foto erscheint ein dezenter Farbverlauf mit Symbol.</p>
+            <div id="si-qualitypage" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
 
             <div style="display:flex; align-items:center; gap:14px; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
               <button class="btn-sm btn-sm--primary" onclick="saveSiteImages()">Website-Bilder speichern</button>
@@ -3278,7 +3282,16 @@ async function saveSettings() {
 }
 
 // ── WEBSITE-BILDER (Hero / Über uns / Qualität) ──────────────
-let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '' };
+let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '', qualityPage: {} };
+// Fotos der Qualitätsseite: Schlüssel = data-si auf qualitaet.html
+const QUALITY_PAGE_SLOTS = [
+  ['stickerei',  '01 Gestickt, nicht gedruckt'],
+  ['tajima',     '02 Maschinen'],
+  ['stickdatei', '03 Stickdatei'],
+  ['material',   '04 Garn & Textilien'],
+  ['baby',       '05 Babyartikel'],
+  ['pruefung',   '06 Endkontrolle'],
+];
 
 async function loadSiteImages() {
   const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
@@ -3290,6 +3303,7 @@ async function loadSiteImages() {
     aboutVeronika: v.aboutVeronika || '',
     aboutLeo: v.aboutLeo || '',
     quality: v.quality || '',
+    qualityPage: (v.qualityPage && typeof v.qualityPage === 'object') ? { ...v.qualityPage } : {},
   };
   renderSiteImages();
 }
@@ -3324,12 +3338,24 @@ function renderSiteImages() {
 
   const about = document.getElementById('si-about');
   if (about) about.innerHTML =
-    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Lukas &amp; Veronika</div>${siSlot(siteImages.aboutVeronika, "uploadAbout('aboutVeronika',", 150)}</div>` +
-    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Lukas &amp; Leo</div>${siSlot(siteImages.aboutLeo, "uploadAbout('aboutLeo',", 150)}</div>`;
+    // (interne Schlüssel aboutVeronika/aboutLeo bleiben aus Kompatibilität – nur die Beschriftung ist neu)
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Leo &amp; Lukas (Gründer)</div>${siSlot(siteImages.aboutVeronika, "uploadAbout('aboutVeronika',", 150)}</div>` +
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Werkstatt</div>${siSlot(siteImages.aboutLeo, "uploadAbout('aboutLeo',", 150)}</div>`;
 
   const quality = document.getElementById('si-quality');
   if (quality) quality.innerHTML = `<div style="text-align:center;">${siSlot(siteImages.quality, 'uploadQuality(', 170)}</div>`;
+
+  const qp = document.getElementById('si-qualitypage');
+  if (qp) qp.innerHTML = QUALITY_PAGE_SLOTS.map(([key, label]) =>
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">${label}</div>${siSlot(siteImages.qualityPage[key] || '', `uploadQualityPage('${key}',`, 130)}${siteImages.qualityPage[key] ? `<button type="button" class="btn-sm btn-sm--outline" style="margin-top:6px;font-size:0.72rem" onclick="removeQualityPage('${key}')">Entfernen</button>` : ''}</div>`
+  ).join('');
 }
+async function uploadQualityPage(key, file) {
+  if (!file) return;
+  const url = await uploadToStorage(file);
+  if (url) { siteImages.qualityPage[key] = url; renderSiteImages(); }
+}
+function removeQualityPage(key) { delete siteImages.qualityPage[key]; renderSiteImages(); }
 
 function setHeroName(i, v) { if (siteImages.hero[i]) siteImages.hero[i].name = v; }
 function addHeroSlide() { siteImages.hero.push({ name: '', img: '' }); renderSiteImages(); }
@@ -3346,6 +3372,7 @@ async function saveSiteImages() {
     aboutVeronika: siteImages.aboutVeronika || '',
     aboutLeo: siteImages.aboutLeo || '',
     quality: siteImages.quality || '',
+    qualityPage: Object.fromEntries(Object.entries(siteImages.qualityPage || {}).filter(([, u]) => u)),
   };
   const { error } = await db.from('settings')
     .upsert({ key: 'site_images', value: payload, updated_at: new Date().toISOString() }, { onConflict: 'key' });

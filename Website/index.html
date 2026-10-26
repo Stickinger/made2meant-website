@@ -416,8 +416,7 @@
     <section class="section reveal">
       <div class="container">
         <div class="quality">
-          <div class="quality__img" style="position:relative;overflow:hidden">
-            <img src="/assets/images/quality-baby.jpg" alt="Baby auf einer personalisierten Babydecke mit Namen, bestickt in Österreich" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.remove()">
+          <div class="quality__img" style="position:relative;overflow:hidden" data-alt="Baby auf einer personalisierten Babydecke mit Namen, bestickt in Österreich">
             <span class="stitch-name" style="font-size:3.4rem;color:#9c6a4a">Emma<small>♥</small></span>
           </div>
           <div>
@@ -492,7 +491,7 @@
             </details>
             <details>
               <summary>Wie lange dauert es bis zur Lieferung?</summary>
-              <div class="hfaq__a">Jedes Stück wird einzeln für dich gestickt. Sobald dein Paket unterwegs ist, bekommst du eine Sendungsnummer. Du brauchst es zu einem bestimmten Termin? Schreib uns dein Wunschdatum dazu – wir bestätigen sofort, ob es klappt.</div>
+              <div class="hfaq__a">Jedes Stück wird einzeln für dich gestickt – rechne mit 5–7 Werktagen, bis dein Paket bei dir ist. Sobald dein Paket unterwegs ist, bekommst du eine Sendungsnummer. Du brauchst es zu einem bestimmten Termin? Schreib uns dein Wunschdatum dazu – wir bestätigen sofort, ob es klappt.</div>
             </details>
             <details>
               <summary>Kann ich einen bestickten Artikel zurückgeben?</summary>
@@ -636,7 +635,7 @@
         if (box) {
           let img = box.querySelector('img');
           if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
-          img.alt = 'Qualität bei made2meant'; img.src = v.quality;
+          img.alt = box.dataset.alt || 'Qualität bei made2meant'; img.src = v.quality;
         }
       }
     }

@@ -125,7 +125,7 @@ h2 { font-size: clamp(1.6rem, 3.2vw, 2.6rem); }
 
 /* Sektionsköpfe: links, Versalien */
 .sec-head { text-align: left; margin-bottom: 28px; }
-.sec-head--row { display: flex; justify-content: space-between; align-items: flex-end; }
+.sec-head--row { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px 24px; }
 .sec-head .label-style { margin-bottom: 12px; }
 .section { padding: 72px 0; }
 

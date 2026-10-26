@@ -174,6 +174,11 @@
 
   // Nicht gleichzeitig mit dem Cookie-Banner öffnen — dann kurz später erneut versuchen
   function openWhenFree() {
+    // erst nach dem vollständigen Laden prüfen — sonst existiert das Cookie-Banner (consent.js, defer) evtl. noch gar nicht
+    if (document.readyState !== 'complete') {
+      window.addEventListener('load', () => setTimeout(openWhenFree, 1000), { once: true });
+      return;
+    }
     const ck = document.querySelector('.ck-box');
     if (ck && getComputedStyle(ck).display !== 'none') { setTimeout(openWhenFree, 5000); return; }
     open();

@@ -736,7 +736,8 @@ h3 { font-size: 1.35rem; }
 
 .footer__links {
   display: flex;
-  gap: 20px;
+  flex-wrap: wrap;
+  gap: 8px 20px;
   list-style: none;
 }
 
@@ -870,4 +871,5 @@ body > * { min-width: 0; }
   .cart-table th:nth-child(2),
   .cart-table td:nth-child(2) { display: none; }
   .footer__inner { flex-direction: column; text-align: center; }
+  .footer__links { justify-content: center; padding: 0; }
 }

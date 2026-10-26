@@ -156,8 +156,7 @@
               <span class="qbadge">Einzeln geprüft</span>
             </div>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-stickerei.jpg" alt="Nahaufnahme einer gestickten Naht" onerror="this.remove()">
+          <div class="qrow__media" data-si="stickerei" data-alt="Nahaufnahme einer gestickten Naht">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 3s7 3 7 9-3.5 9-7 9-7-3-7-9 7-9 7-9z"/></svg>
           </div>
         </div>
@@ -170,8 +169,7 @@
             <h2>Industrie-Stickmaschinen von TAJIMA</h2>
             <p>Wir sticken auf professionellen Industrie-Stickmaschinen von <strong>TAJIMA</strong> aus Japan, einem der führenden Hersteller. Das sind keine Hobbygeräte, sondern Maschinen für saubere, dichte Stiche und exakte Konturen — auch bei kleinen Schriften.</p>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-tajima.jpg" alt="Professionelle Stickmaschine bei der Arbeit" onerror="this.remove()">
+          <div class="qrow__media" data-si="tajima" data-alt="Professionelle Stickmaschine bei der Arbeit">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10M8 4v14M16 4v14"/></svg>
           </div>
         </div>
@@ -185,8 +183,7 @@
             <p>Eine gute Stickerei beginnt nicht an der Maschine, sondern am Computer. Jede Schrift und jedes Motiv wird für den jeweiligen Stoff eingerichtet: Frottee braucht eine andere Stichdichte als ein Musselintuch.</p>
             <p>Genau das machen wir für jeden Artikel — damit dein Name auf flauschigem Frottee nicht versinkt und auf dünnem Stoff nicht zieht.</p>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-stickdatei.jpg" alt="Digitalisierung eines Stickmotivs am Computer" onerror="this.remove()">
+          <div class="qrow__media" data-si="stickdatei" data-alt="Digitalisierung eines Stickmotivs am Computer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M8 20h8M12 16v4"/><path d="M7 10l2 2 3-4 2 3 3-3"/></svg>
           </div>
         </div>
@@ -200,8 +197,7 @@
             <p>Wir verwenden farbechtes, reißfestes Stickgarn, das die normale Textilwäsche übersteht, ohne auszubleichen.</p>
             <p>Jeden Artikel wählen wir selbst aus und bestellen ihn zuerst als Muster, bevor er ins Sortiment kommt. Aufgenommen wird nur, was sich gut anfühlt, sauber verarbeitet ist und die Wäsche übersteht.</p>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-material.jpg" alt="Garnrollen und Textilien" onerror="this.remove()">
+          <div class="qrow__media" data-si="material" data-alt="Garnrollen und Textilien">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M6 3h12l-1 4H7L6 3z"/><path d="M7 7v12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7"/><path d="M10 11h4"/></svg>
           </div>
         </div>
@@ -215,8 +211,7 @@
             <p>Babyhaut ist empfindlich. Deshalb achten wir bei allem für die Kleinsten auf weiche Materialien und eine Stickerei, die angenehm auf der Haut liegt.</p>
             <p>Auf aufgenähte Kleinteile wie Knöpfe oder Perlen, die sich lösen könnten, verzichten wir bewusst.</p>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-baby.jpg" alt="Besticktes Babytextil" onerror="this.remove()">
+          <div class="qrow__media" data-si="baby" data-alt="Besticktes Babytextil">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
           </div>
         </div>
@@ -230,8 +225,7 @@
             <p>Bevor ein Stück unsere Werkstatt verlässt, schauen wir es uns an: Stimmt die Schreibweise, sitzt die Position, sind alle Fäden sauber vernäht? Erst dann wird verpackt.</p>
             <p>Und wenn uns doch einmal ein Fehler passiert — ein falscher Buchstabe, eine falsche Farbe oder ein Materialfehler — machen wir dein Stück kostenlos neu. Schick uns einfach ein Foto an <a href="mailto:support@made2meant.com">support@made2meant.com</a>.</p>
           </div>
-          <div class="qrow__media">
-            <img src="/assets/images/qual-pruefung.jpg" alt="Endkontrolle eines bestickten Stücks" onerror="this.remove()">
+          <div class="qrow__media" data-si="pruefung" data-alt="Endkontrolle eines bestickten Stücks">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M12 21s-7-4-7-10V5l7-2 7 2v6c0 6-7 10-7 10z"/><path d="m9 12 2 2 4-4"/></svg>
           </div>
         </div>
@@ -283,6 +277,27 @@
     updateCartBadge();
     const _nav = document.querySelector('.navbar');
     window.addEventListener('scroll', () => _nav.classList.toggle('scrolled', window.scrollY > 12), { passive: true });
+
+    // Fotos aus Admin → Einstellungen → Website-Bilder (überschreiben die Standardbilder)
+    (async () => {
+      let v = {};
+      try {
+        const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+        v = (data && data.value) || {};
+      } catch (_) {}
+      const qp = v.qualityPage || {};
+      document.querySelectorAll('.qrow__media[data-si]').forEach(box => {
+        const url = qp[box.dataset.si];
+        if (!url) return;
+        let img = box.querySelector('img');
+        if (!img) {
+          img = document.createElement('img');
+          box.insertBefore(img, box.firstChild);
+        }
+        img.alt = box.dataset.alt || '';
+        img.src = url;
+      });
+    })();
   </script>
 </body>
 </html>
