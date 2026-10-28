@@ -1467,6 +1467,7 @@ function renderProductsTable(products) {
           <td>
             <div class="btn-actions">
               <button class="btn-sm btn-sm--outline" onclick='openProductModal(${JSON.stringify(p)})'>Bearbeiten</button>
+              <button class="btn-sm btn-sm--outline" onclick="duplicateProduct('${p.id}', this)">Duplizieren</button>
               <button class="btn-sm btn-sm--danger" onclick="deleteProduct('${p.id}')">Löschen</button>
             </div>
           </td>
@@ -2633,6 +2634,58 @@ async function deleteProduct(id) {
   if (!confirm('Produkt wirklich löschen?')) return;
   await db.from('products').delete().eq('id', id);
   loadProductsTable();
+}
+
+// Produkt duplizieren: legt eine Kopie (als Entwurf/inaktiv) mit eigenem Slug
+// an, kopiert die komplette Bilder-Galerie mit und öffnet sie direkt zum Bearbeiten.
+async function duplicateProduct(id, btn) {
+  const orig = btn ? btn.textContent : null;
+  if (btn) { btn.disabled = true; btn.textContent = 'Kopiere…'; }
+  const restore = () => { if (btn) { btn.disabled = false; btn.textContent = orig; } };
+  try {
+    // 1) Komplettes Produkt laden
+    const { data: src, error } = await db.from('products').select('*').eq('id', id).single();
+    if (error || !src) { alert('Produkt nicht gefunden.'); return restore(); }
+
+    // 2) Eindeutigen Slug bauen (…-kopie, sonst -kopie-2, -kopie-3 …)
+    const base = (src.slug || 'produkt') + '-kopie';
+    let slug = base, n = 2;
+    while (true) {
+      const { data: clash } = await db.from('products').select('id').eq('slug', slug).maybeSingle();
+      if (!clash) break;
+      slug = base + '-' + (n++);
+      if (n > 50) { slug = base + '-' + Date.now(); break; }
+    }
+
+    // 3) Kopie zusammenbauen – alle Spalten außer den automatischen
+    const copy = { ...src };
+    delete copy.id; delete copy.created_at; delete copy.updated_at;
+    copy.name       = (src.name || 'Produkt') + ' (Kopie)';
+    copy.slug       = slug;
+    copy.active     = false;   // Kopie ist erstmal ein Entwurf
+    copy.bestseller = false;
+
+    const { data: ins, error: insErr } = await db.from('products').insert(copy).select();
+    if (insErr) { alert('Fehler beim Kopieren: ' + insErr.message); return restore(); }
+    if (!ins || !ins.length) { alert('Kopieren fehlgeschlagen – vermutlich fehlende Berechtigung (RLS).'); return restore(); }
+    const newProduct = ins[0];
+
+    // 4) Bilder-Galerie mitkopieren
+    const { data: imgs } = await db.from('product_images')
+      .select('url, option_values, sort_order').eq('product_id', id);
+    if (imgs && imgs.length) {
+      await db.from('product_images').insert(
+        imgs.map(m => ({ product_id: newProduct.id, url: m.url, option_values: m.option_values, sort_order: m.sort_order }))
+      );
+    }
+
+    // 5) Tabelle aktualisieren und Kopie direkt zum Bearbeiten öffnen
+    await loadProductsTable();
+    openProductModal(newProduct);
+  } catch (e) {
+    alert('Fehler beim Duplizieren: ' + (e?.message || e));
+    restore();
+  }
 }
 
 // ══════════════════════════════════════════
