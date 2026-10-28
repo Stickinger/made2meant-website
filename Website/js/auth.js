@@ -50,10 +50,10 @@ async function updateNav() {
 
   if (user) {
     if (loginLink) loginLink.style.display = 'none';
-    if (accountLink) accountLink.style.display = 'inline';
-    if (logoutBtn) logoutBtn.style.display = 'inline';
+    if (accountLink) accountLink.style.display = 'inline-flex';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
   } else {
-    if (loginLink) loginLink.style.display = 'inline';
+    if (loginLink) loginLink.style.display = 'inline-flex';
     if (accountLink) accountLink.style.display = 'none';
     if (logoutBtn) logoutBtn.style.display = 'none';
   }
