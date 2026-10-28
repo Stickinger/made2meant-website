@@ -100,6 +100,13 @@
     .tswatch:hover { transform: scale(1.1); }
     .tswatch.selected { border-color: var(--color-text); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text); }
 
+    /* Produktfarbe als kleines Foto-Button (Klick → Hauptbild wechselt) */
+    .cswatches { display: flex; gap: 12px; flex-wrap: wrap; }
+    .cswatch { width: 56px; height: 56px; border-radius: 50%; overflow: hidden; border: 2px solid var(--color-border); background: var(--color-surface-2); cursor: pointer; padding: 0; transition: border-color 0.15s, transform 0.12s; }
+    .cswatch img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .cswatch:hover { transform: scale(1.06); border-color: var(--color-primary); }
+    .cswatch.selected { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary); }
+
     /* Schriftart-Auswahl */
     .fonts { display: flex; gap: 10px; flex-wrap: wrap; }
     .fontbtn { padding: 8px 18px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 1.35rem; line-height: 1; transition: all 0.15s; }
@@ -572,6 +579,17 @@
       return m?.url || currentProduct.image_url || '/assets/images/placeholder.png';
     }
 
+    // Mini-Produktfoto für den Farb-Button (zeigt das Produkt in genau dieser Farbe)
+    function colorSwatchImage(value) {
+      const tagged = productImages.find(img => {
+        const keys = Object.keys(img.option_values || {});
+        return keys.length === 1 && /kappe|farbe/i.test(keys[0]) && img.option_values[keys[0]] === value;
+      });
+      if (tagged) return tagged.url;
+      const any = productImages.find(img => Object.values(img.option_values || {}).includes(value));
+      return (any && any.url) || currentProduct.image_url || '/assets/images/placeholder.png';
+    }
+
     // ── Bestickung: fixer Preis 9,90 € pro Stelle ──
     const STITCH_PRICE = 9.90;
     // Geschenk-Set-Aktion: jede weitere Bestickung 2,00 € günstiger
@@ -615,9 +633,10 @@
 
       const capBlock = (capOption && capOption.values?.length) ? `
         <div class="fld">
-          <span class="fld__label">Farbe${cfg.capColor ? ': ' + cfg.capColor : ''}</span>
-          <div class="cpills" id="cap-pills">
-            ${capOption.values.map(v => `<button type="button" class="cpill ${v === cfg.capColor ? 'selected' : ''}" data-val="${v}" onclick="selectCap('${v.replace(/'/g, "\\'")}')">${v}</button>`).join('')}
+          <span class="fld__label" id="cap-label">Farbe${cfg.capColor ? ': ' + cfg.capColor : ''}</span>
+          <div class="fld__hint">Farbe antippen — das Hauptbild wechselt zur gewählten Farbe.</div>
+          <div class="cswatches" id="cap-swatches">
+            ${capOption.values.map(v => `<button type="button" class="cswatch ${v === cfg.capColor ? 'selected' : ''}" data-val="${escH(v)}" title="${escH(v)}" aria-label="Farbe ${escH(v)}" onclick="selectCap('${String(v).replace(/'/g, "\\'")}')"><img src="${escH(colorSwatchImage(v))}" alt="${escH(v)}" loading="lazy"></button>`).join('')}
           </div>
         </div>` : '';
 
@@ -626,7 +645,7 @@
       const posBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
-          <div class="fld__hint">Wähle eine oder mehrere Stellen — dein Text erscheint live in der Vorschau.</div>${setDeal}
+          <div class="fld__hint">Wähle eine oder mehrere Stellen und schreib deinen Wunschtext hinein — wir sticken ihn an der gewählten Stelle.</div>${setDeal}
           <div class="pos-list">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -669,7 +688,7 @@
       const motifBlock = !hasMotifs ? '' : `
         <div class="fld">
           <span class="fld__label">Motive hinzufügen <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
-          <div class="fld__hint">Wähle ein oder mehrere Motive, die zusätzlich gestickt werden — live in der Vorschau.</div>
+          <div class="fld__hint">Wähle ein oder mehrere Motive, die zusätzlich gestickt werden.</div>
           <div class="motifgrid" id="motif-grid">
             ${MOTIFS.map(m => `<button type="button" class="motifcard ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" data-id="${m.id}" onclick="toggleMotif('${m.id}')">
               <img src="${escH(m.url)}" alt="${escH(m.label)}" loading="lazy">
@@ -708,10 +727,10 @@
             <button class="gallery__wish ${wished ? 'on' : ''}" id="wish-btn" aria-label="Merken" onclick="toggleWish(this)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
             </button>
-            <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Live-Vorschau des Produkts"></canvas>
+            <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Produktfoto"></canvas>
           </div>
           <div class="thumbs" id="thumbs"></div>
-          ${personalizable ? '<div class="gallery__hint" id="gallery-hint">Wähle eine Stickstelle — dein Name erscheint an der vorgesehenen Stelle.</div>' : ''}
+          ${personalizable ? '<div class="gallery__hint" id="gallery-hint">Beispielfoto — dein Wunschtext wird an der gewählten Stelle bestickt.</div>' : ''}
         </div>
 
         <div class="pinfo">
@@ -795,15 +814,13 @@
     function renderThumbs() {
       const el = document.getElementById('thumbs');
       if (!el) return;
-      // Erstes Thumb = schönes Titelfoto (Vorschau ohne Text), dann je Stickstelle das leere Foto
+      // Erstes Thumb = unser Foto in der gewählten Farbe, dann weitere allgemeine Fotos.
+      // Die Farbvarianten werden NICHT hier gezeigt, sondern nur über die Farb-Buttons.
       const display = `<button class="thumb ${cfg.previewPos === null ? 'active' : ''}" onclick="setPreview(null)" aria-label="Produktansicht"><img src="${displayImage()}" alt="Produktansicht"></button>`;
-      const posThumbs = POSITIONS.map(p =>
-        `<button class="thumb ${p.id === cfg.previewPos ? 'active' : ''}" onclick="setPreview('${p.id}')" aria-label="${p.view}"><img src="${photoFor(p.id)}" alt="${p.view}"></button>`
-      ).join('');
       const galleryThumbs = currentGallery().map((url, i) =>
         `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
       ).join('');
-      el.innerHTML = display + posThumbs + galleryThumbs;
+      el.innerHTML = display + galleryThumbs;
     }
 
     function renderCanvas() {
@@ -812,11 +829,9 @@
       const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, W, H);
 
-      const view = cfg.previewPos;                       // null = Titelfoto, 'g<i>' = Galeriefoto, sonst leeres Positionsfoto
+      const view = cfg.previewPos;                       // null = unser Foto (farbabhängig), 'g<i>' = Galeriefoto
       const isGallery = typeof view === 'string' && view[0] === 'g';
-      const url = view === null ? displayImage()
-                : isGallery ? currentGallery()[+view.slice(1)]
-                : photoFor(view);
+      const url = isGallery ? currentGallery()[+view.slice(1)] : displayImage();
       const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
         const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
@@ -829,47 +844,8 @@
         ctx.fillText('Foto wird geladen…', W / 2, H / 2);
       }
 
-      // Titelfoto & Galeriefotos: keinen Text zeichnen (schlichtes Produktfoto)
-      if (view === null || isGallery) return;
-
-      const pos = POSITIONS.find(p => p.id === view);
-      if (!pos) return;
-      const data = cfg.positions[view];
-      const t = (data && data.text || '').trim();
-      const px = pos.x * W, py = pos.y * H;
-      const fontSize = pos.size * (cfg.textScale || 1) * W;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-
-      if (t) {
-        ctx.font = `${cfg.font.weight} ${fontSize}px ${cfg.font.css}`;
-        ctx.save(); ctx.lineWidth = fontSize * 0.14; ctx.strokeStyle = 'rgba(255,255,255,0.55)'; ctx.lineJoin = 'round'; ctx.strokeText(t, px, py); ctx.restore();
-        ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.25)'; ctx.shadowBlur = 3; ctx.shadowOffsetX = 1; ctx.shadowOffsetY = 1;
-        ctx.fillStyle = (cfg.threadColor && cfg.threadColor.hex) || '#2A2724'; ctx.fillText(t, px, py); ctx.restore();
-      } else {
-        // Platzhalter an der fixen Stelle (nicht verschiebbar)
-        ctx.font = `${cfg.font.weight} ${fontSize}px ${cfg.font.css}`;
-        ctx.fillStyle = 'rgba(120,110,98,0.45)';
-        ctx.fillText('Dein Name', px, py);
-      }
-
-      // Gewählte Motive unter dem Namen zeichnen (Schritt 2 – live auf dem Produkt)
-      const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-      if (chosen.length) {
-        const mH = W * 0.14;
-        const gap = W * 0.03;
-        const dims = chosen.map(m => {
-          const im = getImg(m.url);
-          const ratio = (im && im.naturalWidth) ? im.naturalWidth / im.naturalHeight : 1;
-          return { im, w: mH * ratio };
-        });
-        const totalW = dims.reduce((a, d) => a + d.w, 0) + gap * (chosen.length - 1);
-        let x = px - totalW / 2;
-        const my = py + (t ? fontSize * 0.75 : 0) + mH * 0.7;
-        dims.forEach(d => {
-          if (d.im && d.im.complete && d.im.naturalWidth) ctx.drawImage(d.im, x, my - mH / 2, d.w, mH);
-          x += d.w + gap;
-        });
-      }
+      // Kein Live-Text mehr: Es wird ausschließlich unser vorgegebenes Foto gezeigt.
+      // Der Wunschtext des Kunden wird nur im Textfeld erfasst, nicht auf dem Bild dargestellt.
     }
 
     function selectFont(i) {
@@ -883,24 +859,18 @@
       document.querySelectorAll('.modebtn').forEach(b => b.classList.toggle('selected', b.dataset.mode === mode));
       const fields = document.getElementById('embroidery-fields');
       if (fields) fields.hidden = (mode === 'ohne');
-      if (mode === 'ohne') {
-        cfg.previewPos = null;                                  // schlichtes Titelfoto
-        cfg.step = 1;
-      } else {
-        const first = POSITIONS.find(p => p.id in cfg.positions);
-        cfg.previewPos = first ? first.id : null;
-      }
+      cfg.previewPos = null;                                     // immer unser Foto zeigen
+      if (mode === 'ohne') cfg.step = 1;
       updateFlowUI();
       renderThumbs(); renderCanvas(); updatePrice(); checkReady();
     }
 
     function selectCap(value) {
       cfg.capColor = value;
-      // Galerie wechselt mit der Farbe → beim Farbwechsel ein Galeriefoto zurück aufs Titelfoto setzen
-      if (typeof cfg.previewPos === 'string' && cfg.previewPos[0] === 'g') cfg.previewPos = null;
-      document.querySelectorAll('.cpill').forEach(el => el.classList.toggle('selected', el.dataset.val === value));
-      const lbl = document.querySelector('.fld__label'); if (lbl && /Farbe/.test(lbl.textContent)) lbl.textContent = 'Farbe: ' + value;
-      renderCanvas(); renderThumbs();
+      cfg.previewPos = null;                 // Hauptbild wechselt auf das Foto dieser Farbe
+      document.querySelectorAll('.cswatch').forEach(el => el.classList.toggle('selected', el.dataset.val === value));
+      const lbl = document.getElementById('cap-label'); if (lbl) lbl.textContent = 'Farbe: ' + value;
+      renderThumbs(); renderCanvas(); checkReady();
     }
 
     function selectThread(name) {
@@ -970,18 +940,16 @@
     function togglePosition(id, on) {
       if (on) {
         if (!(id in cfg.positions)) cfg.positions[id] = { text: '' };
-        cfg.previewPos = id;                              // leeres Foto der Stelle ploppt auf
       } else {
         delete cfg.positions[id];
-        if (cfg.previewPos === id) { const rem = POSITIONS.find(p => p.id in cfg.positions); cfg.previewPos = rem ? rem.id : null; }
       }
       document.getElementById('poscard-' + id).classList.toggle('active', on);
       document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
       if (on) { const inp = document.getElementById('posinput-' + id); if (inp) inp.focus(); }
-      renderThumbs(); renderCanvas(); updatePrice(); checkReady();
+      updatePrice(); checkReady();
     }
 
-    function setPositionText(id, val) { if (cfg.positions[id]) cfg.positions[id].text = val; if (cfg.previewPos !== id) cfg.previewPos = id; renderThumbs(); renderCanvas(); checkReady(); }
+    function setPositionText(id, val) { if (cfg.positions[id]) cfg.positions[id].text = val; checkReady(); }
     function updatePrice() { document.getElementById('price-display').textContent = euro(currentPrice()); }
     function changeQty(delta) { qty = Math.max(1, Math.min(qty + delta, currentProduct?.stock || 99)); document.getElementById('qty-display').textContent = qty; }
 
@@ -1060,8 +1028,8 @@
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
         if (chosenM.length) options['Motive'] = chosenM.map(m => m.label).join(', ');
       }
-      let previewUrl = (cfg.mode === 'mit' && cfg.previewPos) ? photoFor(cfg.previewPos) : displayImage();
-      try { previewUrl = document.getElementById('cfg-canvas').toDataURL('image/png'); } catch (_) {}
+      const view = cfg.previewPos;
+      const previewUrl = (typeof view === 'string' && view[0] === 'g') ? currentGallery()[+view.slice(1)] : displayImage();
       const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
       for (let i = 0; i < qty; i++) addToCart(base, options);
     }
