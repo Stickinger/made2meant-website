@@ -679,13 +679,8 @@
           </div>
         </div>`;
 
-      const sizeBlock = !personalizable ? '' : `
-        <div class="fld">
-          <span class="fld__label">Textgröße</span>
-          <div class="sizepick" id="size-pick">
-            ${TEXT_SIZES.map((s, i) => `<button type="button" class="sizebtn ${i === cfg.sizeIndex ? 'selected' : ''}" data-i="${i}" onclick="selectSize(${i})">${s.label}</button>`).join('')}
-          </div>
-        </div>`;
+      // Textgröße wird von uns festgelegt – keine Kundenauswahl mehr.
+      const sizeBlock = '';
 
       const motifBlock = !hasMotifs ? '' : `
         <div class="fld">
@@ -761,7 +756,7 @@
               ${personalizable ? `<div class="howto">
                 <span><b>1</b> Stickstelle wählen</span>
                 <span><b>2</b> Name eintippen</span>
-                <span><b>3</b> Farbe, Schrift &amp; Größe</span>
+                <span><b>3</b> Farbe &amp; Schrift</span>
               </div>` : ''}
               ${posBlock}
               ${threadBlock}
@@ -883,12 +878,6 @@
       renderCanvas(); checkReady();
     }
 
-    function selectSize(i) {
-      cfg.sizeIndex = i;
-      cfg.textScale = (TEXT_SIZES[i] || TEXT_SIZES[0]).scale;
-      document.querySelectorAll('.sizebtn').forEach(b => b.classList.toggle('selected', +b.dataset.i === i));
-      renderCanvas();
-    }
 
     // ── Motive & Schritt-Navigation ──
     function hasMotifStep() { return cfg.mode === 'mit' && MOTIFS.length > 0; }
@@ -1025,7 +1014,6 @@
         if (!active.length || !cfg.threadColor) return;
         options['Garnfarbe'] = cfg.threadColor.name;
         options['Schriftart'] = cfg.font.name;
-        options['Textgröße'] = (TEXT_SIZES[cfg.sizeIndex] || TEXT_SIZES[0]).label;
         POSITIONS.forEach(p => { if (p.id in cfg.positions) options[p.label] = cfg.positions[p.id].text; });
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
         if (chosenM.length) options['Motive'] = chosenM.map(m => m.label).join(', ');
