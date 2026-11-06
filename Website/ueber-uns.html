@@ -324,9 +324,16 @@
         v = (data && data.value) || {};
       } catch (_) {}
       const setImg = (sel, url) => {
-        if (!url) return;
         const box = document.querySelector(sel);
         if (!box) return;
+        if (!url) {
+          // Kein Foto hinterlegt → leere Platzhalter-Box ausblenden, Reihe einspaltig
+          box.style.display = 'none';
+          const grid = box.closest('.about-grid');
+          if (grid) { grid.style.gridTemplateColumns = '1fr'; grid.style.maxWidth = '640px'; grid.style.marginInline = 'auto'; }
+          return;
+        }
+        box.style.display = '';
         let img = box.querySelector('img');
         if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
         img.alt = box.dataset.alt || '';
