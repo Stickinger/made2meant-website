@@ -792,20 +792,45 @@
 
       <!-- ══════════ ANALYTICS ══════════ -->
       <div id="tab-analytics" class="tab-panel">
-        <div class="page-header"><h2>Analytics & Link Tracking</h2></div>
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <h2>Analytics & Link Tracking</h2>
+          <select id="an-range" onchange="loadAnalytics()" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-family:inherit">
+            <option value="1">Heute</option>
+            <option value="7">Letzte 7 Tage</option>
+            <option value="30" selected>Letzte 30 Tage</option>
+            <option value="90">Letzte 90 Tage</option>
+          </select>
+        </div>
+        <p style="color:var(--color-muted);font-size:.82rem;margin:-8px 0 18px">Eigene Statistik ohne Cookies: gezählt werden Seitenaufrufe, angesehene Produkte, Klicks, Warenkorb und Kasse. Produktseiten, Warenkorb, Kasse und Klicks werden erst seit 07.11.2026 erfasst.</p>
+
+        <div class="stats-grid" id="an-kpis"></div>
+
+        <div class="admin-card" style="margin-bottom:20px">
+          <div class="admin-card__header"><h3>Seitenaufrufe pro Tag</h3></div>
+          <div class="admin-card__body"><div class="chart-container"><canvas id="analytics-chart"></canvas></div></div>
+        </div>
+
+        <div class="admin-card" style="margin-bottom:20px">
+          <div class="admin-card__header"><h3>Produkte: angesehen → Warenkorb</h3></div>
+          <div class="admin-card__body" style="padding:0;"><div id="an-products"></div></div>
+        </div>
 
         <div class="grid-2">
           <div class="admin-card">
-            <div class="admin-card__header"><h3>Seitenaufrufe (30 Tage)</h3></div>
-            <div class="admin-card__body">
-              <div class="chart-container"><canvas id="analytics-chart"></canvas></div>
-            </div>
+            <div class="admin-card__header"><h3>Beliebteste Seiten</h3></div>
+            <div class="admin-card__body" style="padding:0;"><div id="top-pages"></div></div>
           </div>
           <div class="admin-card">
-            <div class="admin-card__header"><h3>Beliebteste Seiten</h3></div>
-            <div class="admin-card__body" style="padding:0;">
-              <div id="top-pages"></div>
-            </div>
+            <div class="admin-card__header"><h3>Meistgeklickt</h3></div>
+            <div class="admin-card__body" style="padding:0;"><div id="an-clicks"></div></div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card__header"><h3>Woher kommen die Besucher?</h3></div>
+            <div class="admin-card__body" style="padding:0;"><div id="an-sources"></div></div>
+          </div>
+          <div class="admin-card">
+            <div class="admin-card__header"><h3>Kampagnen (utm-Links)</h3></div>
+            <div class="admin-card__body" style="padding:0;"><div id="an-campaigns"></div></div>
           </div>
         </div>
       </div>
@@ -3368,34 +3393,107 @@ async function saveSiteImages() {
 // ══════════════════════════════════════════
 
 async function loadAnalytics() {
-  const thirtyAgo = new Date(Date.now() - 30*864e5).toISOString();
-  const { data: views } = await db.from('page_views').select('page, created_at').gte('created_at', thirtyAgo);
-  const all = views || [];
+  const days = parseInt(document.getElementById('an-range')?.value || '30', 10);
+  const since = new Date(); since.setHours(0,0,0,0); since.setDate(since.getDate() - (days - 1));
 
-  // 30-day chart
+  // Alle Zeilen holen (Supabase liefert max. 1000 pro Abfrage)
+  const all = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await db.from('page_views').select('page, referrer, created_at')
+      .gte('created_at', since.toISOString()).order('created_at').range(from, from + 999);
+    if (error || !data) break;
+    all.push(...data);
+    if (data.length < 1000) break;
+  }
+  const { data: prods } = await db.from('products').select('slug, name');
+  const nameOf = {}; (prods || []).forEach(p => { nameOf[p.slug] = p.name; });
+
+  const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const normPath = p => {
+    let [path, q] = String(p || '/').split('?');
+    path = path.replace(/\/index(\.html)?$/, '/').replace(/\.html$/, '') || '/';
+    return { path, q: new URLSearchParams(q || '') };
+  };
+  const PAGE_NAMES = { '/': 'Startseite', '/shop': 'Shop', '/ueber-uns': 'Über uns', '/qualitaet': 'Qualität',
+    '/cart': 'Warenkorb', '/checkout': 'Kasse', '/order-success': 'Bestellung abgeschlossen', '/faq': 'FAQ',
+    '/login': 'Login', '/register': 'Registrieren', '/account': 'Mein Konto', '/newsletter': 'Newsletter',
+    '/geschenke-zur-geburt': 'Geschenke zur Geburt', '/taufgeschenke': 'Taufgeschenke', '/babyparty-geschenke': 'Babyparty-Geschenke',
+    '/babygeschenke-mit-namen': 'Babygeschenke mit Namen', '/geschenke-fuer-junge-eltern': 'Geschenke für junge Eltern',
+    '/geschenke-1-geburtstag': 'Geschenke 1. Geburtstag', '/impressum': 'Impressum', '/datenschutz': 'Datenschutz', '/agb': 'AGB', '/widerruf': 'Widerruf' };
+  const count = (map, k, n = 1) => { map[k] = (map[k] || 0) + n; };
+  const sorted = (map, n = 12) => Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, n);
+  const table = (head, rows, empty) => rows.length ? `<table class="data-table"><thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, i) => `<td${i ? '' : ' style="font-size:0.82rem;"'}>${i ? `<strong>${c}</strong>` : c}</td>`).join('')}</tr>`).join('')}</tbody></table>` : `<div class="empty-state"><p>${empty}</p></div>`;
+
+  const views = all.filter(v => !String(v.page).startsWith('event:'));
+  const events = all.filter(v => String(v.page).startsWith('event:'));
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  // Seiten, Produkte, Herkunft, Kampagnen
+  const pages = {}, prodViews = {}, prodCart = {}, sources = {}, camps = {}, clicks = {};
+  let checkout = 0, orders = 0;
+  views.forEach(v => {
+    const { path, q } = normPath(v.page);
+    if (/^\/(product|personalize)$/.test(path)) {
+      const slug = q.get('slug');
+      if (slug) count(prodViews, slug);
+      count(pages, 'Produktseiten (alle)');
+    } else count(pages, PAGE_NAMES[path] || path);
+    if (path === '/order-success') orders++;
+    const src = q.get('utm_source');
+    if (src) count(camps, [src, q.get('utm_medium'), q.get('utm_campaign')].filter(Boolean).join(' · '));
+    // Herkunft
+    let host = (v.referrer || '').replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
+    if (host.endsWith('made2meant.com') || host.startsWith('localhost')) return; // interne Wechsel (alte Daten)
+    const s = src ? src.toLowerCase() : host;
+    const label = !s ? 'Direkt / unbekannt'
+      : /google/.test(s) ? 'Google' : /instagram|^ig$/.test(s) ? 'Instagram' : /facebook|fb\./.test(s) ? 'Facebook'
+      : /tiktok/.test(s) ? 'TikTok' : /pinterest/.test(s) ? 'Pinterest' : /bing/.test(s) ? 'Bing'
+      : /chatgpt|openai|perplexity|claude/.test(s) ? 'KI-Suche (ChatGPT & Co.)' : s.replace(/^www\./, '');
+    count(sources, label);
+  });
+  events.forEach(e => {
+    const [, type, ...rest] = String(e.page).split(':');
+    const detail = rest.join(':');
+    if (type === 'cart' && detail) count(prodCart, detail);
+    if (type === 'checkout') checkout++;
+    if (type === 'click' && detail) count(clicks, detail);
+  });
+  const cartTotal = Object.values(prodCart).reduce((a, b) => a + b, 0);
+  const prodTotal = Object.values(prodViews).reduce((a, b) => a + b, 0);
+
+  // Kennzahlen
+  const kpi = (label, val, sub, cls = '') => `<div class="stat-card ${cls}"><div class="stat-card__label">${label}</div><div class="stat-card__value">${val}</div><div class="stat-card__sub">${sub}</div></div>`;
+  const pct = (a, b) => b ? Math.round(a / b * 100) + ' %' : '–';
+  document.getElementById('an-kpis').innerHTML =
+    kpi('Seitenaufrufe', views.length, `heute: ${views.filter(v => v.created_at?.slice(0, 10) === todayKey).length}`, 'stat-card--primary') +
+    kpi('Produkte angesehen', prodTotal, `${Object.keys(prodViews).length} verschiedene Produkte`) +
+    kpi('In den Warenkorb', cartTotal, `${pct(cartTotal, prodTotal)} der Produktansichten`) +
+    kpi('Kasse → Bestellung', `${checkout} → ${orders}`, `Kasse gestartet → abgeschlossen`, 'stat-card--accent');
+
+  // Verlauf pro Tag
   const labels = [], data = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(); d.setDate(d.getDate()-i);
-    const key = d.toISOString().slice(0,10);
-    labels.push(i % 5 === 0 ? d.toLocaleDateString('de-AT', {day:'2-digit',month:'2-digit'}) : '');
-    data.push(all.filter(v => v.created_at?.slice(0,10) === key).length);
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    labels.push(days <= 10 || i % Math.ceil(days / 8) === 0 ? d.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit' }) : '');
+    data.push(views.filter(v => v.created_at?.slice(0, 10) === key).length);
   }
   renderChart('analytics-chart', labels, data, 'Aufrufe', '#42553d');
 
-  // Top pages
-  const pages = {};
-  all.forEach(v => { pages[v.page] = (pages[v.page] || 0) + 1; });
-  const top = Object.entries(pages).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  document.getElementById('top-pages').innerHTML = top.length ? `
-    <table class="data-table">
-      <thead><tr><th>Seite</th><th>Aufrufe</th></tr></thead>
-      <tbody>${top.map(([page, count]) => `
-        <tr>
-          <td style="font-size:0.8rem;">${page}</td>
-          <td><strong>${count}</strong></td>
-        </tr>`).join('')}
-      </tbody>
-    </table>` : '<div class="empty-state"><p>Noch keine Tracking-Daten.</p></div>';
+  // Produkte-Tabelle
+  const slugs = Array.from(new Set([...Object.keys(prodViews), ...Object.keys(prodCart)]))
+    .sort((a, b) => (prodViews[b] || 0) - (prodViews[a] || 0) || (prodCart[b] || 0) - (prodCart[a] || 0));
+  document.getElementById('an-products').innerHTML = table(['Produkt', 'Angesehen', 'In den Warenkorb', 'Quote'],
+    slugs.map(sl => [esc(nameOf[sl] || sl), prodViews[sl] || 0, prodCart[sl] || 0, pct(prodCart[sl] || 0, prodViews[sl] || 0)]),
+    'Noch keine Produktdaten – werden ab jetzt gesammelt.');
+
+  document.getElementById('top-pages').innerHTML = table(['Seite', 'Aufrufe'], sorted(pages).map(([k, n]) => [esc(k), n]), 'Noch keine Tracking-Daten.');
+  document.getElementById('an-clicks').innerHTML = table(['Angeklickt', 'Klicks'],
+    sorted(clicks, 15).map(([k, n]) => [esc(k.replace(/^Produkt: (.+)$/, (_, sl) => 'Produkt: ' + (nameOf[sl] || sl))), n]),
+    'Noch keine Klicks – werden ab jetzt gesammelt.');
+  document.getElementById('an-sources').innerHTML = table(['Herkunft', 'Aufrufe'], sorted(sources).map(([k, n]) => [esc(k), n]), 'Noch keine Daten.');
+  document.getElementById('an-campaigns').innerHTML = table(['Quelle · Medium · Kampagne', 'Aufrufe'], sorted(camps).map(([k, n]) => [esc(k), n]),
+    'Noch keine Kampagnen. Tipp: Links mit ?utm_source=instagram&utm_campaign=… teilen, dann erscheinen sie hier.');
 }
 
 // ══════════════════════════════════════════

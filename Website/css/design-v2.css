@@ -109,6 +109,16 @@ h2 { font-size: clamp(1.6rem, 3.2vw, 2.6rem); }
 .hero-dot { background: rgba(242,241,236,0.45); }
 .hero-dot:hover { background: rgba(242,241,236,0.75); }
 .hero-dot.active { background: var(--cream); }
+/* Computer: Text links auf der freien Bildfläche, damit er die Stickerei rechts nicht verdeckt */
+@media (min-width: 901px) {
+  .herofull { justify-content: flex-start; text-align: left; align-items: center; }
+  .herofull__content { margin: 0; max-width: 560px; padding: 0 0 0 clamp(48px, 6vw, 96px); }
+  .herofull__title { font-size: clamp(2.1rem, 4.4vw, 3.9rem); }
+  .herofull__text { margin: 0 0 28px; }
+  .herofull__cta { justify-content: flex-start; }
+  .herofull__scrim { background: linear-gradient(90deg, rgba(30,14,10,0.58) 0%, rgba(30,14,10,0.34) 32%, rgba(30,14,10,0) 58%); }
+  .hero-dots { left: clamp(48px, 6vw, 96px); transform: none; }
+}
 @media (max-width: 700px) {
   .herofull { min-height: 86vh; }
   .herofull__scrim { background: linear-gradient(to top, rgba(30,14,10,0.7) 0%, rgba(30,14,10,0.2) 55%, rgba(30,14,10,0.15) 100%); }

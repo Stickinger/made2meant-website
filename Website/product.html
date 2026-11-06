@@ -335,6 +335,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/js/supabase.js"></script>
+  <script src="/js/track.js"></script>
   <script src="/js/auth.js"></script>
   <script src="/js/cart.js"></script>
   <script src="/js/newsletter-popup.js"></script>
@@ -382,11 +383,11 @@
     // Im Admin pro Stickstelle überschreibbar (positions[].placements); sonst diese Standardwerte
     // – zugeordnet über Stichwörter im Produkt-Slug oder im Namen der Stickstelle.
     const PLACEMENT_DEFAULTS = [
-      { match: /musselintuch|musselindecke|strickdecke|decke/, places: ['Ecke unten rechts', 'Ecke unten links', 'Mitte'] },
-      { match: /kapuzenhandtuch|handtuch/,                      places: ['Kapuze', 'Ecke unten rechts'] },
-      { match: /laetzchen|lätzchen/,                            places: ['Mitte', 'Unten rechts'] },
-      { match: /rucksack/,                                      places: ['Vorderseite oben', 'Tasche'] },
-      { match: /waschlappen|kuscheltuch|kuschelgans|gans/,      places: ['Mitte', 'Ecke'] },
+      { match: /musselintuch|musselindecke|strickdecke|decke|kuscheltuch/, places: ['Ecke quer', 'Ecke parallel'] },
+      { match: /kapuzenhandtuch|handtuch/,                      places: ['Kapuze', 'Hinten Mitte'] },
+      { match: /laetzchen|lätzchen/,                            places: ['Mitte'] },
+      { match: /rucksack/,                                      places: ['Vorderseite'] },
+      { match: /waschlappen|kuschelgans|gans/,      places: ['Mitte', 'Ecke'] },
     ];
     function defaultPlacements(slug, label) {
       const hay = (String(label || '') + ' ' + String(slug || '')).toLowerCase();

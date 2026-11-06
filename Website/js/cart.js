@@ -43,6 +43,7 @@ function addToCart(product, options = {}) {
   }
 
   saveCart(cart);
+  if (window.m2mTrack) m2mTrack('cart', product.slug || product.name || product.id);
   showToast('Zum Warenkorb hinzugefügt!');
 }
 
