@@ -49,6 +49,15 @@ Deno.serve(async (req) => {
     // Bestickung: fixer Preis 9,90 € pro Stelle; Geschenk-Set-Staffel
     // (jede weitere Bestickung 2,00 € günstiger, Floor 3,90 €) — identisch zur Website.
     const STITCH_PRICE = 9.90
+    // Motiv-Katalog – identisch halten mit js/motif-catalog.js (Preisliste: klein +5,90 €, groß +9,90 €)
+    const MOTIF_PRICES: Record<string, number> = { klein: 5.90, gross: 9.90 }
+    const GROSS = ['M1', 'M2', 'M3', 'M5', 'M7', 'M8', 'M9', 'T1', 'T3', 'T4', 'T7', 'T9', 'T16', 'D2', 'D4', 'D6', 'D7', 'G1', 'G2']
+    const KLEIN = ['M4', 'M6', 'M10', 'M11', 'M12',
+      'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16',
+      'T2', 'T5', 'T6', 'T8', 'T11', 'T12', 'T13', 'T14', 'T15', 'T17', 'D1', 'D3', 'D5', 'D8', 'D9', 'B1', 'B2', 'B3', 'B4']
+    const MOTIF_CATALOG_SIZES: Record<string, string> = {}
+    for (const c of GROSS) MOTIF_CATALOG_SIZES[c] = 'gross'
+    for (const c of KLEIN) MOTIF_CATALOG_SIZES[c] = 'klein'
     // Stückpreis serverseitig nach DEN GLEICHEN Regeln wie die Website nachrechnen
     // (Grundpreis aus den Produktdaten + Bestickung nach Regel + Motive).
     function trueUnitPrice(item: any): number {
@@ -71,7 +80,12 @@ Deno.serve(async (req) => {
         const byLabel: Record<string, number> = {}
         for (const m of (p.motifs || [])) byLabel[String(m.label || '').trim()] = Number(m.price) || 0
         motifAdd = String(opts['Motive']).split(',').map((s) => s.trim()).filter(Boolean)
-          .reduce((s: number, label: string) => s + (byLabel[label] || 0), 0)
+          .reduce((s: number, label: string) => {
+            if (label in byLabel) return s + byLabel[label]
+            // Motiv-Katalog (js/motif-catalog.js): Label beginnt mit dem Code, z.B. "M7 Feuerdrache"
+            const code = label.split(' ')[0]
+            return s + (code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
+          }, 0)
       }
       return base + embroidery + motifAdd
     }
