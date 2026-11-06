@@ -158,6 +158,16 @@
     .motifgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
     .motifcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 6px 8px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: all 0.15s; }
     .motifcard img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: calc(var(--radius) - 4px); }
+    .motif-codes { width: 100%; padding: 12px 14px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); font-family: var(--font-main); font-size: 0.95rem; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 8px; }
+    .motif-codes::placeholder { text-transform: none; letter-spacing: 0; }
+    .motif-codes:focus { outline: none; border-color: var(--color-primary); }
+    .motif-chosen { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .motif-chosen:empty { display: none; }
+    .mchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 4px; border: 1.5px solid var(--color-primary); border-radius: 99px; background: #fbf1ec; font-size: 0.8rem; font-weight: 600; color: var(--color-text); }
+    .mchip img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+    .mchip__x { border: 0; background: none; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--color-muted); padding: 0 4px; }
+    .mchip--bad { border-color: #d9534f; background: #fdeeee; color: #a33; padding: 4px 10px; }
+    .motifcard__code { font-size: 0.85rem; font-weight: 800; color: var(--color-text); letter-spacing: 0.03em; }
     .motiftabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; }
     .motiftab { padding: 6px 14px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); font-family: var(--font-main); font-weight: 600; font-size: 0.8rem; color: var(--color-text); cursor: pointer; }
     .motiftab:hover { border-color: var(--color-primary); }
@@ -472,7 +482,7 @@
       }));
       const catalog = (typeof MOTIF_CATALOG !== 'undefined' ? MOTIF_CATALOG : [])
         .filter(m => !ownMotifs.some(o => o.label === m.label))
-        .map(m => ({ id: 'k' + m.code, label: m.label, name: m.name, url: m.url, price: m.price, size: m.size, group: m.group }));
+        .map(m => ({ id: 'k' + m.code, code: m.code, label: m.label, name: m.name, url: m.url, price: m.price, size: m.size, group: m.group }));
       MOTIFS = [...ownMotifs, ...catalog];
       cfg.motifGroup = MOTIFS[0]?.group || null;
 
@@ -687,14 +697,16 @@
       const sizeBlock = '';
 
       const motifBlock = !hasMotifs ? '' : `
-        <div class="fld">
-          <span class="fld__label">Motive hinzufügen <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
-          <div class="fld__hint">Wähle ein oder mehrere Motive, die zusätzlich zu deinem Text gestickt werden. Kleines Motiv + ${euro(MOTIF_PRICES.klein)}, großes Motiv + ${euro(MOTIF_PRICES.gross)}. Die Bilder zeigen echte Stickereien von uns.</div>
+        <div class="fld" id="motif-field">
+          <span class="fld__label">Motiv <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
+          <div class="fld__hint">Such dir unten ein oder mehrere Motive aus und gib die Nummer ein (z.B. <b>T2</b> oder <b>G1, D7</b>) – oder tipp einfach aufs Bild. Kleines Motiv + ${euro(MOTIF_PRICES.klein)}, großes Motiv + ${euro(MOTIF_PRICES.gross)}.</div>
+          <input type="text" id="motif-codes" class="motif-codes" placeholder="Motiv-Nummer, z.B. T2, G1" autocomplete="off" oninput="setMotifCodes(this.value)">
+          <div class="motif-chosen" id="motif-chosen"></div>
           <div class="motiftabs" id="motif-tabs"></div>
           <div class="motifgrid" id="motif-grid"></div>
         </div>`;
 
-      const stepBar = !hasMotifs ? '' : `
+      const stepBar = '' && `
         <div class="stepper" id="stepper">
           <span class="stepper__item active" id="stepper-1"><b>1</b> Personalisierung</span>
           <span class="stepper__sep">›</span>
@@ -761,12 +773,11 @@
               ${threadBlock}
               ${fontBlock}
               ${sizeBlock}
+              ${motifBlock}
             </div>
           </div>
 
-          <div id="step-2" hidden>
-            ${motifBlock}
-          </div>
+          <div id="step-2" hidden></div>
 
           ${personalizable ? '<div class="personalize-hint" id="hint" role="status">Wähle mindestens eine Stickstelle mit Text und eine Garnfarbe.</div>' : '<div id="hint"></div>'}
 
@@ -880,7 +891,8 @@
 
 
     // ── Motive & Schritt-Navigation ──
-    function hasMotifStep() { return cfg.mode === 'mit' && MOTIFS.length > 0; }
+    // Motive sind jetzt direkt in Schritt 1 (Code-Eingabe + Bilder) – kein eigener Schritt mehr
+    function hasMotifStep() { return false; }
 
     function personalizationReady() {
       const capOk = !capOption || !!cfg.capColor;
@@ -930,6 +942,7 @@
       const tabs = document.getElementById('motif-tabs');
       const grid = document.getElementById('motif-grid');
       if (!tabs || !grid) return;
+      renderMotifChips();
       const groups = motifGroups();
       tabs.innerHTML = groups.length < 2 ? '' : groups.map(g => {
         const n = MOTIFS.filter(m => m.group === g.key && cfg.selectedMotifs[m.id]).length;
@@ -938,16 +951,44 @@
       grid.innerHTML = MOTIFS.filter(m => groups.length < 2 || m.group === cfg.motifGroup).map(m => `
         <button type="button" class="motifcard ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" data-id="${m.id}" onclick="toggleMotif('${m.id}')" title="${escH(m.label)}">
           <img src="${escH(m.url)}" alt="${escH(m.name || m.label)}" loading="lazy">
-          <span class="motifcard__name">${escH(m.label)}</span>
+          ${m.code ? `<span class="motifcard__code">${escH(m.code)}</span><span class="motifcard__name">${escH(m.name)}</span>` : `<span class="motifcard__name">${escH(m.label)}</span>`}
           <span class="motifcard__price">+ ${euro(m.price)}${m.size === 'gross' ? ' · groß' : ''}</span>
         </button>`).join('');
     }
 
     function setMotifGroup(key) { cfg.motifGroup = key; renderMotifs(); }
 
+    // Eingegebene Motiv-Nummern („T2, g1 d7") → Auswahl; unbekannte Nummern merken
+    function setMotifCodes(value) {
+      const tokens = String(value || '').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean);
+      const byCode = {}; MOTIFS.forEach(m => { if (m.code) byCode[m.code] = m; });
+      MOTIFS.forEach(m => { if (m.code) delete cfg.selectedMotifs[m.id]; });
+      cfg.unknownMotifCodes = [];
+      tokens.forEach(t => { if (byCode[t]) cfg.selectedMotifs[byCode[t].id] = true; else cfg.unknownMotifCodes.push(t); });
+      const last = tokens.map(t => byCode[t]).filter(Boolean).pop();
+      if (last) cfg.motifGroup = last.group;
+      renderMotifs(); updatePrice(); checkReady();
+    }
+
+    function syncMotifInput() {
+      const inp = document.getElementById('motif-codes');
+      if (!inp) return;
+      cfg.unknownMotifCodes = [];
+      inp.value = MOTIFS.filter(m => m.code && cfg.selectedMotifs[m.id]).map(m => m.code).join(', ');
+    }
+
+    function renderMotifChips() {
+      const box = document.getElementById('motif-chosen');
+      if (!box) return;
+      const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+      box.innerHTML = chosen.map(m => `<span class="mchip"><img src="${escH(m.url)}" alt="">${escH(m.label)} · + ${euro(m.price)}<button type="button" class="mchip__x" aria-label="${escH(m.label)} entfernen" onclick="toggleMotif('${m.id}')">×</button></span>`).join('')
+        + (cfg.unknownMotifCodes || []).map(c => `<span class="mchip mchip--bad">„${escH(c)}" gibt es nicht</span>`).join('');
+    }
+
     function toggleMotif(id) {
       if (cfg.selectedMotifs[id]) delete cfg.selectedMotifs[id];
       else cfg.selectedMotifs[id] = true;
+      syncMotifInput();
       renderMotifs();
       updatePrice(); renderCanvas(); checkReady();
     }
@@ -1008,14 +1049,16 @@
 
       const active = Object.keys(cfg.positions);
       const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
-      const ready = allFilled && !!cfg.threadColor && capOk;
+      const badCodes = (cfg.unknownMotifCodes || []).length > 0;
+      const ready = allFilled && !!cfg.threadColor && capOk && !badCodes;
       if (btn) { btn.disabled = !ready; btn.textContent = !ready ? 'Mein Stück personalisieren' : (hasMotifStep() ? 'Weiter: Motive →' : 'In den Warenkorb'); }
       if (!hint) return;
 
       if (ready) {
         const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${cfg.positions[id].text}"`);
         hint.className = 'personalize-hint complete';
-        hint.textContent = `Bereit — ${parts.join(' · ')} · Garn: ${cfg.threadColor.name}`;
+        const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+        hint.textContent = `Bereit — ${parts.join(' · ')} · Garn: ${cfg.threadColor.name}` + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
       } else {
         hint.className = 'personalize-hint';
         const missing = [];
@@ -1023,6 +1066,7 @@
         else if (!allFilled) missing.push('Text für jede gewählte Stelle');
         if (!cfg.threadColor) missing.push('Garnfarbe');
         if (capOption && !cfg.capColor) missing.push('Farbe');
+        if (badCodes) missing.push('gültige Motiv-Nummer (' + cfg.unknownMotifCodes.join(', ') + ')');
         hint.textContent = `Noch offen: ${missing.join(', ')}.`;
       }
     }
