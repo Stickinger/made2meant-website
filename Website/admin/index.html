@@ -1808,6 +1808,8 @@ function addStitchPos() { stitchPositions.push({ label: '', price: '' }); render
 function removeStitchPos(i) { stitchPositions.splice(i, 1); renderStitchPos(); renderColorVariants(); }
 function setStitchLabel(i, v) { stitchPositions[i].label = v; renderColorVariants(); }
 function setStitchPrice(i, v) { stitchPositions[i].price = v; }
+// Auswahl für den Kunden, wo genau gestickt wird (kommagetrennt). Leer = Standardwerte der Produktseite.
+function setStitchPlacements(i, v) { stitchPositions[i].placements = String(v || '').split(',').map(t => t.trim()).filter(Boolean); }
 
 function renderStitchPos() {
   const box = document.getElementById('p-stitchpos');
@@ -1822,6 +1824,11 @@ function renderStitchPos() {
                style="width:100%" onchange="setStitchPrice(${i}, this.value)">
       </div>
       <button type="button" class="btn-sm btn-sm--outline" onclick="removeStitchPos(${i})">✕</button>
+    </div>
+    <div style="margin:-2px 0 12px;">
+      <input type="text" placeholder="Wo genau? z.B. Ecke unten rechts, Ecke unten links, Mitte  (leer = Standard)"
+             value="${(s.placements||[]).join(', ').replace(/"/g,'&quot;')}"
+             style="width:100%;font-size:0.82rem" onchange="setStitchPlacements(${i}, this.value)">
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Stickstellen. Klick „+ Stickstelle hinzufügen".</p>';
 }
 
@@ -2370,6 +2377,7 @@ async function openProductModal(product = null) {
   // Stickstellen aus Produkt laden
   stitchPositions = (product?.positions || []).map(p => ({
     label: p.label, price: p.price,
+    placements: Array.isArray(p.placements) ? p.placements : [],
     x: Number.isFinite(+p.x) ? +p.x : 0.5,
     y: Number.isFinite(+p.y) ? +p.y : 0.45,
     size: Number.isFinite(+p.size) ? +p.size : 0.11,
@@ -2436,6 +2444,7 @@ async function saveProduct() {
     .map(s => ({
       label: (s.label || '').trim(),
       price: parseFloat(s.price) || 0,
+      placements: Array.isArray(s.placements) ? s.placements : [],
       x: Number.isFinite(+s.x) ? +s.x : 0.5,
       y: Number.isFinite(+s.y) ? +s.y : 0.45,
       size: Number.isFinite(+s.size) ? +s.size : 0.11,
