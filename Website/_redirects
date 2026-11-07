@@ -3,3 +3,9 @@
 # sitemap-products) und ist so immer aktuell. Status 200 = Inhalt wird
 # unter made2meant.com ausgeliefert (Proxy), die Adresse bleibt gleich.
 /sitemap-produkte.txt  https://xqeedhnajvftvcsjzfly.supabase.co/functions/v1/sitemap-products  200
+
+# Alte Set-Links (Standard/Premium Set → Badeset/Kuschelset, Preisliste 11/2026)
+/product.html  slug=standard-set  /product.html?slug=badeset     301!
+/product.html  slug=premium-set   /product.html?slug=kuschelset  301!
+/product       slug=standard-set  /product.html?slug=badeset     301!
+/product       slug=premium-set   /product.html?slug=kuschelset  301!

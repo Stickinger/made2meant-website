@@ -173,6 +173,22 @@
     .motiftab { padding: 6px 14px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); font-family: var(--font-main); font-weight: 600; font-size: 0.8rem; color: var(--color-text); cursor: pointer; }
     .motiftab:hover { border-color: var(--color-primary); }
     .motiftab.active { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
+    /* Unsere Motiv-Empfehlung */
+    .mrec__title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-primary); margin: 6px 0 8px; }
+    .mrecs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .mrec { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: #fbf6f1; text-align: left; cursor: pointer; font-family: var(--font-main); transition: all 0.15s; }
+    .mrec:hover { border-color: var(--color-primary); }
+    .mrec.active { border-color: var(--color-primary); background: #fbf1ec; box-shadow: 0 0 0 2px rgba(181,105,77,0.12); }
+    .mrec__img { flex: 0 0 72px; height: 72px; border-radius: calc(var(--radius) - 4px); overflow: hidden; background: #fff; display: grid; gap: 2px; }
+    .mrec__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mrec__img--2 { grid-template-columns: 1fr 1fr; } .mrec__img--3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+    .mrec__img--3 img:first-child { grid-row: span 2; }
+    .mrec__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .mrec__name { font-weight: 700; font-size: 0.9rem; color: var(--color-text); }
+    .mrec__codes { font-size: 0.76rem; color: var(--color-muted); }
+    .mrec__cta { font-size: 0.75rem; font-weight: 700; color: var(--color-primary); }
+    .motifcard { position: relative; }
+    .motifcard__star { position: absolute; top: 4px; right: 4px; background: var(--color-primary); color: #fff; border-radius: 99px; font-size: 0.62rem; font-weight: 700; padding: 2px 6px; }
     .motiftab__n { display: inline-block; min-width: 18px; margin-left: 4px; padding: 0 5px; border-radius: 99px; background: var(--color-primary); color: #fff; font-size: 0.7rem; }
     .motifcard__name { font-size: 0.78rem; font-weight: 600; color: var(--color-text); text-align: center; }
     .motifcard__price { font-size: 0.72rem; color: var(--color-primary); font-weight: 700; }
@@ -518,6 +534,7 @@
         `<a href="/index.html">Startseite</a> / <a href="/index.html#products">Shop</a> / <span>${currentProduct.name}</span>`;
 
       renderPage();
+      if (MOTIFS.length) loadMotifRecs(currentProduct.slug);
       renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
     }
 
@@ -733,6 +750,7 @@
         <div class="fld" id="motif-field">
           <span class="fld__label">Motiv <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
           <div class="fld__hint">Such dir unten ein oder mehrere Motive aus und gib die Nummer ein (z.B. <b>T2</b> oder <b>G1, D7</b>) – oder tipp einfach aufs Bild. Kleines Motiv + ${euro(MOTIF_PRICES.klein)}, großes Motiv + ${euro(MOTIF_PRICES.gross)}.</div>
+          <div id="motif-recs"></div>
           <input type="text" id="motif-codes" class="motif-codes" placeholder="Motiv-Nummer, z.B. T2, G1" autocomplete="off" oninput="setMotifCodes(this.value)">
           <div class="motif-chosen" id="motif-chosen"></div>
           <div class="motiftabs" id="motif-tabs"></div>
@@ -971,11 +989,71 @@
       return groups;
     }
 
+    // ── Unsere Motiv-Empfehlung ──
+    // Im Admin pro Produkt pflegbar (settings.site_images.motif_recs[slug]); sonst diese Vorschläge.
+    // img = Foto des fertig bestickten Stücks (folgt); ohne Foto zeigen wir die Motivbilder.
+    const MOTIF_REC_DEFAULTS = [
+      { match: /strickdecke/,       recs: [{ title: 'Rehkitz & Wildblumen', codes: ['T2', 'B2'] }, { title: 'Bär auf dem Mond', codes: ['G2'] }] },
+      { match: /musselindecke/,     recs: [{ title: 'Herbstwald', codes: ['T1'] }, { title: 'Hase & Blumen', codes: ['T5', 'B2'] }] },
+      { match: /musselintuch/,      recs: [{ title: 'Kleine Gans', codes: ['T11'] }, { title: 'Beerenzweig', codes: ['T4'] }] },
+      { match: /kapuzenhandtuch/,   recs: [{ title: 'Rakete', codes: ['C10'] }, { title: 'Häschen', codes: ['T13'] }] },
+      { match: /rucksack/,          recs: [{ title: 'Feuerdrachen wie bei Paul', codes: ['M7'] }, { title: 'Prinzessin wie bei Valerie', codes: ['M2'] }] },
+      { match: /laetzchen|lätzchen/, recs: [{ title: 'Babydrache wie bei Tim', codes: ['M4'] }, { title: 'Schnecke wie bei Nina', codes: ['T17'] }, { title: 'Piratenschiff wie bei Jakob', codes: ['C11'] }, { title: 'Krone für Prinzessinnen', codes: ['M11'] }] },
+      { match: /kuscheltuch|gans/,  recs: [{ title: 'Häschen', codes: ['T13'] }, { title: 'Bär auf dem Mond', codes: ['G2'] }] },
+    ];
+    let MOTIF_RECS = [];
+    async function loadMotifRecs(slug) {
+      let own = null;
+      try {
+        const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+        own = data && data.value && data.value.motif_recs && data.value.motif_recs[slug];
+      } catch (_) {}
+      const base = (Array.isArray(own) && own.length) ? own
+        : ((MOTIF_REC_DEFAULTS.find(d => d.match.test(String(slug || '').toLowerCase())) || {}).recs || []);
+      const byCode = {}; MOTIFS.forEach(m => { if (m.code) byCode[m.code] = m; });
+      MOTIF_RECS = base.map(r => {
+        const codes = (Array.isArray(r.codes) ? r.codes : String(r.codes || '').split(/[^A-Za-z0-9]+/))
+          .map(c => String(c).toUpperCase().trim()).filter(c => byCode[c]);
+        return { title: r.title || codes.map(c => byCode[c].name).join(' & '), img: r.img || '', codes, motifs: codes.map(c => byCode[c]) };
+      }).filter(r => r.codes.length).slice(0, 4);
+      renderMotifRecs();
+    }
+    function renderMotifRecs() {
+      const box = document.getElementById('motif-recs');
+      if (!box) return;
+      if (!MOTIF_RECS.length) { box.innerHTML = ''; return; }
+      const chosen = MOTIFS.filter(m => m.code && cfg.selectedMotifs[m.id]).map(m => m.code).sort().join(',');
+      box.innerHTML = `<div class="mrec__title">★ Unsere Empfehlung</div><div class="mrecs">${MOTIF_RECS.map((r, i) => {
+        const pics = r.img ? [r.img] : r.motifs.map(m => m.url).slice(0, 3);
+        const active = [...r.codes].sort().join(',') === chosen;
+        const price = r.motifs.reduce((a, m) => a + (Number(m.price) || 0), 0);
+        return `<button type="button" class="mrec ${active ? 'active' : ''}" onclick="applyMotifRec(${i})">
+          <span class="mrec__img mrec__img--${pics.length}">${pics.map(u => `<img src="${escH(u)}" alt="" loading="lazy">`).join('')}</span>
+          <span class="mrec__body">
+            <span class="mrec__name">${escH(r.title)}</span>
+            <span class="mrec__codes">${r.motifs.map(m => escH(m.code + ' ' + m.name)).join(' · ')} · + ${euro(price)}</span>
+            <span class="mrec__cta">${active ? '✓ Ausgewählt' : 'Übernehmen →'}</span>
+          </span>
+        </button>`;
+      }).join('')}</div>`;
+    }
+    function applyMotifRec(i) {
+      const r = MOTIF_RECS[i];
+      if (!r) return;
+      const inp = document.getElementById('motif-codes');
+      const value = r.codes.join(', ');
+      if (inp) inp.value = value;
+      setMotifCodes(value);
+      renderCanvas();
+    }
+
     function renderMotifs() {
       const tabs = document.getElementById('motif-tabs');
       const grid = document.getElementById('motif-grid');
       if (!tabs || !grid) return;
       renderMotifChips();
+      renderMotifRecs();
+      const recCodes = new Set(MOTIF_RECS.flatMap(r => r.codes));
       const groups = motifGroups();
       tabs.innerHTML = groups.length < 2 ? '' : groups.map(g => {
         const n = MOTIFS.filter(m => m.group === g.key && cfg.selectedMotifs[m.id]).length;
@@ -984,6 +1062,7 @@
       grid.innerHTML = MOTIFS.filter(m => groups.length < 2 || m.group === cfg.motifGroup).map(m => `
         <button type="button" class="motifcard ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" data-id="${m.id}" onclick="toggleMotif('${m.id}')" title="${escH(m.label)}">
           <img src="${escH(m.url)}" alt="${escH(m.name || m.label)}" loading="lazy">
+          ${m.code && recCodes.has(m.code) ? '<span class="motifcard__star">★ Tipp</span>' : ''}
           ${m.code ? `<span class="motifcard__code">${escH(m.code)}</span><span class="motifcard__name">${escH(m.name)}</span>` : `<span class="motifcard__name">${escH(m.label)}</span>`}
           <span class="motifcard__price">+ ${euro(m.price)}${m.size === 'gross' ? ' · groß' : ''}</span>
         </button>`).join('');

@@ -1028,6 +1028,15 @@
           <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addMotif()">+ Motiv hinzufügen</button>
         </div>
 
+        <div class="field form-full">
+          <label>★ Unsere Motiv-Empfehlung <span style="font-weight:400;color:var(--color-muted)">— bis zu 4 Vorschläge, die der Kunde mit einem Klick übernimmt</span></label>
+          <p style="font-size:0.82rem;color:var(--color-muted);margin:2px 0 12px">
+            Motiv-Nummern aus dem Katalog (z.B. <b>T2, B2</b>) und am besten ein Foto vom fertig bestickten Stück. Leer lassen = unsere Standard-Vorschläge.
+          </p>
+          <div id="p-recs"></div>
+          <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addRec()">+ Empfehlung hinzufügen</button>
+        </div>
+
         <details class="field form-full" style="margin-top:8px">
           <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted)">Erweitert: eigene Optionen & Bilder (nicht nötig für Kappen)</summary>
           <div style="margin-top:14px">
@@ -2346,6 +2355,67 @@ function renderImagesEditor() {
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Bilder.</p>';
 }
 
+// ── Motiv-Empfehlungen je Produkt (settings.site_images.motif_recs = { slug: [{title, codes, img}] }) ──
+let recItems = [];
+let recSlugAtOpen = '';
+let motifRecsAll = {};
+function addRec() { if (recItems.length >= 4) return; recItems.push({ title: '', codes: '', img: '' }); renderRecs(); }
+function removeRec(i) { recItems.splice(i, 1); renderRecs(); }
+function setRec(i, k, v) { recItems[i][k] = v; }
+async function handleRecPhoto(i, file) {
+  if (!file) return;
+  const url = await uploadToStorage(file);
+  if (url) { recItems[i].img = url; renderRecs(); }
+}
+function renderRecs() {
+  const box = document.getElementById('p-recs');
+  if (!box) return;
+  const e = v => String(v ?? '').replace(/"/g, '&quot;');
+  box.innerHTML = recItems.map((r, i) => `
+    <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
+      ${r.img ? `<img src="${e(r.img)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:6px;">` : ''}
+      <div class="dropzone dropzone--row" tabindex="0" role="button" aria-label="Foto hochladen"
+           onclick="this.querySelector('input[type=file]').click()"
+           ondragover="event.preventDefault();this.classList.add('dropzone--over')"
+           ondragleave="this.classList.remove('dropzone--over')"
+           ondrop="event.preventDefault();this.classList.remove('dropzone--over');handleRecPhoto(${i}, event.dataTransfer.files[0])">
+        ${r.img ? 'Foto ersetzen' : 'Foto ziehen / klicken'}
+        <input type="file" accept="image/png,image/jpeg,image/webp" hidden onchange="handleRecPhoto(${i}, this.files[0]); this.value=''">
+      </div>
+      <input type="text" placeholder="Titel, z.B. Rehkitz & Wildblumen" value="${e(r.title)}" oninput="setRec(${i},'title',this.value)" style="flex:1;min-width:160px">
+      <input type="text" placeholder="Motiv-Nr., z.B. T2, B2" value="${e(r.codes)}" oninput="setRec(${i},'codes',this.value.toUpperCase())" style="width:150px;text-transform:uppercase">
+      ${r.img ? `<button type="button" class="btn-sm btn-sm--outline" onclick="recItems[${i}].img='';renderRecs()">Foto weg</button>` : ''}
+      <button type="button" class="btn-sm btn-sm--outline" onclick="removeRec(${i})">✕</button>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Keine eigenen Empfehlungen – es werden unsere Standard-Vorschläge gezeigt.</p>';
+}
+async function loadRecsFor(slug) {
+  try {
+    const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+    motifRecsAll = (data && data.value && data.value.motif_recs) || {};
+  } catch (_) { motifRecsAll = {}; }
+  recItems = (motifRecsAll[slug] || []).map(r => ({ title: r.title || '', codes: (r.codes || []).join(', '), img: r.img || '' }));
+  renderRecs();
+}
+async function saveRecsFor(slug, oldSlug) {
+  if (!slug) return true;
+  const list = recItems.map(r => ({
+    title: (r.title || '').trim(),
+    codes: String(r.codes || '').toUpperCase().split(/[^A-Z0-9]+/).filter(Boolean),
+    img: r.img || '',
+  })).filter(r => r.codes.length);
+  const all = { ...motifRecsAll };
+  if (oldSlug && oldSlug !== slug) delete all[oldSlug];
+  if (list.length) all[slug] = list; else delete all[slug];
+  // gespeichert in settings.site_images.motif_recs (dieser Eintrag ist für Besucher lesbar)
+  const { data: cur, error: readErr } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+  if (readErr) { alert('Empfehlungen konnten nicht gespeichert werden: ' + readErr.message); return false; }
+  const value = { ...((cur && cur.value) || {}), motif_recs: all };
+  const { error } = await db.from('settings').upsert({ key: 'site_images', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) { alert('Empfehlungen konnten nicht gespeichert werden: ' + error.message); return false; }
+  motifRecsAll = all;
+  return true;
+}
+
 async function openProductModal(product = null) {
   document.getElementById('product-modal-title').textContent = product ? 'Produkt bearbeiten' : 'Neues Produkt';
   document.getElementById('p-id').value            = product?.id || '';
@@ -2435,6 +2505,8 @@ async function openProductModal(product = null) {
   renderStitchPos();
   renderColorVariants();
   renderMotifs();
+  recSlugAtOpen = product?.slug || '';
+  recItems = []; renderRecs(); loadRecsFor(recSlugAtOpen);
 
   // Erweiterte Optionen befüllen (ohne die Farbe, die der Farben-Bereich verwaltet)
   document.getElementById('p-options').innerHTML = '';
@@ -2575,6 +2647,8 @@ async function saveProduct() {
     );
     if (imgErr) { alert('Fehler beim Bilder-Speichern: ' + imgErr.message); return; }
   }
+
+  if (!(await saveRecsFor(saved[0].slug, recSlugAtOpen))) return;
 
   closeModal('product-modal');
   loadProductsTable();
@@ -3377,6 +3451,11 @@ async function saveSiteImages() {
     quality: siteImages.quality || '',
     qualityPage: Object.fromEntries(Object.entries(siteImages.qualityPage || {}).filter(([, u]) => u)),
   };
+  // Motiv-Empfehlungen liegen im selben Eintrag (öffentlich lesbar) – nicht überschreiben
+  try {
+    const { data: cur } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+    if (cur && cur.value && cur.value.motif_recs) payload.motif_recs = cur.value.motif_recs;
+  } catch (_) {}
   const { error } = await db.from('settings')
     .upsert({ key: 'site_images', value: payload, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) {
