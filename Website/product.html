@@ -95,6 +95,38 @@
     .cpill:hover { border-color: var(--color-primary); }
     .cpill.selected { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
 
+    /* Produktdetails */
+    .pdetails { max-width: 820px; margin: 48px auto 8px; }
+    .pdetails__title { font-size: clamp(1.4rem, 2.6vw, 1.9rem); margin-bottom: 14px; }
+    .pdetails__item { border-top: 1px solid var(--color-border); }
+    .pdetails__item:last-child { border-bottom: 1px solid var(--color-border); }
+    .pdetails__item summary { list-style: none; cursor: pointer; padding: 16px 4px; font-weight: 700; font-size: 0.95rem; color: var(--color-text); display: flex; justify-content: space-between; align-items: center; }
+    .pdetails__item summary::-webkit-details-marker { display: none; }
+    .pdetails__item summary::after { content: '+'; font-size: 1.3rem; font-weight: 400; color: var(--color-primary); }
+    .pdetails__item[open] summary::after { content: '−'; }
+    .pdetails__item p { margin: -4px 4px 18px; color: var(--color-muted); font-size: 0.92rem; line-height: 1.6; }
+    /* Motiv-Position zum Namen */
+    .mplace { margin: 4px 0 14px; padding: 12px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: #fbf6f1; }
+    .mplace__label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--color-text); margin-bottom: 10px; }
+    .mplace__opts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .mplace__btn { position: relative; padding: 8px 4px 7px; border: 1.5px solid var(--color-border); border-radius: 12px; background: var(--color-surface); color: var(--color-muted); cursor: pointer; font-family: var(--font-main); transition: all .15s; }
+    .mplace__btn svg { display: block; width: 46px; height: 40px; margin: 0 auto; }
+    .mplace__btn small { display: block; font-size: 0.7rem; font-weight: 600; line-height: 1.2; margin-top: 2px; color: var(--color-text); }
+    .mplace__btn:hover { border-color: var(--color-primary); }
+    .mplace__btn.selected { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); box-shadow: 0 0 0 1px var(--color-primary); }
+    .mplace__rec { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); background: var(--color-accent); color: #fff; font-size: 0.52rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+    .mplace__ex { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 0.76rem; color: var(--color-muted); }
+    .mplace__photo { display: block; width: 84px; height: 84px; object-fit: cover; border-radius: 10px; flex: 0 0 auto; }
+    @media (max-width: 420px) { .mplace__opts { grid-template-columns: repeat(2, 1fr); } }
+    /* Echte Garnfarben-Tafel */
+    .garntafel__img { position: relative; }
+    .garntafel { flex: 1 0 100%; margin-top: 6px; max-width: 520px; }
+    .garntafel img { display: block; width: 100%; border-radius: 14px; border: 1px solid var(--color-border); }
+    .garntafel__grid { position: absolute; left: 2%; right: 2%; top: 2%; bottom: 3%; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: repeat(3, 1fr); gap: 4px; }
+    .garntafel__grid button { border: 2px solid transparent; border-radius: 10px; background: transparent; cursor: pointer; transition: all .15s; }
+    .garntafel__grid button:hover { border-color: rgba(255,255,255,.9); background: rgba(255,255,255,.12); }
+    .garntafel__grid button.selected { border-color: var(--color-text); box-shadow: 0 0 0 2px #fff inset; }
+    .garntafel small { display: block; margin-top: 6px; font-size: .76rem; color: var(--color-muted); }
     /* Garnfarbe-Swatches */
     .tswatches { display: flex; gap: 10px; flex-wrap: wrap; }
     .tswatch { width: 34px; height: 34px; border-radius: 50%; border: 2px solid transparent; background: var(--c); cursor: pointer; padding: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); transition: transform 0.12s; position: relative; }
@@ -110,13 +142,16 @@
     .cswatch:hover { transform: scale(1.06); border-color: var(--color-primary); }
     .cswatch.selected { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-primary); }
 
-    /* Schriftart-Auswahl */
-    .fonts { display: flex; gap: 10px; flex-wrap: wrap; }
-    .fontbtn { padding: 8px 18px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); color: var(--color-text); cursor: pointer; font-size: 1.35rem; line-height: 1; transition: all 0.15s; }
-    .fontbtn small { display: block; font-family: var(--font-main); font-size: 0.6rem; letter-spacing: 0.04em; color: var(--color-muted); margin-top: 3px; text-transform: uppercase; }
+    /* Schriftart-Auswahl: echte Stickproben (Schriften-Musterstoff) */
+    .fonts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .fontbtn { padding: 6px 6px 8px; border: 1.5px solid var(--color-border); border-radius: 14px; background: var(--color-surface); color: var(--color-text); cursor: pointer; transition: all 0.15s; font-family: var(--font-main); }
+    .fontbtn img { display: block; width: 100%; aspect-ratio: 3 / 1; object-fit: cover; border-radius: 9px; }
+    .fontbtn small { display: block; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.02em; color: var(--color-muted); margin-top: 6px; }
+    .fontbtn small b { color: var(--color-primary); margin-right: 2px; }
     .fontbtn:hover { border-color: var(--color-primary); }
-    .fontbtn.selected { border-color: var(--color-primary); background: #fbf1ec; }
-    .fontbtn.selected small { color: var(--color-primary); }
+    .fontbtn.selected { border-color: var(--color-primary); background: #fbf1ec; box-shadow: 0 0 0 1px var(--color-primary); }
+    .fontbtn.selected small { color: var(--color-text); }
+    @media (max-width: 480px) { .fonts { grid-template-columns: repeat(2, 1fr); } }
 
     /* Mit / Ohne Bestickung */
     .modepick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -309,6 +344,10 @@
       <div id="product-detail" class="pd">
         <p class="loading">Produkt wird geladen…</p>
       </div>
+      <section class="pdetails" id="pdetails" hidden aria-labelledby="pdetails-title">
+        <h2 class="pdetails__title" id="pdetails-title">Produktdetails</h2>
+        <div class="pdetails__list" id="pdetails-list"></div>
+      </section>
     </div>
 
     <section class="ptrust">
@@ -381,10 +420,12 @@
 
     // Schriftarten, die der Kunde wählen kann (recommended = unsere Empfehlung)
     const FONTS = [
-      { name: 'Schreibschrift', css: "'Dancing Script', cursive", weight: 700, sample: 'Aa', recommended: true },
-      { name: 'Handschrift',    css: "'Caveat', cursive",         weight: 700, sample: 'Aa' },
-      { name: 'Klassisch',      css: "'Fraunces', serif",          weight: 600, sample: 'Aa' },
-      { name: 'Modern',         css: "'Nunito', sans-serif",       weight: 800, sample: 'Aa' },
+      { nr: 1, name: 'Lucida',      img: '/assets/schriften/lucida.webp',   sample: 'Noah',     recommended: true },
+      { nr: 2, name: 'Vladimir',    img: '/assets/schriften/vladimir.webp', sample: 'Lukas' },
+      { nr: 3, name: 'Times Roman', img: '/assets/schriften/times.webp',    sample: 'Leo' },
+      { nr: 4, name: 'Pyunji',      img: '/assets/schriften/pyunji.webp',   sample: 'Valerie' },
+      { nr: 5, name: 'Civic',       img: '/assets/schriften/civic.webp',    sample: 'Veronika' },
+      { nr: 6, name: 'Yet',         img: '/assets/schriften/yet.webp',      sample: 'Maria' },
     ];
 
     // Textgröße (Small / Large) – skaliert die im Admin festgelegte Größe
@@ -436,6 +477,7 @@
       previewPos: null,
       step: 1,                            // 1 = Personalisierung · 2 = Motive
       selectedMotifs: {},                 // { motifId: true }
+      motifPlace: '',                     // Position des Motivs zum Namen (links/rechts/über/unter)
     };
 
     const imgCache = {};
@@ -535,6 +577,7 @@
 
       renderPage();
       if (MOTIFS.length) loadMotifRecs(currentProduct.slug);
+      loadProductInfo(currentProduct);
       renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
     }
 
@@ -574,10 +617,9 @@
         return `<a class="rcard" href="/product.html?slug=${encodeURIComponent(p.slug)}">
           <div class="rcard__img">
             ${p.image_url ? `<img src="${escH(p.image_url)}" alt="${escH(p.name)}" loading="lazy">` : ''}
-            ${sale && pct >= 5 ? `<span class="rcard__badge">−${pct}%</span>` : ''}
           </div>
           <div class="rcard__name">${escH(p.name)}</div>
-          <div class="rcard__price ${sale ? 'rcard__price--sale' : ''}">${euro(price)}${sale ? `<span class="rcard__was">${euro(was)}</span>` : ''}</div>
+          <div class="rcard__price ${sale ? 'rcard__price--sale' : ''}">${euro(price)}${sale ? `<span class="rcard__was" style="text-decoration:none">einzeln <s>${euro(was)}</s></span>` : ''}</div>
         </a>`;
       }).join('');
       sec.hidden = false;
@@ -738,8 +780,9 @@
       const fontBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Schriftart</span>
+          <div class="fld__hint">Echte Stickproben von unserem Schriften-Musterstoff.</div>
           <div class="fonts" id="font-picker">
-            ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" style="font-family:${f.css}" onclick="selectFont(${i})">${f.recommended ? '<span class="fontbtn__rec">Empfohlen</span>' : ''}${f.sample}<small>${f.name}</small></button>`).join('')}
+            ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" onclick="selectFont(${i})" aria-label="Schrift ${f.nr}: ${f.name}">${f.recommended ? '<span class="fontbtn__rec">Empfohlen</span>' : ''}<img src="${f.img}" alt="${f.sample} in Schrift ${f.name}, echt gestickt" loading="lazy"><small><b>${f.nr}</b> ${f.name}</small></button>`).join('')}
           </div>
         </div>`;
 
@@ -753,6 +796,7 @@
           <div id="motif-recs"></div>
           <input type="text" id="motif-codes" class="motif-codes" placeholder="Motiv-Nummer, z.B. T2, G1" autocomplete="off" oninput="setMotifCodes(this.value)">
           <div class="motif-chosen" id="motif-chosen"></div>
+          <div class="mplace" id="motif-place" hidden></div>
           <div class="motiftabs" id="motif-tabs"></div>
           <div class="motifgrid" id="motif-grid"></div>
         </div>`;
@@ -777,7 +821,8 @@
           </div>
         </div>`;
 
-      const priceNote = personalizable ? 'inkl. MwSt. · Grundpreis + gewählte Stickstellen' : 'inkl. MwSt. zzgl. Versand';
+      const shipLink = '<a href="/faq.html" style="color:inherit">zzgl. Versand</a> (3,90 €, ab 119 € gratis)';
+      const priceNote = personalizable ? 'inkl. MwSt. ' + shipLink + ' · Grundpreis + gewählte Stickstellen' : 'inkl. MwSt. ' + shipLink;
 
       document.getElementById('product-detail').innerHTML = `
         <div class="gallery">
@@ -865,6 +910,12 @@
       let html = list.map(c => `<button type="button" class="tswatch tswatch--photo ${cfg.threadColor && c.name === cfg.threadColor.name ? 'selected' : ''}" style="--c:${c.hex};--img:url('${c.img}')" data-name="${c.name}" title="${c.name}" aria-label="${c.name}" onclick="selectThread('${c.name}')"></button>`).join('');
       if (THREAD_COLORS.length > RECOMMENDED_THREADS) {
         html += `<button type="button" class="tswatch tswatch--more" onclick="toggleThreads()" aria-label="${cfg.showAllThreads ? 'Weniger Farben' : 'Mehr Farben'}" title="${cfg.showAllThreads ? 'Weniger' : 'Mehr Farben'}">${cfg.showAllThreads ? '−' : '+'}</button>`;
+      }
+      if (cfg.showAllThreads) {
+        // Echte Garnfarben-Tafel (Musterstoff Nr. 1–15) – Feld antippen wählt die Farbe
+        html += `<div class="garntafel"><div class="garntafel__img"><img src="/assets/garn/garn-tafel.webp" alt="Unsere Garnfarben 1–15, echt gestickt" loading="lazy">
+          <div class="garntafel__grid">${THREAD_COLORS.slice(0, 15).map((c, i) => `<button type="button" class="${cfg.threadColor && c.name === cfg.threadColor.name ? 'selected' : ''}" title="${i + 1} – ${c.name}" aria-label="Farbe ${i + 1}: ${c.name}" onclick="selectThread('${c.name}')"></button>`).join('')}</div></div>
+          <small>Unsere echte Garnfarben-Tafel – Feld antippen zum Auswählen.</small></div>`;
       }
       box.innerHTML = html;
     }
@@ -997,11 +1048,49 @@
       { match: /musselindecke/,     recs: [{ title: 'Herbstwald', codes: ['T1'] }, { title: 'Hase & Blumen', codes: ['T5', 'B2'] }] },
       { match: /musselintuch/,      recs: [{ title: 'Kleine Gans', codes: ['T11'] }, { title: 'Beerenzweig', codes: ['T4'] }] },
       { match: /kapuzenhandtuch/,   recs: [{ title: 'Rakete', codes: ['C10'] }, { title: 'Häschen', codes: ['T13'] }] },
-      { match: /rucksack/,          recs: [{ title: 'Feuerdrachen wie bei Paul', codes: ['M7'] }, { title: 'Prinzessin wie bei Valerie', codes: ['M2'] }] },
-      { match: /laetzchen|lätzchen/, recs: [{ title: 'Babydrache wie bei Tim', codes: ['M4'] }, { title: 'Schnecke wie bei Nina', codes: ['T17'] }, { title: 'Piratenschiff wie bei Jakob', codes: ['C11'] }, { title: 'Krone für Prinzessinnen', codes: ['M11'] }] },
+      { match: /rucksack/,          recs: [{ title: 'Feuerdrachen wie bei Paul', codes: ['M7'], img: '/assets/empfehlungen/rucksack-paul.webp' }, { title: 'Prinzessin wie bei Valerie', codes: ['M2'], img: '/assets/empfehlungen/rucksack-valerie.webp' }] },
+      { match: /laetzchen|lätzchen/, recs: [{ title: 'Babydrache wie bei Tim', codes: ['M4'], img: '/assets/empfehlungen/laetzchen-tim.webp' }, { title: 'Schnecke wie bei Nina', codes: ['T17'], img: '/assets/empfehlungen/laetzchen-nina.webp' }, { title: 'Piratenschiff wie bei Jakob', codes: ['C11'], img: '/assets/empfehlungen/laetzchen-jakob.webp' }, { title: 'Krone für Prinzessinnen', codes: ['M11'], img: '/assets/empfehlungen/laetzchen-princess.webp' }] },
       { match: /kuscheltuch|gans/,  recs: [{ title: 'Häschen', codes: ['T13'] }, { title: 'Bär auf dem Mond', codes: ['G2'] }] },
     ];
     let MOTIF_RECS = [];
+
+    // ── Produktdetails (unten auf der Seite) ──
+    // Standardtexte je Produktart; im Admin pro Produkt überschreibbar
+    // (gespeichert in settings.site_images.product_info[slug] = { material, size, care }).
+    const EMB_CARE = 'Stickerei: am besten auf links waschen, nicht direkt über die Stickerei bügeln.';
+    const PRODUCT_INFO_DEFAULTS = [
+      { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen. ' + EMB_CARE },
+      { match: /musselintuch/, material: 'Bio-Baumwolle (Musselin), mehrlagig – luftig, saugfähig und wird mit jeder Wäsche noch weicher.', care: 'Waschbar bei 40 °C im Schonwaschgang, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
+      { match: /musselindecke/, material: 'Bio-Baumwolle (Musselin), mehrlagig – atmungsaktiv, leicht und kuschelweich. Ideal zum Pucken, Kuscheln und Zudecken.', care: 'Waschbar bei 40 °C im Schonwaschgang, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
+      { match: /strickdecke/, material: 'Weicher Baumwoll-Strick – warm, atmungsaktiv und angenehm auf der Haut.', care: 'Schonend bei 30 °C (Woll-/Feinwaschgang) waschen, liegend trocknen, nicht in den Trockner. ' + EMB_CARE },
+      { match: /kapuzenhandtuch|handtuch/, material: 'Bio-Baumwolle – flauschig und saugfähig, mit Kapuze und Hasenohren.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. Ohne Weichspüler bleibt es besonders saugfähig. ' + EMB_CARE },
+      { match: /waschlappen/, material: 'Bio-Baumwolle – weich und saugfähig, mit liebevollem Tiermotiv.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben.' },
+      { match: /laetzchen|lätzchen/, material: 'Weich gestrickte Baumwolle – angenehm am Hals und saugfähig.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. ' + EMB_CARE },
+      { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord mit Plüschohren und verstellbaren Trägern – genau richtig für kleine Rücken.', care: 'Schonend von Hand waschen (max. 30 °C) oder feucht abwischen, nicht in den Trockner.' },
+      { match: /kuscheltuch|gans/, material: 'Weiche Bio-Baumwolle – zum Kuscheln, Knautschen und Liebhaben.', care: 'Schonend bei 30 °C waschen, an der Luft trocknen. ' + EMB_CARE },
+    ];
+    async function loadProductInfo(p) {
+      const slug = String(p.slug || '').toLowerCase();
+      let own = null;
+      try {
+        const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+        own = data && data.value && data.value.product_info && data.value.product_info[p.slug];
+      } catch (_) {}
+      const def = PRODUCT_INFO_DEFAULTS.find(d => d.match.test(slug)) || {};
+      const pick = k => ((own && own[k]) || def[k] || '').trim();
+      const rows = [
+        { t: 'Material', v: pick('material') },
+        { t: 'Maße', v: pick('size') },
+        { t: 'Pflege', v: pick('care') },
+        { t: 'Unsere Stickerei', v: 'In unserer Werkstatt in Österreich mit hochwertigem Stickgarn gestickt – Fadenenden werden sauber vernäht. Garnfarbe, Schrift und Motiv wählst du oben selbst.' },
+        { t: 'Lieferung', v: 'Jedes Stück wird für dich angefertigt und ist in 5–7 Werktagen bei dir. Versandkostenfrei ab 119 € Bestellwert.' },
+      ].filter(r => r.v);
+      const sec = document.getElementById('pdetails');
+      document.getElementById('pdetails-list').innerHTML = rows.map((r, i) =>
+        `<details class="pdetails__item" ${i === 0 ? 'open' : ''}><summary>${escH(r.t)}</summary><p>${escH(r.v).replace(/\n/g, '<br>')}</p></details>`).join('');
+      sec.hidden = !rows.length;
+    }
+
     async function loadMotifRecs(slug) {
       let own = null;
       try {
@@ -1095,7 +1184,52 @@
       const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
       box.innerHTML = chosen.map(m => `<span class="mchip"><img src="${escH(m.url)}" alt="">${escH(m.label)} · + ${euro(m.price)}<button type="button" class="mchip__x" aria-label="${escH(m.label)} entfernen" onclick="toggleMotif('${m.id}')">×</button></span>`).join('')
         + (cfg.unknownMotifCodes || []).map(c => `<span class="mchip mchip--bad">„${escH(c)}" gibt es nicht</span>`).join('');
+      renderMotifPlace(chosen);
     }
+
+    // ── Wo soll das Motiv hin? (links / rechts / über / unter dem Namen) ──
+    const MOTIF_PLACES = [
+      { key: 'links',  label: 'Links vom Namen' },
+      { key: 'rechts', label: 'Rechts vom Namen' },
+      { key: 'ueber',  label: 'Über dem Namen' },
+      { key: 'unter',  label: 'Unter dem Namen' },
+    ];
+    // Unsere Empfehlung je Motiv-Nummer, z.B. { T2: 'links', M7: 'ueber' }
+    // (optional mit Foto: { T2: { place: 'links', img: '/assets/…' } }) – Fotos kommen noch.
+    // Start: so sticken wir es auf unseren echten Musterstücken (Fotos vom Messestand)
+    const MOTIF_PLACE_RECS = {
+      M4:  { place: 'rechts', img: '/assets/empfehlungen/laetzchen-tim.webp' },
+      T17: { place: 'rechts', img: '/assets/empfehlungen/laetzchen-nina.webp' },
+      C11: { place: 'unter',  img: '/assets/empfehlungen/laetzchen-jakob.webp' },
+      M11: { place: 'unter',  img: '/assets/empfehlungen/laetzchen-princess.webp' },
+      M2:  { place: 'ueber',  img: '/assets/empfehlungen/rucksack-valerie.webp' },
+    };
+    function motifPlaceRec(chosen) {
+      for (const m of chosen) {
+        const r = MOTIF_PLACE_RECS[(m.code || '').toUpperCase()];
+        if (r) return typeof r === 'string' ? { place: r } : r;
+      }
+      return null;
+    }
+    function placeIcon(key) {
+      const name = '<rect x="14" y="21" width="28" height="6" rx="3" fill="currentColor" opacity=".35"/>';
+      const pos = { links: [7, 24], rechts: [49, 24], ueber: [28, 11], unter: [28, 37] }[key];
+      const nameMoved = key === 'links' ? 'transform="translate(4 0)"' : key === 'rechts' ? 'transform="translate(-4 0)"' : '';
+      return `<svg viewBox="0 0 56 48" aria-hidden="true"><g ${nameMoved}>${name}</g><path d="M${pos[0]} ${pos[1] - 6}l1.8 3.8 4.2.6-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.6z" fill="currentColor"/></svg>`;
+    }
+    function renderMotifPlace(chosen) {
+      const box = document.getElementById('motif-place');
+      if (!box) return;
+      chosen = chosen || MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+      if (!chosen.length) { box.hidden = true; box.innerHTML = ''; return; }
+      const rec = motifPlaceRec(chosen);
+      if (!cfg.motifPlace) cfg.motifPlace = rec ? rec.place : 'rechts';
+      box.hidden = false;
+      box.innerHTML = `<span class="mplace__label">Wo soll das Motiv hin?</span>
+        <div class="mplace__opts">${MOTIF_PLACES.map(p => `<button type="button" class="mplace__btn ${cfg.motifPlace === p.key ? 'selected' : ''}" onclick="setMotifPlace('${p.key}')">${rec && rec.place === p.key ? '<span class="mplace__rec">Empfohlen</span>' : ''}${placeIcon(p.key)}<small>${p.label}</small></button>`).join('')}</div>
+        ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel: ${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>.</span></div>` : ''}`;
+    }
+    function setMotifPlace(key) { cfg.motifPlace = key; renderMotifPlace(); }
 
     function toggleMotif(id) {
       if (cfg.selectedMotifs[id]) delete cfg.selectedMotifs[id];
@@ -1203,14 +1337,18 @@
         const active = Object.keys(cfg.positions);
         if (!active.length || !cfg.threadColor) return;
         options['Garnfarbe'] = cfg.threadColor.name;
-        options['Schriftart'] = cfg.font.name;
+        options['Schriftart'] = cfg.font.nr + ' – ' + cfg.font.name;
         POSITIONS.forEach(p => {
           if (!(p.id in cfg.positions)) return;
           options[p.label] = cfg.positions[p.id].text;
           if (cfg.positions[p.id].place) options[p.label + ' – Stelle'] = cfg.positions[p.id].place;
         });
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-        if (chosenM.length) options['Motive'] = chosenM.map(m => m.label).join(', ');
+        if (chosenM.length) {
+          options['Motive'] = chosenM.map(m => m.label).join(', ');
+          const mp = MOTIF_PLACES.find(p => p.key === cfg.motifPlace);
+          if (mp) options['Motiv – Position'] = mp.label;
+        }
       }
       const view = cfg.previewPos;
       const previewUrl = (typeof view === 'string' && view[0] === 'g') ? currentGallery()[+view.slice(1)] : displayImage();

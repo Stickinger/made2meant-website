@@ -1037,6 +1037,16 @@
           <button type="button" class="btn-sm btn-sm--outline" style="margin-top:8px" onclick="addRec()">+ Empfehlung hinzufügen</button>
         </div>
 
+        <div class="field form-full">
+          <label>Produktdetails <span style="font-weight:400;color:var(--color-muted)">— unten auf der Produktseite. Leer lassen = unser Standardtext (grau vorausgefüllt)</span></label>
+          <label for="pi-material" style="font-size:0.8rem;margin-top:6px">Material</label>
+          <textarea id="pi-material" rows="2"></textarea>
+          <label for="pi-size" style="font-size:0.8rem;margin-top:8px">Maße <span style="font-weight:400;color:var(--color-muted)">(z.B. ca. 80 × 80 cm – leer = wird nicht angezeigt)</span></label>
+          <textarea id="pi-size" rows="1"></textarea>
+          <label for="pi-care" style="font-size:0.8rem;margin-top:8px">Pflege</label>
+          <textarea id="pi-care" rows="2"></textarea>
+        </div>
+
         <details class="field form-full" style="margin-top:8px">
           <summary style="cursor:pointer;font-size:0.85rem;color:var(--color-muted)">Erweitert: eigene Optionen & Bilder (nicht nötig für Kappen)</summary>
           <div style="margin-top:14px">
@@ -2358,6 +2368,18 @@ function renderImagesEditor() {
 // ── Motiv-Empfehlungen je Produkt (settings.site_images.motif_recs = { slug: [{title, codes, img}] }) ──
 let recItems = [];
 let recSlugAtOpen = '';
+let productInfoAll = {};
+// Standardtexte wie auf der Produktseite (product.html PRODUCT_INFO_DEFAULTS) – nur als Vorschau
+const PI_DEFAULTS = [
+  { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen.' },
+  { match: /musselintuch|musselindecke/, material: 'Bio-Baumwolle (Musselin), mehrlagig …', care: 'Waschbar bei 40 °C im Schonwaschgang …' },
+  { match: /strickdecke/, material: 'Weicher Baumwoll-Strick …', care: 'Schonend bei 30 °C, liegend trocknen …' },
+  { match: /kapuzenhandtuch|handtuch/, material: 'Bio-Baumwolle – flauschig und saugfähig …', care: 'Waschbar bei 40 °C …' },
+  { match: /waschlappen/, material: 'Bio-Baumwolle …', care: 'Waschbar bei 40 °C …' },
+  { match: /laetzchen|lätzchen/, material: 'Weich gestrickte Baumwolle.', care: 'Waschbar bei 40 °C …' },
+  { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord …', care: 'Von Hand waschen (max. 30 °C) …' },
+  { match: /kuscheltuch|gans/, material: 'Weiche Bio-Baumwolle …', care: 'Schonend bei 30 °C …' },
+];
 let motifRecsAll = {};
 function addRec() { if (recItems.length >= 4) return; recItems.push({ title: '', codes: '', img: '' }); renderRecs(); }
 function removeRec(i) { recItems.splice(i, 1); renderRecs(); }
@@ -2395,6 +2417,17 @@ async function loadRecsFor(slug) {
   } catch (_) { motifRecsAll = {}; }
   recItems = (motifRecsAll[slug] || []).map(r => ({ title: r.title || '', codes: (r.codes || []).join(', '), img: r.img || '' }));
   renderRecs();
+  // Produktdetails
+  try {
+    const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+    productInfoAll = (data && data.value && data.value.product_info) || {};
+  } catch (_) { productInfoAll = {}; }
+  const pi = productInfoAll[slug] || {};
+  const def = PI_DEFAULTS.find(d => d.match.test(String(slug || '').toLowerCase())) || {};
+  ['material', 'size', 'care'].forEach(k => {
+    const el = document.getElementById('pi-' + k);
+    if (el) { el.value = pi[k] || ''; el.placeholder = def[k] || ''; }
+  });
 }
 async function saveRecsFor(slug, oldSlug) {
   if (!slug) return true;
@@ -2409,10 +2442,15 @@ async function saveRecsFor(slug, oldSlug) {
   // gespeichert in settings.site_images.motif_recs (dieser Eintrag ist für Besucher lesbar)
   const { data: cur, error: readErr } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
   if (readErr) { alert('Empfehlungen konnten nicht gespeichert werden: ' + readErr.message); return false; }
-  const value = { ...((cur && cur.value) || {}), motif_recs: all };
+  const pinfo = { ...productInfoAll };
+  if (oldSlug && oldSlug !== slug) delete pinfo[oldSlug];
+  const mine = {};
+  ['material', 'size', 'care'].forEach(k => { const v = (document.getElementById('pi-' + k)?.value || '').trim(); if (v) mine[k] = v; });
+  if (Object.keys(mine).length) pinfo[slug] = mine; else delete pinfo[slug];
+  const value = { ...((cur && cur.value) || {}), motif_recs: all, product_info: pinfo };
   const { error } = await db.from('settings').upsert({ key: 'site_images', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) { alert('Empfehlungen konnten nicht gespeichert werden: ' + error.message); return false; }
-  motifRecsAll = all;
+  motifRecsAll = all; productInfoAll = pinfo;
   return true;
 }
 
@@ -3280,7 +3318,7 @@ async function loadRevenue() {
       <thead><tr><th>Produkt</th><th>Verkauft</th><th>Umsatz</th></tr></thead>
       <tbody>${top.map(([name,d])=>`
         <tr>
-          <td style="font-size:0.85rem;"><strong>${name}</strong></td>
+          <td style="font-size:0.85rem;"><strong>${esc(name)}</strong></td>
           <td style="color:var(--color-muted);">${d.qty}x</td>
           <td><strong>${fmt(d.revenue)}</strong></td>
         </tr>`).join('')}
@@ -3455,6 +3493,7 @@ async function saveSiteImages() {
   try {
     const { data: cur } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
     if (cur && cur.value && cur.value.motif_recs) payload.motif_recs = cur.value.motif_recs;
+    if (cur && cur.value && cur.value.product_info) payload.product_info = cur.value.product_info;
   } catch (_) {}
   const { error } = await db.from('settings')
     .upsert({ key: 'site_images', value: payload, updated_at: new Date().toISOString() }, { onConflict: 'key' });
