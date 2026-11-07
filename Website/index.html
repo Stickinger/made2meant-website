@@ -306,6 +306,15 @@
     .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s cubic-bezier(.2,.6,.2,1), transform 0.7s cubic-bezier(.2,.6,.2,1); }
     .reveal.is-visible { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+    /* ── So funktioniert's (3 Schritte) ── */
+    .howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: center; margin-top: 12px; padding: 26px 32px; border-radius: var(--radius-lg); background: var(--color-surface); border: 1px solid var(--color-border); }
+    .howto__step { display: flex; align-items: center; gap: 16px; }
+    .howto__icon { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%; background: #F6DED8; color: #D9502F; display: flex; align-items: center; justify-content: center; }
+    .howto__icon svg { width: 36px; height: 36px; }
+    .howto__step strong { display: block; font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text); }
+    .howto__step strong b { color: #D9502F; font-weight: 700; margin-right: 2px; }
+    .howto__step span:not(.howto__icon) { display: block; color: var(--color-muted); font-size: 0.9rem; margin-top: 3px; }
+    @media (max-width: 800px) { .howto { grid-template-columns: 1fr; gap: 14px; } .howto__icon { flex-basis: 52px; width: 52px; height: 52px; } .howto__icon svg { width: 30px; height: 30px; } }
   </style>
 
   <link rel="stylesheet" href="/css/design-v2.css">
@@ -372,24 +381,20 @@
       </div>
     </section>
 
-    <!-- Trust-Leiste (überlappt den Hero) -->
+    <!-- So funktioniert's (überlappt den Hero) – wie auf unserer Messewand -->
     <div class="container">
-      <div class="trust trust-wrap reveal is-visible">
-        <div class="trust__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>
-          <div><strong>Ausgewählte Materialien</strong><span>weich, hautfreundlich &amp; langlebig</span></div>
+      <div class="howto trust-wrap reveal is-visible" aria-label="So funktioniert's">
+        <div class="howto__step">
+          <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="7" r="3"/><path d="M22.5 9.8 12 36l8 8 4-4 4 4 8-8L25.5 9.8"/><path d="M20 17l-2.5 19M26.5 17v19"/><path d="M12 36h24"/></svg></span>
+          <div><strong><b>1.</b> Textil auswählen</strong><span>Decke, Handtuch, Rucksack &amp; mehr</span></div>
         </div>
-        <div class="trust__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18"/><path d="M2 2l7.5 7.5"/><circle cx="11" cy="11" r="2"/></svg>
-          <div><strong>Persönlich bestickt</strong><span>mit Liebe zum Detail</span></div>
+        <div class="howto__step">
+          <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M33 7l8 8-22 22-10 3 3-10z"/><path d="M28.5 11.5l8 8"/><path d="M12 30l6 6"/></svg></span>
+          <div><strong><b>2.</b> Name &amp; Motiv wählen</strong><span>Schrift, Garnfarbe &amp; Motiv nach Wunsch</span></div>
         </div>
-        <div class="trust__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 21V7"/><path d="M12 7S9 7 8 5.5 9 3 12 5c3-2 5-1 4 .5S12 7 12 7z"/></svg>
-          <div><strong>Für besondere Momente</strong><span>und für die Ewigkeit</span></div>
-        </div>
-        <div class="trust__item">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M11 11V4.5a1.5 1.5 0 0 1 3 0V11"/><path d="M14 11V6a1.5 1.5 0 0 1 3 0v6"/><path d="M17 8.8a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1.5a6 6 0 0 1-4.3-1.8l-3.4-3.5a1.6 1.6 0 0 1 2.3-2.2L8 15.2"/></svg>
-          <div><strong>Handgefertigt in Österreich</strong><span>mit Sorgfalt veredelt</span></div>
+        <div class="howto__step">
+          <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M37 7L11 41"/><ellipse cx="34.5" cy="10.5" rx="1.4" ry="3" transform="rotate(37 34.5 10.5)"/><path d="M34 12c-9-6-17 1-12 7 4 5 14 3 16 9 1.5 4.5-2 8-6 7"/></svg></span>
+          <div><strong><b>3.</b> Besticken lassen</strong><span>von uns in Österreich gestickt &amp; verschickt</span></div>
         </div>
       </div>
     </div>
