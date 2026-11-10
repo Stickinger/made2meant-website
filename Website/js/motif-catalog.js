@@ -1,5 +1,5 @@
 // ── Stick-Motive aus unserem Musterkatalog ──────────────────────────
-// Bilder: /assets/motive/<code>.jpg (ausgeschnitten aus den Musterstoffen).
+// Bilder: /assets/motive-frei/klein/<code>.webp (aus den Stickdateien gerendert; groß: /assets/motive-frei/).
 // Preise laut Preisliste: weiteres kleines Motiv +5,90 €, weiteres großes Motiv +9,90 €.
 // WICHTIG: Preise & Größen identisch halten mit
 // supabase/functions/create-checkout-session/index.ts (MOTIF_CATALOG_SIZES).
@@ -41,6 +41,6 @@ const MOTIF_CATALOG = [
 ].map(([code, name, size]) => ({
   code, name, size, group: code.replace(/\d+$/, ''),
   label: `${code} ${name}`,                       // so landet es in Bestellung & Mail
-  url: `/assets/motive/${code.toLowerCase()}.jpg`,
+  url: `/assets/motive-frei/klein/${code.toLowerCase()}.webp`,
   price: MOTIF_PRICES[size],
 }));

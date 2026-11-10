@@ -118,6 +118,37 @@
     .mplace__ex { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 0.76rem; color: var(--color-muted); }
     .mplace__photo { display: block; width: 84px; height: 84px; object-fit: cover; border-radius: 10px; flex: 0 0 auto; }
     @media (max-width: 420px) { .mplace__opts { grid-template-columns: repeat(2, 1fr); } }
+    /* Design-Editor (frei anordnen wie im Stickprogramm) */
+    .dz { margin: 6px 0 16px; padding: 12px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: #fbf6f1; }
+    .dz__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+    .dz__title { font-size: 0.78rem; font-weight: 700; color: var(--color-text); }
+    .dz__hint { font-size: 0.72rem; color: var(--color-muted); margin-bottom: 8px; }
+    .dz__reset { border: 1.5px solid var(--color-accent); background: #fff; color: var(--color-accent); border-radius: 99px; padding: 4px 10px; font: 700 0.68rem var(--font-main); cursor: pointer; white-space: nowrap; }
+    .dz__stage { position: relative; border-radius: 12px; overflow: hidden; background-color: #efe7da; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, rgba(0,0,0,.05) 0 2px, transparent 2px 5px); padding: 7%; transition: background-color .3s; }
+        .dz__hoop { position: relative; aspect-ratio: 4 / 3; border: 2px dashed rgba(60,45,35,.45); border-radius: 14px; container-type: inline-size; touch-action: none; user-select: none; -webkit-user-select: none; }
+    .dz__hooplbl { position: absolute; left: 8px; top: 6px; font: 700 0.58rem var(--font-main); letter-spacing: .08em; text-transform: uppercase; color: rgba(60,45,35,.55); pointer-events: none; }
+    .dz__guide { position: absolute; background: var(--color-accent); opacity: 0; pointer-events: none; transition: opacity .1s; }
+    .dz__guide--v { left: 50%; top: 0; bottom: 0; width: 1px; }
+    .dz__guide--h { top: 50%; left: 0; right: 0; height: 1px; }
+    .dz__guide.on { opacity: .8; }
+    .dz__el { position: absolute; width: max-content; cursor: grab; touch-action: none; line-height: 1; white-space: nowrap; outline: 1.5px dashed transparent; outline-offset: 3px; border-radius: 4px; }
+    .dz__el:active { cursor: grabbing; }
+    .dz__el.sel { outline-color: var(--color-primary); }
+    .dz__el.out { outline: 1.5px solid #c0392b; }
+    .dz__el img { display: block; pointer-events: none; height: auto; max-width: none; }
+    .dz__el img.blend { mix-blend-mode: multiply; }
+    .dz__el span { display: block; pointer-events: none; }
+    .dz__h { position: absolute; width: 22px; height: 22px; border-radius: 50%; background: #fff; border: 2px solid var(--color-primary); display: none; touch-action: none; box-shadow: 0 1px 3px rgba(0,0,0,.2); }
+    .dz__el.sel .dz__h { display: block; }
+    .dz__h--s { right: -15px; bottom: -15px; cursor: nwse-resize; }
+    .dz__h--r { left: 50%; top: -34px; margin-left: -11px; cursor: grab; }
+    .dz__h--r::after { content: '⟳'; position: absolute; inset: 0; display: grid; place-items: center; font-size: 13px; color: var(--color-primary); }
+    .dz__tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+    .dz__tools button { border: 1.5px solid var(--color-border); background: #fff; border-radius: 10px; min-width: 38px; height: 36px; padding: 0 10px; font: 700 0.8rem var(--font-main); color: var(--color-text); cursor: pointer; }
+    .dz__tools button:hover { border-color: var(--color-primary); }
+    .dz__tools .dz__which { font-size: 0.72rem; color: var(--color-muted); margin-right: auto; }
+    .dz__warn { font-size: 0.72rem; color: #c0392b; margin-top: 6px; }
+    .dz__note { font-size: 0.7rem; color: var(--color-muted); margin-top: 8px; }
     /* Echte Garnfarben-Tafel */
     .garntafel__img { position: relative; }
     .garntafel { flex: 1 0 100%; margin-top: 6px; max-width: 520px; }
@@ -193,14 +224,14 @@
     /* Motiv-Auswahl (Schritt 2) */
     .motifgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; }
     .motifcard { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 6px 8px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; transition: all 0.15s; }
-    .motifcard img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: calc(var(--radius) - 4px); }
+    .motifcard img { width: 100%; aspect-ratio: 1; object-fit: contain; padding: 9%; background: #e9dfcf; border-radius: calc(var(--radius) - 4px); }
     .motif-codes { width: 100%; padding: 12px 14px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); font-family: var(--font-main); font-size: 0.95rem; color: var(--color-text); text-transform: uppercase; letter-spacing: 0.04em; margin: 6px 0 8px; }
     .motif-codes::placeholder { text-transform: none; letter-spacing: 0; }
     .motif-codes:focus { outline: none; border-color: var(--color-primary); }
     .motif-chosen { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
     .motif-chosen:empty { display: none; }
     .mchip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 4px; border: 1.5px solid var(--color-primary); border-radius: 99px; background: #fbf1ec; font-size: 0.8rem; font-weight: 600; color: var(--color-text); }
-    .mchip img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; }
+    .mchip img { width: 26px; height: 26px; border-radius: 50%; object-fit: contain; padding: 2px; background: #e9dfcf; }
     .mchip__x { border: 0; background: none; cursor: pointer; font-size: 1rem; line-height: 1; color: var(--color-muted); padding: 0 4px; }
     .mchip--bad { border-color: #d9534f; background: #fdeeee; color: #a33; padding: 4px 10px; }
     .motifcard__code { font-size: 0.85rem; font-weight: 800; color: var(--color-text); letter-spacing: 0.03em; }
@@ -477,7 +508,8 @@
       previewPos: null,
       step: 1,                            // 1 = Personalisierung · 2 = Motive
       selectedMotifs: {},                 // { motifId: true }
-      motifPlace: '',                     // Position des Motivs zum Namen (links/rechts/über/unter)
+      motifPlace: '',                     // (alt) Position des Motivs zum Namen
+      layout: null,                       // Design-Editor: frei angeordnete Positionen von Name & Motiven
     };
 
     const imgCache = {};
@@ -796,7 +828,7 @@
           <div id="motif-recs"></div>
           <input type="text" id="motif-codes" class="motif-codes" placeholder="Motiv-Nummer, z.B. T2, G1" autocomplete="off" oninput="setMotifCodes(this.value)">
           <div class="motif-chosen" id="motif-chosen"></div>
-          <div class="mplace" id="motif-place" hidden></div>
+          <div class="dz" id="design-editor" hidden></div>
           <div class="motiftabs" id="motif-tabs"></div>
           <div class="motifgrid" id="motif-grid"></div>
         </div>`;
@@ -870,6 +902,7 @@
               ${fontBlock}
               ${sizeBlock}
               ${motifBlock}
+              ${personalizable && !hasMotifs ? '<div class="dz" id="design-editor" hidden></div>' : ''}
             </div>
           </div>
 
@@ -961,7 +994,7 @@
     function selectFont(i) {
       cfg.font = FONTS[i] || FONTS[0];
       document.querySelectorAll('.fontbtn').forEach(el => el.classList.toggle('selected', +el.dataset.i === i));
-      renderCanvas();
+      renderCanvas(); renderDesign();
     }
 
     function setMode(mode) {
@@ -1217,19 +1250,239 @@
       const nameMoved = key === 'links' ? 'transform="translate(4 0)"' : key === 'rechts' ? 'transform="translate(-4 0)"' : '';
       return `<svg viewBox="0 0 56 48" aria-hidden="true"><g ${nameMoved}>${name}</g><path d="M${pos[0]} ${pos[1] - 6}l1.8 3.8 4.2.6-3 2.9.7 4.1-3.7-2-3.7 2 .7-4.1-3-2.9 4.2-.6z" fill="currentColor"/></svg>`;
     }
-    function renderMotifPlace(chosen) {
-      const box = document.getElementById('motif-place');
-      if (!box) return;
-      chosen = chosen || MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-      if (!chosen.length) { box.hidden = true; box.innerHTML = ''; return; }
-      const rec = motifPlaceRec(chosen);
-      if (!cfg.motifPlace) cfg.motifPlace = rec ? rec.place : 'rechts';
-      box.hidden = false;
-      box.innerHTML = `<span class="mplace__label">Wo soll das Motiv hin?</span>
-        <div class="mplace__opts">${MOTIF_PLACES.map(p => `<button type="button" class="mplace__btn ${cfg.motifPlace === p.key ? 'selected' : ''}" onclick="setMotifPlace('${p.key}')">${rec && rec.place === p.key ? '<span class="mplace__rec">Empfohlen</span>' : ''}${placeIcon(p.key)}<small>${p.label}</small></button>`).join('')}</div>
-        ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel: ${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>.</span></div>` : ''}`;
+    function renderMotifPlace() { renderDesign(); }
+
+    // ── Design-Editor: Name & Motive frei im Stickrahmen anordnen (wie im Stickprogramm) ──
+    // Koordinaten in % des Stickbereichs (Mitte des Elements), s = Größe (1 = Standard), r = Drehung in Grad
+    // Vorschau-Schriften sind nur ähnlich – gestickt wird mit der gewählten Maschinenschrift.
+    const FONT_PREVIEW = {
+      1: { family: "'Caveat', cursive", weight: 700, skew: 0 },
+      2: { family: "'Caveat', cursive", weight: 500, skew: -6 },
+      3: { family: "'Source Sans 3', sans-serif", weight: 900, skew: 0 },
+      4: { family: "'Caveat', cursive", weight: 600, skew: -10 },
+      5: { family: "'Courier New', Courier, monospace", weight: 700, skew: 0 },
+      6: { family: "'Nunito', sans-serif", weight: 900, skew: 0 },
+    };
+    // Freigestellte Motiv-Bilder (ohne Stoffhintergrund) – Ordner kann später durch bessere Dateien ersetzt werden
+    function motifCutout(m) { return m.code ? `/assets/motive-frei/${m.code.toLowerCase()}.webp` : m.url; }
+    const PLACE_XY = { rechts: [80, 50], links: [20, 50], ueber: [50, 20], unter: [50, 80] };
+    const PLACE_ORDER = { rechts: ['rechts', 'links', 'ueber', 'unter'], links: ['links', 'rechts', 'ueber', 'unter'],
+                          ueber: ['ueber', 'unter', 'rechts', 'links'], unter: ['unter', 'ueber', 'rechts', 'links'] };
+    let dzSel = 'name';
+
+    function designName() {
+      const id = Object.keys(cfg.positions).find(k => (cfg.positions[k].text || '').trim());
+      return id ? cfg.positions[id].text.trim() : '';
     }
-    function setMotifPlace(key) { cfg.motifPlace = key; renderMotifPlace(); }
+    function chosenMotifList() { return MOTIFS.filter(m => cfg.selectedMotifs[m.id]); }
+
+    function presetLayout(chosen) {
+      const rec = motifPlaceRec(chosen);
+      const order = PLACE_ORDER[rec ? rec.place : 'rechts'];
+      const L = { name: { x: 50, y: 50, s: 1, r: 0 }, items: {} };
+      const first = chosen.length === 1 ? order[0] : null;
+      if (first === 'rechts') L.name.x = 42; else if (first === 'links') L.name.x = 58;
+      else if (first === 'ueber') L.name.y = 62; else if (first === 'unter') L.name.y = 38;
+      // Lange Namen kleiner, damit sie nicht in die Motive daneben laufen
+      const len = Math.max(4, designName().length), sides = chosen.length >= 2 ? 2 : chosen.length;
+      L.name.s = +Math.min(1, (sides === 2 ? 6.5 : sides === 1 ? 8 : 11) / len).toFixed(2);
+      chosen.forEach((m, i) => {
+        const pl = order[i % 4], xy = PLACE_XY[pl], k = Math.floor(i / 4);
+        L.items[m.id] = { x: xy[0] + k * 6, y: xy[1] + k * 6, s: 1, r: 0 };
+      });
+      return L;
+    }
+    function ensureLayout(chosen) {
+      if (!cfg.layout) { cfg.layout = presetLayout(chosen); return; }
+      if (!cfg.layout.custom) { cfg.layout = presetLayout(chosen); return; }
+      const P = presetLayout(chosen);
+      Object.keys(cfg.layout.items).forEach(id => { if (!cfg.selectedMotifs[id]) delete cfg.layout.items[id]; });
+      chosen.forEach(m => { if (!cfg.layout.items[m.id]) cfg.layout.items[m.id] = P.items[m.id]; });
+    }
+    function resetLayout() { cfg.layout = null; dzSel = 'name'; renderDesign(); }
+
+    function dzState(k) { return k === 'name' ? cfg.layout.name : cfg.layout.items[k]; }
+    function dzStyle(st) { return `left:${st.x}%;top:${st.y}%;transform:translate(-50%,-50%) rotate(${st.r}deg)`; }
+    function dzInner(k, st) {
+      if (k === 'name') {
+        const fp = FONT_PREVIEW[cfg.font?.nr] || FONT_PREVIEW[1];
+        const col = cfg.threadColor ? cfg.threadColor.hex : '#1A1A1A';
+        return `<span style="font-family:${fp.family};font-weight:${fp.weight};font-size:${(14 * st.s).toFixed(2)}cqw;color:${col};transform:skewX(${fp.skew}deg);text-shadow:0 1px 0 rgba(255,255,255,.25)">${escH(designName())}</span>`;
+      }
+      const m = MOTIFS.find(x => x.id === k); if (!m) return '';
+      const w = (m.size === 'gross' ? 30 : 21) * st.s;
+      return `<img src="${escH(motifCutout(m))}" ${m.code ? '' : 'class="blend"'} style="width:${w.toFixed(2)}cqw" alt="${escH(m.label)}" draggable="false">`;
+    }
+
+    function renderDesign() {
+      const box = document.getElementById('design-editor');
+      if (!box) return;
+      const name = designName();
+      if (cfg.mode === 'ohne' || !name) { box.hidden = true; box.innerHTML = ''; return; }
+      const chosen = chosenMotifList();
+      ensureLayout(chosen);
+      if (dzSel !== 'name' && !cfg.layout.items[dzSel]) dzSel = 'name';
+      const rec = motifPlaceRec(chosen);
+      const bg = fabricTone();
+      const keys = ['name', ...chosen.map(m => m.id)];
+      box.hidden = false;
+      box.innerHTML = `
+        <div class="dz__head"><span class="dz__title">Dein Design – frei anordnen</span>
+          ${cfg.layout.custom ? `<button type="button" class="dz__reset" onclick="resetLayout()">↺ Unsere Empfehlung</button>` : ''}</div>
+        <div class="dz__hint">Name und Motive mit dem Finger oder der Maus verschieben. Am runden Punkt unten rechts vergrößern, oben drehen.</div>
+        <div class="dz__stage" id="dz-stage" style="background-color:${bg}">
+          <div class="dz__hoop" id="dz-hoop">
+            <span class="dz__hooplbl">Stickbereich</span>
+            <i class="dz__guide dz__guide--v" id="dz-gv"></i><i class="dz__guide dz__guide--h" id="dz-gh"></i>
+            ${keys.map(k => { const st = dzState(k); return `<div class="dz__el ${k === dzSel ? 'sel' : ''}" data-k="${escH(k)}" tabindex="0" role="button" aria-label="${k === 'name' ? 'Name' : 'Motiv'} verschieben" style="${dzStyle(st)}">${dzInner(k, st)}<i class="dz__h dz__h--s" data-h="s"></i><i class="dz__h dz__h--r" data-h="r"></i></div>`; }).join('')}
+          </div>
+        </div>
+        <div class="dz__tools">
+          <span class="dz__which" id="dz-which"></span>
+          <button type="button" onclick="dzNudge('s',-0.1)" aria-label="Kleiner">−</button>
+          <button type="button" onclick="dzNudge('s',0.1)" aria-label="Größer">+</button>
+          <button type="button" onclick="dzNudge('r',-15)" aria-label="Nach links drehen">⟲</button>
+          <button type="button" onclick="dzNudge('r',15)" aria-label="Nach rechts drehen">⟳</button>
+          <button type="button" onclick="dzNudge('c',0)">Mittig</button>
+        </div>
+        <div class="dz__warn" id="dz-warn" hidden>Ein Teil ragt über den Stickbereich – bitte etwas nach innen schieben oder verkleinern.</div>
+        ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel von unseren Musterstücken" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>. Unsere Empfehlung ist schon voreingestellt.</span></div>` : ''}
+        <div class="dz__note">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</div>`;
+      dzBind();
+      dzUpdateWhich(); requestAnimationFrame(dzCheckBounds);
+    }
+
+    // Stofffarbe für den Hintergrund: aus dem Farbfoto der gewählten Produktfarbe gemessen (ohne weißen Fotohintergrund)
+    const _toneCache = {};
+    function fabricTone() {
+      const url = (capOption && cfg.capColor) ? colorSwatchImage(cfg.capColor) : displayImage();
+      if (!url) return '#efe7da';
+      if (_toneCache[url]) return _toneCache[url];
+      _toneCache[url] = '#efe7da';
+      const im = new Image(); im.crossOrigin = 'anonymous';
+      im.onload = () => {
+        try {
+          const c = document.createElement('canvas'); c.width = c.height = 48;
+          const x = c.getContext('2d'); x.drawImage(im, 0, 0, 48, 48);
+          const d = x.getImageData(0, 0, 48, 48).data, R = [], G = [], B = [];
+          for (let i = 0; i < d.length; i += 4) { const r = d[i], g = d[i+1], b = d[i+2];
+            if (d[i+3] < 200 || (r > 238 && g > 238 && b > 238)) continue; R.push(r); G.push(g); B.push(b); }
+          if (R.length < 40) return;
+          const med = a => a.sort((p, q) => p - q)[a.length >> 1];
+          _toneCache[url] = `rgb(${med(R)},${med(G)},${med(B)})`;
+          const st = document.getElementById('dz-stage'); if (st) st.style.backgroundColor = _toneCache[url];
+        } catch (_) {}
+      };
+      im.src = url;
+      return _toneCache[url];
+    }
+
+    function dzUpdateWhich() {
+      const el = document.getElementById('dz-which'); if (!el) return;
+      const m = MOTIFS.find(x => x.id === dzSel);
+      el.textContent = 'Ausgewählt: ' + (dzSel === 'name' ? 'Name' : (m ? (m.code || m.label) : ''));
+    }
+    function dzApply(k) {
+      const el = document.querySelector(`.dz__el[data-k="${CSS.escape(k)}"]`); if (!el) return;
+      const st = dzState(k);
+      el.style.cssText = dzStyle(st);
+      const inner = el.firstElementChild;
+      if (k === 'name') inner.style.fontSize = (14 * st.s).toFixed(2) + 'cqw';
+      else { const m = MOTIFS.find(x => x.id === k); inner.style.width = ((m && m.size === 'gross' ? 30 : 21) * st.s).toFixed(2) + 'cqw'; }
+    }
+    function dzSelect(k) {
+      dzSel = k;
+      document.querySelectorAll('.dz__el').forEach(e => e.classList.toggle('sel', e.dataset.k === k));
+      dzUpdateWhich();
+    }
+    function dzChanged() {
+      if (!cfg.layout.custom) {
+        cfg.layout.custom = true;
+        const head = document.querySelector('.dz__head');
+        if (head && !head.querySelector('.dz__reset')) head.insertAdjacentHTML('beforeend', '<button type="button" class="dz__reset" onclick="resetLayout()">↺ Unsere Empfehlung</button>');
+      }
+      dzCheckBounds();
+    }
+    function dzNudge(what, v) {
+      const st = dzState(dzSel); if (!st) return;
+      if (what === 's') st.s = Math.min(2, Math.max(0.5, +(st.s + v).toFixed(2)));
+      else if (what === 'r') st.r = ((st.r + v) % 360 + 360) % 360;
+      else if (what === 'c') st.x = 50;
+      if (what === 'r' && st.r > 180) st.r -= 360;
+      dzApply(dzSel); dzChanged();
+    }
+    function dzCheckBounds() {
+      const hoop = document.getElementById('dz-hoop'); if (!hoop) return;
+      const H = hoop.getBoundingClientRect(); let any = false;
+      hoop.querySelectorAll('.dz__el').forEach(el => {
+        const R = el.firstElementChild.getBoundingClientRect(), t = 2;
+        const out = R.left < H.left - t || R.right > H.right + t || R.top < H.top - t || R.bottom > H.bottom + t;
+        el.classList.toggle('out', out); any = any || out;
+      });
+      const w = document.getElementById('dz-warn'); if (w) w.hidden = !any;
+    }
+    function dzBind() {
+      const hoop = document.getElementById('dz-hoop'); if (!hoop) return;
+      const gv = document.getElementById('dz-gv'), gh = document.getElementById('dz-gh');
+      let drag = null;
+      hoop.addEventListener('pointerdown', e => {
+        const el = e.target.closest('.dz__el'); if (!el) return;
+        e.preventDefault();
+        const k = el.dataset.k; dzSelect(k);
+        const st = dzState(k), H = hoop.getBoundingClientRect();
+        const cx = H.left + st.x / 100 * H.width, cy = H.top + st.y / 100 * H.height;
+        drag = { k, mode: e.target.dataset.h || 'm', sx: e.clientX, sy: e.clientY, x0: st.x, y0: st.y, s0: st.s, r0: st.r, cx, cy,
+                 d0: Math.hypot(e.clientX - cx, e.clientY - cy) || 1, a0: Math.atan2(e.clientY - cy, e.clientX - cx), H };
+        hoop.setPointerCapture(e.pointerId);
+      });
+      hoop.addEventListener('pointermove', e => {
+        if (!drag) return;
+        const st = dzState(drag.k), H = drag.H;
+        if (drag.mode === 'm') {
+          let x = drag.x0 + (e.clientX - drag.sx) / H.width * 100, y = drag.y0 + (e.clientY - drag.sy) / H.height * 100;
+          x = Math.min(100, Math.max(0, x)); y = Math.min(100, Math.max(0, y));
+          const snapX = Math.abs(x - 50) < 2, snapY = Math.abs(y - 50) < 2.5;
+          if (snapX) x = 50; if (snapY) y = 50;
+          gv.classList.toggle('on', snapX); gh.classList.toggle('on', snapY);
+          st.x = +x.toFixed(1); st.y = +y.toFixed(1);
+        } else if (drag.mode === 's') {
+          const d = Math.hypot(e.clientX - drag.cx, e.clientY - drag.cy);
+          st.s = +Math.min(2, Math.max(0.5, drag.s0 * d / drag.d0)).toFixed(2);
+        } else {
+          let r = drag.r0 + (Math.atan2(e.clientY - drag.cy, e.clientX - drag.cx) - drag.a0) * 180 / Math.PI;
+          r = ((r % 360) + 540) % 360 - 180;
+          const near = Math.round(r / 15) * 15; if (Math.abs(r - near) < 4) r = near;
+          st.r = Math.round(r);
+        }
+        dzApply(drag.k); dzCheckBounds();
+      });
+      const end = () => { if (!drag) return; const moved = true; drag = null; gv.classList.remove('on'); gh.classList.remove('on'); if (moved) dzChanged(); };
+      hoop.addEventListener('pointerup', end); hoop.addEventListener('pointercancel', end);
+      hoop.addEventListener('keydown', e => {
+        const el = e.target.closest('.dz__el'); if (!el) return;
+        const st = dzState(el.dataset.k); dzSelect(el.dataset.k);
+        const step = e.shiftKey ? 5 : 1, map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
+        if (!map) return; e.preventDefault();
+        st.x = Math.min(100, Math.max(0, st.x + map[0])); st.y = Math.min(100, Math.max(0, st.y + map[1]));
+        dzApply(el.dataset.k); dzChanged();
+      });
+    }
+
+    // Für Bestellung: gut lesbare Beschreibung + genaue Koordinaten
+    function designSummary() {
+      const chosen = chosenMotifList(); if (!cfg.layout) return null;
+      const n = cfg.layout.name, pct = s => Math.round(s * 100) + ' %';
+      const rel = (a) => { const dx = a.x - n.x, dy = a.y - n.y;
+        if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return 'auf dem Namen';
+        return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'rechts vom Namen' : 'links vom Namen') : (dy < 0 ? 'über dem Namen' : 'unter dem Namen'); };
+      const parts = [`Name ${pct(n.s)}${n.r ? ', ' + n.r + '° gedreht' : ''}`];
+      const coords = [`Name ${n.x}/${n.y} ${pct(n.s)} ${n.r}°`];
+      chosen.forEach(m => { const a = cfg.layout.items[m.id]; if (!a) return;
+        const lbl = m.code || m.label;
+        parts.push(`${lbl} ${rel(a)}, ${pct(a.s)}${a.r ? ', ' + a.r + '° gedreht' : ''}`);
+        coords.push(`${lbl} ${a.x}/${a.y} ${pct(a.s)} ${a.r}°`); });
+      return { text: (cfg.layout.custom ? 'Selbst angeordnet: ' : 'Unsere Empfehlung: ') + parts.join('; '), coords: coords.join(' | ') + ' (x/y in % vom Stickbereich, Mitte = 50/50)' };
+    }
 
     function toggleMotif(id) {
       if (cfg.selectedMotifs[id]) delete cfg.selectedMotifs[id];
@@ -1272,7 +1525,10 @@
       btn.classList.toggle('on', on);
     }
 
+    let _dzT = null;
+    function scheduleDesign() { clearTimeout(_dzT); _dzT = setTimeout(renderDesign, 120); }
     function checkReady() {
+      scheduleDesign();
       const btn = document.getElementById('add-btn');
       const hint = document.getElementById('hint');
       const capOk = !capOption || !!cfg.capColor;
@@ -1346,9 +1602,9 @@
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
         if (chosenM.length) {
           options['Motive'] = chosenM.map(m => m.label).join(', ');
-          const mp = MOTIF_PLACES.find(p => p.key === cfg.motifPlace);
-          if (mp) options['Motiv – Position'] = mp.label;
         }
+        const ds = designSummary();
+        if (ds) { options['Design-Anordnung'] = ds.text; options['Design-Koordinaten'] = ds.coords; }
       }
       const view = cfg.previewPos;
       const previewUrl = (typeof view === 'string' && view[0] === 'g') ? currentGallery()[+view.slice(1)] : displayImage();
