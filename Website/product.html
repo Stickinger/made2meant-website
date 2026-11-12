@@ -127,6 +127,18 @@
     .dz__stage { position: relative; border-radius: 12px; overflow: hidden; background-color: #efe7da; background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 2px, transparent 2px 5px), repeating-linear-gradient(-45deg, rgba(0,0,0,.05) 0 2px, transparent 2px 5px); padding: 7%; transition: background-color .3s; }
         .dz__stage.has-photo .dz__hoop { border-color: rgba(255,255,255,.85); box-shadow: 0 0 0 1px rgba(40,30,20,.35); }
     .dz__stage.has-photo .dz__hooplbl { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); }
+    .dz__stage--product { padding: 13% 19% 11%; background-image: none; }
+    @media (max-width: 899px) { .dz__stage--product { padding: 11% 12% 12%; } }
+    .dz__examples { display: flex; align-items: center; gap: 12px; margin-top: 10px; justify-content: center; }
+    .dz__examples p { margin: 0; font-size: 0.74rem; line-height: 1.35; color: var(--color-muted); max-width: 260px; }
+    .dz__exthumbs { display: flex; gap: 6px; flex: 0 0 auto; }
+    .dz__exthumbs button { width: 58px; height: 58px; padding: 0; border: 1.5px solid var(--color-border); border-radius: 10px; overflow: hidden; background: #fff; cursor: zoom-in; }
+    .dz__exthumbs img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    @media (min-width: 900px) { .dz__exthumbs button { width: 84px; height: 84px; } .dz__examples p { font-size: 0.8rem; } }
+    .dz__lightbox { position: fixed; inset: 0; z-index: 4000; background: rgba(30,20,15,.82); display: grid; place-items: center; padding: 18px; cursor: zoom-out; }
+    .dz__lightbox figure { margin: 0; max-width: min(520px, 100%); background: #fff; border-radius: 16px; overflow: hidden; }
+    .dz__lightbox img { display: block; width: 100%; max-height: 72vh; object-fit: contain; background: #fbfbfa; }
+    .dz__lightbox figcaption { padding: 12px 16px; font-size: 0.85rem; line-height: 1.4; color: var(--color-text); }
     .dz__hoop { position: relative; aspect-ratio: 4 / 3; border: 2px dashed rgba(60,45,35,.45); border-radius: 14px; container-type: inline-size; touch-action: none; user-select: none; -webkit-user-select: none; }
     .dz__hooplbl { position: absolute; left: 8px; top: 6px; font: 700 0.58rem var(--font-main); letter-spacing: .08em; text-transform: uppercase; color: rgba(60,45,35,.55); pointer-events: none; }
     .dz__guide { position: absolute; background: var(--color-accent); opacity: 0; pointer-events: none; transition: opacity .1s; }
@@ -1542,6 +1554,9 @@
           <button type="button" onclick="dzNudge('c',0)">Mittig</button>
           <button type="button" class="dz__del" onclick="dzNudge('d',0)" aria-label="Entfernen" title="Ausgewähltes Element entfernen"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
         </div>
+        ${(() => { const T = textileStageCfg(); return T && T.examples && T.examples.length ? `<div class="dz__examples">
+          <div class="dz__exthumbs">${T.examples.map(e => `<button type="button" onclick="openExample('${e.img}', '${escH(e.alt).replace(/'/g, '')}')" aria-label="Beispielfoto vergrößern"><img src="${e.img}" alt="${escH(e.alt)}" loading="lazy"></button>`).join('')}</div>
+          <p><b>Beispielfotos</b> echter Stickereien – nur damit du dir vorstellen kannst, wie es gestickt aussieht.</p></div>` : ''; })()}
         <div class="dz__warn" id="dz-warn" hidden>Ein Teil ragt über den Stickbereich – bitte etwas nach innen schieben oder verkleinern.</div>
         ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel von unseren Musterstücken" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>. Unsere Empfehlung ist schon voreingestellt.</span></div>` : ''}
         <div class="dz__note">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</div>`;
@@ -1615,7 +1630,58 @@
       return list.map(i => i.url).slice(0, 6);
     }
     let _texKey = '';
+    // ── Echtes Produktfoto je Farbe als Hintergrund, Stickbereich an der echten Stelle ──
+    // v = Spitze des Halsausschnitts im Foto (Anteil von Breite/Höhe); der Stickbereich liegt knapp darunter
+    // (vom Betrieb am Alex-Lätzchen eingezeichnet: 34,3 % der Fotobreite breit, 25 % der Fotohöhe hoch).
+    const TEXTILE_STAGES = [
+      { match: /laetzchen|lätzchen/, notSet: true, aspect: 0.75, rect: { dx: -0.166, dy: 0.013, w: 0.343, h: 0.25 },
+        colors: {
+          'blaugrau': { img: '/assets/textil/laetzchen-blaugrau.webp', v: [0.510, 0.530], dark: true, h: 0.215 },
+          'braun':    { img: '/assets/textil/laetzchen-braun.webp',    v: [0.503, 0.465], dark: true },
+          'creme':    { img: '/assets/textil/laetzchen-creme.webp',    v: [0.520, 0.545], dark: false, h: 0.215 },
+          'senfgelb': { img: '/assets/textil/laetzchen-senfgelb.webp', v: [0.507, 0.555], dark: false, h: 0.205 },
+        },
+        examples: [
+          { img: '/assets/textil/laetzchen-beispiel-alex.webp', alt: 'Echt gestickt: „Alex" mit Dino-Ei' },
+          { img: '/assets/textil/laetzchen-beispiel-tim.webp', alt: 'Echt gestickt: „Tim" mit Babydrache' },
+          { img: '/assets/textil/laetzchen-beispiel-gruppe.webp', alt: 'Echt gestickt: vier Lätzchen mit Namen und Motiv' },
+        ] },
+    ];
+    function textileStageCfg() {
+      const slug = String(currentProduct?.slug || '').toLowerCase();
+      return TEXTILE_STAGES.find(t => t.match.test(slug) && !(t.notSet && isGiftSet())) || null;
+    }
+    let _texLayout = null;
+    window.addEventListener('resize', () => { if (_texLayout) _texLayout(); });
+    function applyTextileProduct() {
+      const T = textileStageCfg(); _texLayout = null;
+      const c = T && T.colors[String(cfg.capColor || '').toLowerCase()];
+      const st = document.getElementById('dz-stage'), hoop = document.getElementById('dz-hoop');
+      if (!c || !st || !hoop) return false;
+      const R = { l: c.v[0] + T.rect.dx, t: c.v[1] + T.rect.dy, w: T.rect.w, h: c.h || T.rect.h };   // rundere Lätzchen: Stickbereich etwas niedriger, damit er auf dem Stoff bleibt
+      st.classList.add('has-photo', 'dz__stage--product');
+      hoop.style.aspectRatio = String((R.w * T.aspect) / R.h);
+      st.style.backgroundColor = '#fbfbfa';
+      st.style.backgroundImage = `url("${c.img}")`;
+      st.style.backgroundRepeat = 'no-repeat';
+      _texLayout = () => {
+        const S = st.getBoundingClientRect(), H = hoop.getBoundingClientRect(); if (!H.width) return;
+        const bw = H.width / R.w, bh = bw / T.aspect;
+        st.style.backgroundSize = `${bw.toFixed(1)}px ${bh.toFixed(1)}px`;
+        st.style.backgroundPosition = `${((H.left - S.left) - R.l * bw).toFixed(1)}px ${((H.top - S.top) - R.t * bh).toFixed(1)}px`;
+      };
+      _texLayout(); requestAnimationFrame(() => { if (_texLayout) _texLayout(); });
+      if (!cfg.threadTouched) { const want = c.dark ? 'Creme' : 'Schwarz'; if (!cfg.threadColor || cfg.threadColor.name !== want) selectThread(want, true); }
+      return true;
+    }
+    function openExample(src, alt) {
+      const o = document.createElement('div'); o.className = 'dz__lightbox'; o.onclick = () => o.remove();
+      o.innerHTML = `<figure><img src="${escH(src)}" alt="${escH(alt)}"><figcaption><b>Beispielfoto</b> – so sieht eine echte Stickerei von uns aus. Dein Stück wird nach deiner eigenen Gestaltung gestickt.</figcaption></figure>`;
+      document.body.appendChild(o);
+    }
+
     async function applyTextile() {
+      if (applyTextileProduct()) return;
       const urls = textileCandidates(), key = urls.join('|');
       _texKey = key;
       if (!urls.length) return;
