@@ -333,6 +333,7 @@
     .bld .dz__warn { text-align: center; }
     .bld__panel { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px 18px; }
     .bld__step[hidden] { display: none; }
+    .bld .pos-list--single .pos-card__head input { display: none; }
     .bld__lead { font-size: 0.86rem; color: var(--color-muted); margin: 0 0 12px; }
     .bld__sum { list-style: none; margin: 0 0 12px; padding: 0; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
     .bld__sum li { display: flex; justify-content: space-between; gap: 14px; padding: 9px 12px; font-size: 0.86rem; border-bottom: 1px solid var(--color-border); }
@@ -662,7 +663,7 @@
         y: Number.isFinite(+p.y) ? +p.y : 0.45,
         size: Number.isFinite(+p.size) ? +p.size : 0.11,
       }));
-      cfg.previewPos = null;   // Start: schönes Titelfoto
+      cfg.previewPos = currentProduct.image_url ? 'main' : null;   // Start: Hauptbild des Produkts
 
       // Eigene Motive aus dem Admin (falls vorhanden) + unser Motiv-Katalog (für alle bestickbaren Produkte)
       const ownMotifs = (currentProduct.motifs || []).map((m, i) => ({
@@ -753,9 +754,11 @@
     }
 
     // Galerie unter dem Hauptbild: weitere Fotos der Farbe + farbunabhängige Fotos
+    // Hauptbild des Produkts (im Admin festgelegt) – steht in der Galerie immer an erster Stelle
+    function mainImage() { return (currentProduct && currentProduct.image_url) || ''; }
     function currentGallery() {
       const main = displayImage();
-      const seen = new Set([main]);
+      const seen = new Set([main, mainImage()]);
       return [...colorPhotos().slice(1), ...galleryImages].filter(u => u && !seen.has(u) && seen.add(u));
     }
 
@@ -868,7 +871,7 @@
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
           <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.${hasMotifs ? ' Kein Text gewünscht? Lass das Feld leer und wähle im nächsten Schritt ein Motiv.' : ''}</div>${setDeal}
-          <div class="pos-list">
+          <div class="pos-list ${POSITIONS.length === 1 ? 'pos-list--single' : ''}">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
                 <label class="pos-card__head">
@@ -1063,11 +1066,14 @@
       if (!el) return;
       // Erstes Thumb = unser Foto in der gewählten Farbe, dann weitere allgemeine Fotos.
       // Die Farbvarianten werden NICHT hier gezeigt, sondern nur über die Farb-Buttons.
-      const display = `<button class="thumb ${cfg.previewPos === null ? 'active' : ''}" onclick="setPreview(null)" aria-label="Produktansicht"><img src="${displayImage()}" alt="Produktansicht"></button>`;
+      const mainUrl = mainImage(), colorUrl = displayImage();
+      const mainThumb = mainUrl ? `<button class="thumb ${cfg.previewPos === 'main' ? 'active' : ''}" onclick="setPreview('main')" aria-label="Hauptbild"><img src="${mainUrl}" alt="${currentProduct.name}"></button>` : '';
+      // Foto der gewählten Farbe (nur wenn es nicht ohnehin das Hauptbild ist)
+      const display = (!mainUrl || colorUrl !== mainUrl) ? `<button class="thumb ${cfg.previewPos === null ? 'active' : ''}" onclick="setPreview(null)" aria-label="Gewählte Farbe"><img src="${colorUrl}" alt="Produktansicht in der gewählten Farbe"></button>` : '';
       const galleryThumbs = currentGallery().map((url, i) =>
         `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
       ).join('');
-      el.innerHTML = display + galleryThumbs;
+      el.innerHTML = mainThumb + display + galleryThumbs;
     }
 
     function renderCanvas() {
@@ -1078,7 +1084,7 @@
 
       const view = cfg.previewPos;                       // null = unser Foto (farbabhängig), 'g<i>' = Galeriefoto
       const isGallery = typeof view === 'string' && view[0] === 'g';
-      const url = isGallery ? currentGallery()[+view.slice(1)] : displayImage();
+      const url = isGallery ? currentGallery()[+view.slice(1)] : ((view === 'main' && mainImage()) || displayImage());
       const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
         const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
@@ -1106,7 +1112,6 @@
       document.querySelectorAll('.modebtn').forEach(b => b.classList.toggle('selected', b.dataset.mode === mode));
       const fields = document.getElementById('embroidery-fields');
       if (fields) fields.hidden = (mode === 'ohne');
-      cfg.previewPos = null;                                     // immer unser Foto zeigen
       if (mode === 'ohne') cfg.step = 1;
       updateFlowUI();
       renderThumbs(); renderCanvas(); updatePrice(); checkReady();
@@ -1204,7 +1209,7 @@
       document.getElementById('bld-back').style.visibility = bIdx === 0 ? 'hidden' : 'visible';
       if (bIdx === steps.length - 1) el.setAttribute('data-last', ''); else el.removeAttribute('data-last');
       // Text-Schritt: erste Stickstelle gleich aktivieren, damit man sofort tippen kann
-      if (cur.dataset.step === 'text' && !Object.keys(cfg.positions).length && POSITIONS[0]) {
+      if (!Object.keys(cfg.positions).length && POSITIONS[0] && (cur.dataset.step === 'text' || POSITIONS.length === 1)) {
         const cb = document.querySelector(`#poscard-${POSITIONS[0].id} input[type=checkbox]`); if (cb) cb.checked = true;
         togglePosition(POSITIONS[0].id, true);
       }
@@ -1833,7 +1838,13 @@
 
     function togglePosition(id, on) {
       if (on) {
-        if (!(id in cfg.positions)) cfg.positions[id] = { text: '', place: (POSITIONS.find(p => p.id === id)?.placements || [])[0] || '' };
+        if (!(id in cfg.positions)) {
+          cfg.positions[id] = { text: '', place: (POSITIONS.find(p => p.id === id)?.placements || [])[0] || '' };
+          // Steht im Feld noch Text von vorher (Stelle ab- und wieder angewählt)? Dann gleich übernehmen.
+          const a = document.getElementById('posinput-' + id), b = document.getElementById('posinput2-' + id), c = cfg.positions[id];
+          c.l1 = a ? a.value : ''; c.l2 = (b && !b.hidden) ? b.value : '';
+          c.text = [c.l1, c.l2].map(x => x.trim()).filter(Boolean).join('\n');
+        }
       } else {
         delete cfg.positions[id];
       }
