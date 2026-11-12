@@ -307,6 +307,8 @@
     .buy-alt { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 10px; }
     .buy-alt button { background: none; border: none; padding: 4px 0; font: 600 0.82rem var(--font-main); color: var(--color-muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
     .buy-alt button:hover { color: var(--color-primary); }
+    .buy-alt .buy-plain { flex: 1 0 100%; padding: 14px 18px; border: 1.5px solid var(--color-text); border-radius: 999px; background: transparent; color: var(--color-text); font-size: 0.86rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; text-decoration: none; text-align: center; transition: background .15s, color .15s; }
+    .buy-alt .buy-plain:hover { background: var(--color-text); color: #fff; }
     .pos-text input[hidden] { display: none; }
     .pos-line2btn { background: none; border: none; padding: 8px 0 2px; font: 700 0.78rem var(--font-main); color: var(--color-primary); cursor: pointer; }
     .pos-text input + input, .pos-line2btn + input { margin-top: 6px; }
@@ -319,8 +321,21 @@
     .bld__ttl small { display: block; font-size: 0.66rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); }
     .bld__ttl b { display: block; font-size: 1rem; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .bld__price { font-weight: 800; font-size: 1rem; color: var(--color-text); white-space: nowrap; }
-    .bld__prog { height: 3px; background: var(--color-border); }
-    .bld__prog i { display: block; height: 100%; width: 0; background: var(--color-primary); transition: width .25s; }
+    .bld__dots { list-style: none; margin: 0; padding: 8px 10px 6px; display: flex; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+    .bld__dots li { flex: 1; position: relative; text-align: center; }
+    .bld__dots li + li::before { content: ''; position: absolute; top: 12px; right: 50%; width: 100%; height: 2px; background: var(--color-border); }
+    .bld__dots li.done + li::before, .bld__dots li.done + li.cur::before { background: var(--color-primary); }
+    .bld__dots button { position: relative; z-index: 1; background: none; border: none; padding: 0 2px; cursor: pointer; font-family: var(--font-main); color: var(--color-muted); display: inline-flex; flex-direction: column; align-items: center; gap: 3px; max-width: 100%; }
+    .bld__dots button:disabled { cursor: default; opacity: .55; }
+    .bld__dots b { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--color-border); background: var(--color-surface); display: grid; place-items: center; font-size: 0.74rem; font-weight: 800; }
+    .bld__dots small { font-size: 0.66rem; font-weight: 700; line-height: 1.15; }
+    .bld__dots li.done b { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+    .bld__dots li.cur b { border-color: var(--color-primary); color: var(--color-primary); box-shadow: 0 0 0 3px rgba(43,18,14,.10); }
+    .bld__dots li.cur small, .bld__dots li.done small { color: var(--color-text); }
+    @media (min-width: 900px) { .bld__dots { padding: 12px 20% 8px; } .bld__dots small { font-size: 0.74rem; } }
+    .bld__sumtitle { font-size: 0.72rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--color-muted); margin: 0 0 6px; }
+    .bld__sum li.sub { font-weight: 400; }
+    .bld__sum li small { color: var(--color-muted); }
     .bld__body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .bld__preview { flex: 0 0 auto; padding: 10px 14px 6px; }
     .bld__preview .dz { margin: 0 auto; padding: 0; border: none; background: none; max-width: min(100%, calc(34vh * 1.22)); }
@@ -682,6 +697,7 @@
       renderPage();
       if (MOTIFS.length) loadMotifRecs(currentProduct.slug);
       loadProductInfo(currentProduct);
+      try { restoreDesignFromCart(); } catch (e) { console.warn('Gestaltung konnte nicht geladen werden', e); }
       renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
     }
 
@@ -823,6 +839,18 @@
     function activePosIds() { return Object.keys(cfg.positions); }
     function hasText() { const a = activePosIds(); return a.length > 0 && a.every(id => (cfg.positions[id].text || '').trim()); }
     function motifOnly() { const a = activePosIds(); return a.length > 0 && a.every(id => !(cfg.positions[id].text || '').trim()) && MOTIFS.some(m => cfg.selectedMotifs[m.id]); }
+    // Wie setzt sich der Preis zusammen? (gleiche Regeln wie currentPrice)
+    function priceBreakdown() {
+      const rows = [{ label: currentProduct.name, amount: Number(currentProduct.price) || 0 }];
+      if (cfg.mode === 'ohne' || !POSITIONS.length) return rows;
+      const act = POSITIONS.filter(p => p.id in cfg.positions), only = motifOnly();
+      act.forEach((p, i) => rows.push({ label: (only ? 'Stickerei' : 'Bestickung mit Text') + (act.length > 1 ? ' – ' + p.label : ''), amount: embroideryPriceAt(i + 1) }));
+      act.forEach(p => { if (String(cfg.positions[p.id].text || '').includes('\n')) rows.push({ label: 'Zweite Textzeile' + (act.length > 1 ? ' – ' + p.label : ''), amount: LINE2_PRICE }); });
+      const ms = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+      const incl = only ? ms.reduce((a, m) => (!a || m.price > a.price ? m : a), null) : null;
+      ms.forEach(m => rows.push(m === incl ? { label: 'Motiv ' + m.label, amount: 0, note: 'in der Stickerei enthalten' } : { label: 'Motiv ' + m.label + (m.size === 'gross' ? ' (groß)' : ''), amount: m.price }));
+      return rows;
+    }
     function currentPrice() {
       const base = Number(currentProduct.price) || 0;
       if (cfg.mode === 'ohne') return base;
@@ -987,16 +1015,16 @@
               <div class="bld__ttl"><small id="bld-count"></small><b id="bld-title"></b></div>
               <span class="bld__price" id="bld-price"></span>
             </div>
-            <div class="bld__prog"><i id="bld-bar"></i></div>
+            <ol class="bld__dots" id="bld-dots" aria-label="Schritte"></ol>
             <div class="bld__body">
               <div class="bld__preview"><div class="dz" id="design-editor"></div></div>
               <div class="bld__panel" id="bld-panel">
                 <div id="embroidery-fields">
-                  ${capBlockBuilder ? `<section class="bld__step" data-step="farbe" data-title="Farbe des Textils">
+                  ${capBlockBuilder ? `<section class="bld__step" data-step="farbe" data-title="Farbe des Textils" data-dot="Farbe wählen">
                     <p class="bld__lead">Welche Farbe soll dein Stück haben? Oben siehst du den Stoff.</p>${capBlockBuilder}</section>` : ''}
-                  <section class="bld__step" data-step="text" data-title="Dein Text">${posBlock}${fontBlock}${threadBlock}</section>
-                  ${hasMotifs ? `<section class="bld__step" data-step="motiv" data-title="Motiv dazu?">${motifBlock}</section>` : ''}
-                  <section class="bld__step" data-step="fertig" data-title="Anordnen &amp; prüfen">
+                  <section class="bld__step" data-step="text" data-title="Dein Text" data-dot="Text schreiben">${posBlock}${fontBlock}${threadBlock}</section>
+                  ${hasMotifs ? `<section class="bld__step" data-step="motiv" data-title="Motiv dazu?" data-dot="Motiv aussuchen">${motifBlock}</section>` : ''}
+                  <section class="bld__step" data-step="fertig" data-title="Anordnen &amp; prüfen" data-dot="Anordnen &amp; prüfen">
                     <p class="bld__lead">Tippe oben ein Element an und verschiebe es mit dem Finger oder der Maus. Mit den Knöpfen darunter kannst du es vergrößern, drehen, spiegeln, mittig setzen oder entfernen.</p>
                     <ul class="bld__sum" id="bld-summary"></ul>
                     <p class="bld__lead" style="font-size:.76rem">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</p>
@@ -1025,8 +1053,8 @@
             </button>
           </div>
           ${personalizable ? `<div class="buy-alt">
+            <button type="button" class="buy-plain" onclick="buyPlain()">Ohne Bestickung in den Warenkorb</button>
             <button type="button" id="edit-btn" hidden onclick="openBuilder()">✎ Gestaltung bearbeiten</button>
-            <button type="button" onclick="buyPlain()">Ohne Bestickung in den Warenkorb</button>
           </div>` : ''}
         </div>
       `;
@@ -1181,7 +1209,7 @@
       const steps = builderSteps(), cur = steps[bIdx], last = bIdx === steps.length - 1;
       const next = document.getElementById('bld-next'), key = cur.dataset.step;
       const pr = document.getElementById('bld-price'); if (pr) pr.textContent = euro(currentPrice());
-      let ok = true, label = last ? 'In den Warenkorb · ' + euro(currentPrice() * qty) : 'Weiter: ' + steps[bIdx + 1].dataset.title;
+      let ok = true, label = last ? (cfg.editUid ? 'Änderungen speichern · ' : 'In den Warenkorb · ') + euro(currentPrice() * qty) : 'Weiter: ' + steps[bIdx + 1].dataset.title;
       if (key === 'farbe') ok = !capOption || !!cfg.capColor;
       const hasMotifStepEl = steps.some(st => st.dataset.step === 'motiv');
       if (key === 'text') {
@@ -1197,6 +1225,7 @@
       const textIdx = steps.findIndex(st => st.dataset.step === 'text');
       if (last && !hasText() && !motifOnly()) { ok = true; label = 'Text oder Motiv fehlt – zurück'; }
       next.disabled = !ok; next.textContent = label;
+      renderBuilderDots();
       if (last) renderBuilderSummary();
     }
     function builderShow() {
@@ -1206,7 +1235,7 @@
       const cur = steps[bIdx];
       document.getElementById('bld-title').textContent = cur.dataset.title;
       document.getElementById('bld-count').textContent = `Schritt ${bIdx + 1} von ${steps.length}`;
-      document.getElementById('bld-bar').style.width = ((bIdx + 1) / steps.length * 100) + '%';
+      renderBuilderDots();
       document.getElementById('bld-back').style.visibility = bIdx === 0 ? 'hidden' : 'visible';
       if (bIdx === steps.length - 1) el.setAttribute('data-last', ''); else el.removeAttribute('data-last');
       // Text-Schritt: erste Stickstelle gleich aktivieren, damit man sofort tippen kann
@@ -1223,13 +1252,31 @@
       bIdx = i; builderShow();
       const inp = POSITIONS[0] && document.getElementById('posinput-' + POSITIONS[0].id); if (inp) inp.focus();
     }
+    function builderStepOk(key) {
+      const hasMotifStepEl = builderSteps().some(st => st.dataset.step === 'motiv');
+      if (key === 'farbe') return !capOption || !!cfg.capColor;
+      if (key === 'text') return builderTextReady() && (hasText() || hasMotifStepEl);
+      if (key === 'motiv') return !(cfg.unknownMotifCodes || []).length && (hasText() || chosenMotifList().length > 0);
+      return true;
+    }
+    function builderCanReach(i) { return builderSteps().slice(0, i).every(st => builderStepOk(st.dataset.step)); }
+    function renderBuilderDots() {
+      const ol = document.getElementById('bld-dots'); if (!ol) return;
+      ol.innerHTML = builderSteps().map((st, i) => {
+        const can = i <= bIdx || builderCanReach(i);
+        return `<li class="${i < bIdx ? 'done' : i === bIdx ? 'cur' : ''}"><button type="button" ${can ? '' : 'disabled'} onclick="builderJump(${i})" aria-label="Schritt ${i + 1}: ${st.dataset.dot}" ${i === bIdx ? 'aria-current="step"' : ''}><b>${i < bIdx ? '✓' : i + 1}</b><small>${st.dataset.dot}</small></button></li>`;
+      }).join('');
+    }
+    function builderJump(i) { if (i === bIdx) return; if (i > bIdx && !builderCanReach(i)) return; bIdx = i; builderShow(); }
     function builderGo(d) {
       const steps = builderSteps();
       const textIdx = steps.findIndex(st => st.dataset.step === 'text');
       if (d > 0 && bIdx === steps.length - 1 && !hasText() && !motifOnly()) { bIdx = textIdx; builderShow(); return; }
       if (d > 0 && bIdx === steps.length - 1) {
         if (!personalizationReady()) return;
-        handleAddToCart(); closeBuilder();
+        const editing = !!cfg.editUid;
+        handleAddToCart(); if (editing) return;
+        closeBuilder();
         const hint = document.getElementById('hint');
         if (hint) { hint.className = 'personalize-hint complete'; hint.textContent = '✓ In den Warenkorb gelegt.'; }
         return;
@@ -1241,12 +1288,18 @@
       const ul = document.getElementById('bld-summary'); if (!ul) return;
       const rows = [];
       if (capOption && cfg.capColor) rows.push(['Farbe', cfg.capColor]);
-      POSITIONS.forEach(p => { if (p.id in cfg.positions) rows.push([POSITIONS.length > 1 ? p.label : 'Text', (textLabel(cfg.positions[p.id].text) || 'ohne Text – nur Motiv') + (cfg.positions[p.id].place ? ' (' + cfg.positions[p.id].place + ')' : '')]); });
+      POSITIONS.forEach(p => { if (p.id in cfg.positions) {
+        const lines = String(cfg.positions[p.id].text || '').split('\n').filter(x => x.trim());
+        rows.push([POSITIONS.length > 1 ? p.label : 'Text', (lines.length ? lines.join(' / ') : 'ohne Text – nur Motiv') + (cfg.positions[p.id].place ? ' (' + cfg.positions[p.id].place + ')' : '')]); } });
       if (hasText()) { rows.push(['Schrift', cfg.font.nr + ' – ' + cfg.font.name]); if (cfg.threadColor) rows.push(['Garnfarbe', cfg.threadColor.name]); }
-      if (POSITIONS.some(p => p.id in cfg.positions && String(cfg.positions[p.id].text || '').includes('\n'))) rows.push(['Zweite Zeile', '+ ' + euro(LINE2_PRICE)]);
       const ch = chosenMotifList(); rows.push(['Motiv', ch.length ? ch.map(m => m.label).join(', ') : 'ohne']);
-      rows.push(['Preis' + (qty > 1 ? ' (' + qty + ' Stück)' : ''), euro(currentPrice() * qty)]);
-      ul.innerHTML = rows.map(r => `<li><span>${escH(r[0])}</span><span>${escH(r[1])}</span></li>`).join('');
+      const pb = priceBreakdown(), unit = currentPrice();
+      ul.innerHTML = '<li class="sub" style="display:block;padding:10px 12px 4px;border:none"><p class="bld__sumtitle">Deine Gestaltung</p></li>'
+        + rows.map(r => `<li class="sub"><span>${escH(r[0])}</span><span>${escH(r[1])}</span></li>`).join('')
+        + '<li class="sub" style="display:block;padding:14px 12px 4px;border:none"><p class="bld__sumtitle">So setzt sich der Preis zusammen</p></li>'
+        + pb.map(r => `<li class="sub"><span>${escH(r.label)}</span><span>${r.note ? '<small>' + escH(r.note) + '</small>' : euro(r.amount)}</span></li>`).join('')
+        + (qty > 1 ? `<li class="sub"><span>Stückpreis</span><span>${euro(unit)}</span></li><li class="sub"><span>Menge</span><span>× ${qty}</span></li>` : '')
+        + `<li><span>Gesamt</span><span>${euro(unit * qty)}</span></li>`;
     }
     function buyPlain() {
       const m = cfg.mode; cfg.mode = 'ohne';
@@ -1945,6 +1998,37 @@
       }
     }
 
+    // Gestaltung merken, damit man sie aus dem Warenkorb heraus wieder öffnen und ändern kann
+    function designSnapshot() {
+      return { mode: cfg.mode, capColor: cfg.capColor || null, positions: JSON.parse(JSON.stringify(cfg.positions)),
+        fontNr: cfg.font ? cfg.font.nr : 1, thread: cfg.threadColor ? cfg.threadColor.name : null, threadTouched: !!cfg.threadTouched,
+        motifs: Object.keys(cfg.selectedMotifs).filter(id => cfg.selectedMotifs[id]), layout: cfg.layout ? JSON.parse(JSON.stringify(cfg.layout)) : null };
+    }
+    function restoreDesignFromCart() {
+      const uid = new URLSearchParams(location.search).get('edit'); if (!uid) return;
+      const item = getCart().find(it => it.uid === uid && it.id === currentProduct.id);
+      if (!item || !item.design || !POSITIONS.length || item.design.mode === 'ohne') return;
+      const d = item.design;
+      cfg.editUid = uid; qty = Math.max(1, parseInt(item.quantity) || 1);
+      const qd = document.getElementById('qty-display'); if (qd) qd.textContent = qty;
+      if (capOption && d.capColor && (capOption.values || []).includes(d.capColor)) selectCap(d.capColor);
+      Object.keys(d.positions || {}).forEach(id => {
+        if (!POSITIONS.some(p => p.id === id)) return;
+        const src = d.positions[id], a = document.getElementById('posinput-' + id), b = document.getElementById('posinput2-' + id);
+        if (a) a.value = src.l1 || '';
+        if (b && src.l2) { b.hidden = false; b.value = src.l2; const t = document.getElementById('posline2btn-' + id); if (t) t.textContent = '− Zweite Zeile entfernen'; }
+        const cb = document.querySelector(`#poscard-${id} input[type=checkbox]`); if (cb) cb.checked = true;
+        togglePosition(id, true);
+        const k = (POSITIONS.find(p => p.id === id).placements || []).indexOf(src.place); if (k > 0) setPlacement(id, k);
+      });
+      const fi = FONTS.findIndex(f => f.nr === d.fontNr); if (fi >= 0) selectFont(fi);
+      if (d.thread) selectThread(d.thread, !d.threadTouched);
+      cfg.selectedMotifs = {}; (d.motifs || []).forEach(id => { if (MOTIFS.some(m => m.id === id)) cfg.selectedMotifs[id] = true; });
+      syncMotifInput(); renderMotifs(); updatePrice();
+      cfg.layout = d.layout || null;
+      openBuilder(); bIdx = builderSteps().length - 1; builderShow();
+      if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    }
     function handleAddToCart() {
       const options = {};
       // Geschenk-Set: Inhalt mitschicken, damit er in Bestellung & Bestell-Mail steht
@@ -1974,8 +2058,13 @@
       }
       const view = cfg.previewPos;
       const previewUrl = (typeof view === 'string' && view[0] === 'g') ? currentGallery()[+view.slice(1)] : displayImage();
-      const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl };
+      const base = { ...currentProduct, price: currentPrice(), image_url: previewUrl,
+        breakdown: priceBreakdown(), uid: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        design: POSITIONS.length ? designSnapshot() : null };
+      // Aus dem Warenkorb heraus bearbeitet → alte Position ersetzen
+      if (cfg.editUid) { const old = getCart().find(it => it.uid === cfg.editUid); if (old) removeFromCart(old.key || old.id); }
       for (let i = 0; i < qty; i++) addToCart(base, options);
+      if (cfg.editUid) { cfg.editUid = null; location.href = '/cart.html'; }
     }
 
     init();

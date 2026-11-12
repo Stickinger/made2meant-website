@@ -21,6 +21,14 @@
       align-items: start;
       padding: 60px 0;
     }
+    .cart-opts { margin: 6px 0 8px; font-size: 0.82rem; line-height: 1.4; }
+    .cart-opts > div { display: flex; gap: 8px; padding: 1px 0; }
+    .cart-opts dt { flex: 0 0 96px; color: var(--color-muted); }
+    .cart-opts dd { margin: 0; color: var(--color-text); min-width: 0; overflow-wrap: anywhere; }
+    .cart-price { list-style: none; margin: 0 0 8px; padding: 8px 10px; max-width: 360px; font-size: 0.8rem; border: 1px solid var(--color-border); border-radius: 10px; background: rgba(255,255,255,.5); }
+    .cart-price li { display: flex; justify-content: space-between; gap: 12px; padding: 1px 0; color: var(--color-muted); }
+    .cart-price__sum { margin-top: 4px; padding-top: 5px !important; border-top: 1px solid var(--color-border); font-weight: 700; color: var(--color-text) !important; }
+    .cart-edit { display: inline-block; font-size: 0.82rem; font-weight: 700; color: var(--color-primary); text-decoration: underline; text-underline-offset: 3px; }
     .cart-item-img {
       width: 64px;
       height: 64px;
@@ -159,12 +167,15 @@
               <div>
                 <strong>${esc(item.name)}</strong><br>
                 ${item.options && Object.keys(item.options).length ? `
-                  <span style="color:var(--color-muted); font-size:0.8rem;">
-                    ${Object.entries(item.options).map(([k,v]) => `${esc(k)}: ${esc(v)}`).join(' · ')}
-                  </span><br>` : ''}
-                <span style="color:var(--color-muted); font-size:0.85rem;">
-                  €${item.price.toFixed(2)} / Stück
-                </span>
+                  <dl class="cart-opts">
+                    ${Object.entries(item.options).filter(([k]) => k !== 'Design-Koordinaten').map(([k,v]) => `<div><dt>${esc(k === 'Design-Anordnung' ? 'Anordnung' : k)}</dt><dd>${esc(String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – '))}</dd></div>`).join('')}
+                  </dl>` : ''}
+                ${Array.isArray(item.breakdown) && item.breakdown.length > 1 ? `
+                  <ul class="cart-price">
+                    ${item.breakdown.map(r => `<li><span>${esc(r.label)}</span><span>${r.note ? esc(r.note) : '€' + Number(r.amount).toFixed(2)}</span></li>`).join('')}
+                    <li class="cart-price__sum"><span>Stückpreis</span><span>€${item.price.toFixed(2)}</span></li>
+                  </ul>` : `<span style="color:var(--color-muted); font-size:0.85rem;">€${item.price.toFixed(2)} / Stück</span>`}
+                ${item.design && item.uid && item.slug ? `<div><a class="cart-edit" href="/product.html?slug=${encodeURIComponent(item.slug)}&edit=${encodeURIComponent(item.uid)}">✎ Gestaltung bearbeiten</a></div>` : ''}
               </div>
             </div>
           </td>

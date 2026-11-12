@@ -177,7 +177,7 @@
     function renderSummary() {
       const items = cart.map(item => `
         <div class="summary__item">
-          <span>${esc(item.name)}${item.options && Object.keys(item.options).length ? '<br><span class="summary__opts">' + Object.entries(item.options).map(([k,v]) => `${esc(k)}: ${esc(v)}`).join(' · ') + '</span>' : ''} × ${item.quantity}</span>
+          <span>${esc(item.name)}${item.options && Object.keys(item.options).length ? '<br><span class="summary__opts">' + Object.entries(item.options).filter(([k]) => k !== 'Design-Koordinaten').map(([k,v]) => `${esc(k)}: ${esc(v)}`).join(' · ') + '</span>' : ''} × ${item.quantity}</span>
           <span>${euro(item.price * item.quantity)}</span>
         </div>`).join('');
       const total = getCartTotal();
