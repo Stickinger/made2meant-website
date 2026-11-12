@@ -524,6 +524,9 @@
       <a href="#" onclick="showTab('orders',this)">
         <span class="icon">📦</span> Bestellungen
       </a>
+      <a href="#" onclick="showTab('customers',this)">
+        <span class="icon">👤</span> Kunden
+      </a>
 
       <div class="admin-nav-section">Marketing</div>
       <a href="#" onclick="showTab('discounts',this)">
@@ -667,6 +670,15 @@
       </div>
 
       <!-- ══════════ BESTELLUNGEN ══════════ -->
+      <div id="tab-customers" class="tab-panel">
+        <div class="page-header">
+          <h2>Kunden</h2>
+          <input type="search" id="customer-search" placeholder="Name oder E-Mail suchen…" oninput="renderCustomers()" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;font-size:0.8rem;min-width:220px;">
+        </div>
+        <p id="customers-summary" style="font-size:0.8rem;color:var(--color-muted);margin:0 0 12px;"></p>
+        <div class="admin-card"><div id="customers-table"><div class="empty-state"><p>Lädt…</p></div></div></div>
+      </div>
+
       <div id="tab-orders" class="tab-panel">
         <div class="page-header">
           <h2>Bestellungen</h2>
@@ -1330,7 +1342,7 @@ function showTab(name, link) {
   document.getElementById('tab-' + name).classList.add('active');
   const titles = {
     dashboard:'Dashboard', products:'Produkte', sets:'Geschenk-Sets', categories:'Kategorien',
-    orders:'Bestellungen', revenue:'Umsatz', discounts:'Rabattcodes',
+    orders:'Bestellungen', customers:'Kunden', revenue:'Umsatz', discounts:'Rabattcodes',
     newsletter:'Newsletter', analytics:'Analytics', settings:'Einstellungen'
   };
   document.getElementById('topbar-title').textContent = titles[name] || name;
@@ -1341,6 +1353,7 @@ function showTab(name, link) {
   if (name === 'sets')       loadSets();
   if (name === 'categories') loadCategoriesTable();
   if (name === 'orders')     { loadOrdersTable(); loadWithdrawals(); }
+  if (name === 'customers')  loadCustomers();
   if (name === 'discounts')  loadDiscountsTable();
   if (name === 'newsletter') loadNewsletter();
   if (name === 'revenue')    loadRevenue();
@@ -2897,6 +2910,51 @@ async function setWithdrawalStatus(id, status) {
   const { error } = await db.from('withdrawals').update({ status }).eq('id', id);
   if (error) { alert('Fehler: ' + error.message); return; }
   loadWithdrawals();
+}
+
+// ── Kunden: Konten + Gast-Besteller (Datenbank-Funktion admin_list_customers, nur für Admins) ──
+let customersAll = [];
+async function loadCustomers() {
+  const box = document.getElementById('customers-table');
+  const { data, error } = await db.rpc('admin_list_customers');
+  if (error) { box.innerHTML = `<div class="empty-state"><p>Kunden konnten nicht geladen werden: ${esc(error.message)}</p></div>`; return; }
+  customersAll = data || [];
+  renderCustomers();
+}
+function renderCustomers() {
+  const box = document.getElementById('customers-table');
+  const q = (document.getElementById('customer-search')?.value || '').trim().toLowerCase();
+  const list = customersAll.filter(c => !q || (c.email || '').toLowerCase().includes(q) || (c.name || '').toLowerCase().includes(q));
+  const konten = customersAll.filter(c => c.kind === 'konto').length;
+  document.getElementById('customers-summary').textContent =
+    `${konten} Kundenkonten · ${customersAll.length - konten} Gast-Besteller (ohne Konto) · Klick auf „Bestellungen" zeigt die Bestellungen der Person.`;
+  box.innerHTML = list.length ? `
+    <table class="data-table">
+      <thead><tr><th>Kunde</th><th>Art</th><th>Adresse</th><th>Bestellungen</th><th>Umsatz</th><th>Registriert / erste Bestellung</th><th>Letzter Login</th><th></th></tr></thead>
+      <tbody>${list.map((c, i) => `
+        <tr>
+          <td><strong style="font-size:0.85rem;">${esc(c.name || '—')}</strong><br><small style="color:var(--color-muted);">${esc(c.email || '')}</small></td>
+          <td>${c.kind === 'konto' ? '<span style="font-size:0.72rem;font-weight:700;">Konto</span>' + (c.confirmed ? '' : '<br><small style="color:var(--color-accent);">E-Mail unbestätigt</small>') : '<span style="font-size:0.72rem;color:var(--color-muted);">Gast</span>'}${c.newsletter ? '<br><small style="color:var(--color-muted);">Newsletter</small>' : ''}</td>
+          <td style="font-size:0.8rem;">${c.street || c.city ? esc([c.street, [c.zip, c.city].filter(Boolean).join(' '), c.country].filter(Boolean).join(', ')) : '—'}</td>
+          <td>${Number(c.orders_count) || 0}${c.last_order ? `<br><small style="color:var(--color-muted);">zuletzt ${fmtDate(c.last_order)}</small>` : ''}</td>
+          <td><strong>${fmt(Number(c.revenue) || 0)}</strong></td>
+          <td style="color:var(--color-muted);font-size:0.8rem;">${c.created_at ? fmtDate(c.created_at) : '—'}</td>
+          <td style="color:var(--color-muted);font-size:0.8rem;">${c.last_sign_in_at ? fmtDate(c.last_sign_in_at) : '—'}</td>
+          <td>${Number(c.orders_count) ? `<button class="btn-sm btn-sm--outline" onclick="showCustomerOrders(${customersAll.indexOf(c)})">Bestellungen</button>` : ''}</td>
+        </tr>
+        <tr id="custorders-${customersAll.indexOf(c)}" hidden><td colspan="8" style="background:#faf7f2;"></td></tr>`).join('')}
+      </tbody>
+    </table>` : '<div class="empty-state"><div class="empty-state__icon">👤</div><p>Keine Kunden gefunden.</p></div>';
+}
+async function showCustomerOrders(i) {
+  const c = customersAll[i], row = document.getElementById('custorders-' + i); if (!c || !row) return;
+  if (!row.hidden) { row.hidden = true; return; }
+  row.hidden = false; row.firstElementChild.textContent = 'Lädt…';
+  let query = db.from('orders').select('id,total,status,created_at').order('created_at', { ascending: false });
+  query = c.user_id ? query.or(`user_id.eq.${c.user_id},email.ilike.${String(c.email).replace(/[,()*%]/g, '')}`) : query.ilike('email', String(c.email).replace(/[*%]/g, ''));
+  const { data, error } = await query;
+  row.firstElementChild.innerHTML = error ? esc(error.message) : (data || []).map(o =>
+    `<div style="display:flex;gap:14px;align-items:center;padding:4px 0;font-size:0.82rem;"><code>#${o.id.slice(0,8).toUpperCase()}</code><span>${fmtDate(o.created_at)}</span><strong>${fmt(Number(o.total) || 0)}</strong><span>${esc((STATUS[o.status] || {}).label || o.status)}</span><button class="btn-sm btn-sm--outline" onclick="viewOrder('${o.id}')">Details</button></div>`).join('') || 'Keine Bestellungen.';
 }
 
 async function loadOrdersTable() {

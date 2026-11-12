@@ -24,6 +24,12 @@ async function register(email, password, fullName) {
     await db.from('profiles').upsert({ id: data.user.id }).select();
   }
 
+  // Willkommens-Mail (einmalig, serverseitig abgesichert: geht nur an die Adresse des neuen Kontos).
+  // Fehler hier dürfen die Registrierung nie stören.
+  if (data?.session) {
+    try { db.functions.invoke('welcome-account', { body: {} }).catch(() => {}); } catch (_) {}
+  }
+
   return data;
 }
 
