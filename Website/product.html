@@ -315,6 +315,19 @@
     /* ── Geführtes Gestaltungs-Fenster ── */
     .bld { position: fixed; inset: 0; z-index: 3000; background: var(--color-bg, #f3f0ea); display: flex; flex-direction: column; }
     .bld[hidden] { display: none; }
+    /* Sets: Auswahl, welches Textil gerade gestaltet wird */
+    .bld__tabs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 12px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
+    .bld__tabs[hidden] { display: none; }
+    .bld__tabslbl { font-size: 0.8rem; font-weight: 600; color: var(--color-muted); margin-right: 2px; }
+    .bld__tabs button { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 1px; padding: 7px 14px; border: 1.5px solid var(--color-border); border-radius: 12px; background: #fff; cursor: pointer; font-family: var(--font-main); color: var(--color-text); text-align: left; }
+    .bld__tabs button b { font-size: 0.92rem; }
+    .bld__tabs button small { font-size: 0.74rem; color: var(--color-muted); }
+    .bld__tabs button.cur { border-color: var(--color-primary); background: #fbf1ec; box-shadow: 0 0 0 1px var(--color-primary); }
+    .bld__tabs button.done small { color: #3F6B4C; font-weight: 700; }
+    .bld--multi .pos-card:not(.cur) { display: none; }
+    .bld--curoff .bld__step[data-step="text"] > .fld ~ .fld { display: none; }
+    .bld__sumedit { background: none; border: none; padding: 0; font: 700 0.78rem var(--font-main); color: var(--color-primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+    @media (max-width: 560px) { .bld__tabslbl { flex: 1 0 100%; } .bld__tabs button { flex: 1 1 0; min-width: 0; padding: 6px 10px; } }
     .bld__top { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
     .bld__x { width: 38px; height: 38px; border-radius: 50%; border: 1.5px solid var(--color-border); background: #fff; font-size: 1rem; cursor: pointer; flex: 0 0 auto; color: var(--color-text); }
     .bld__ttl { flex: 1; min-width: 0; line-height: 1.2; }
@@ -597,6 +610,9 @@
       selectedMotifs: {},                 // { motifId: true }
       motifPlace: '',                     // (alt) Position des Motivs zum Namen
       layout: null,                       // Design-Editor: frei angeordnete Positionen von Name & Motiven
+      cur: null,                          // Sets: gerade geöffnetes Textil (Stickstellen-ID)
+      designs: {},                        // Sets: Gestaltung der anderen Textilien { posId: { font, threadColor, selectedMotifs, layout } }
+      off: {},                            // Sets: Textilien, die bewusst ohne Bestickung bleiben
     };
 
     const imgCache = {};
@@ -680,6 +696,7 @@
         size: Number.isFinite(+p.size) ? +p.size : 0.11,
       }));
       cfg.previewPos = currentProduct.image_url ? 'main' : null;   // Start: Hauptbild des Produkts
+      cfg.cur = POSITIONS[0] ? POSITIONS[0].id : null;
 
       // Eigene Motive aus dem Admin (falls vorhanden) + unser Motiv-Katalog (für alle bestickbaren Produkte)
       const ownMotifs = (currentProduct.motifs || []).map((m, i) => ({
@@ -837,30 +854,46 @@
     // Text vorhanden? / Nur-Motiv-Bestellung? (identische Regel am Server: create-checkout-session)
     const NO_TEXT_LABEL = 'Nur Motiv – ohne Text';
     function activePosIds() { return Object.keys(cfg.positions); }
-    function hasText() { const a = activePosIds(); return a.length > 0 && a.every(id => (cfg.positions[id].text || '').trim()); }
-    function motifOnly() { const a = activePosIds(); return a.length > 0 && a.every(id => !(cfg.positions[id].text || '').trim()) && MOTIFS.some(m => cfg.selectedMotifs[m.id]); }
-    // Wie setzt sich der Preis zusammen? (gleiche Regeln wie currentPrice)
+    // ── Sets: jedes Textil (= jede Stickstelle) hat seine eigene Gestaltung ──
+    // cfg.font / threadColor / selectedMotifs / layout gehören immer zum gerade geöffneten Textil (cfg.cur);
+    // die Gestaltung der anderen Textilien liegt in cfg.designs.
+    function isMulti() { return POSITIONS.length > 1; }
+    // „Kapuzenhandtuch Bestickung" → „Kapuzenhandtuch" (identisch halten mit create-checkout-session: texName)
+    function texName(p) { return String(p.label || '').replace(/\s*[-–]?\s*Bestickung\s*$/i, '').trim() || String(p.label || ''); }
+    function defaultThread() { return THREAD_COLORS.find(t => t.name === 'Terracotta') || THREAD_COLORS[0]; }
+    function curIds() { return isMulti() ? (cfg.cur in cfg.positions ? [cfg.cur] : []) : activePosIds(); }
+    function liveDesign() { return { font: cfg.font, threadColor: cfg.threadColor, threadTouched: !!cfg.threadTouched, selectedMotifs: cfg.selectedMotifs, layout: cfg.layout }; }
+    // Alle bestickten Textilien mit ihrer Gestaltung (bei Einzelprodukten genau eines)
+    function designList() {
+      return POSITIONS.filter(p => p.id in cfg.positions).map(p => {
+        const d = (!isMulti() || p.id === cfg.cur) ? liveDesign()
+          : (cfg.designs[p.id] || { font: FONTS[0], threadColor: defaultThread(), selectedMotifs: {}, layout: null });
+        const text = String(cfg.positions[p.id].text || ''), motifs = MOTIFS.filter(m => d.selectedMotifs[m.id]);
+        const hasT = !!text.trim(), only = !hasT && motifs.length > 0;
+        return { pos: p, c: cfg.positions[p.id], d, text, motifs, hasT, only, ready: (hasT && !!d.threadColor) || only };
+      });
+    }
+    // hasText / motifOnly beziehen sich auf das gerade geöffnete Textil
+    function hasText() { const a = curIds(); return a.length > 0 && a.every(id => (cfg.positions[id].text || '').trim()); }
+    function motifOnly() { const a = curIds(); return a.length > 0 && a.every(id => !(cfg.positions[id].text || '').trim()) && MOTIFS.some(m => cfg.selectedMotifs[m.id]); }
+    // Wie setzt sich der Preis zusammen? (gleiche Regeln am Server: create-checkout-session)
     function priceBreakdown() {
       const rows = [{ label: currentProduct.name, amount: Number(currentProduct.price) || 0 }];
       if (cfg.mode === 'ohne' || !POSITIONS.length) return rows;
-      const act = POSITIONS.filter(p => p.id in cfg.positions), only = motifOnly();
-      act.forEach((p, i) => rows.push({ label: (only ? 'Stickerei' : 'Bestickung mit Text') + (act.length > 1 ? ' – ' + p.label : ''), amount: embroideryPriceAt(i + 1) }));
-      act.forEach(p => { if (String(cfg.positions[p.id].text || '').includes('\n')) rows.push({ label: 'Zweite Textzeile' + (act.length > 1 ? ' – ' + p.label : ''), amount: LINE2_PRICE }); });
-      const ms = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-      const incl = only ? ms.reduce((a, m) => (!a || m.price > a.price ? m : a), null) : null;
-      ms.forEach(m => rows.push(m === incl ? { label: 'Motiv ' + m.label, amount: 0, note: 'in der Stickerei enthalten' } : { label: 'Motiv ' + m.label + (m.size === 'gross' ? ' (groß)' : ''), amount: m.price }));
+      const many = isMulti();
+      designList().forEach((e, i) => {
+        const sfx = many ? ' – ' + texName(e.pos) : '';
+        rows.push({ label: (e.only ? 'Stickerei' : 'Bestickung mit Text') + sfx, amount: embroideryPriceAt(i + 1) });
+        if (e.text.includes('\n')) rows.push({ label: 'Zweite Textzeile' + sfx, amount: LINE2_PRICE });
+        // Nur Motiv (ohne Text): die Stickerei (9,90 €) enthält das erste Motiv – wir rechnen das teuerste gewählte Motiv an
+        const incl = e.only ? e.motifs.reduce((a, m) => (!a || m.price > a.price ? m : a), null) : null;
+        e.motifs.forEach(m => rows.push(m === incl ? { label: 'Motiv ' + m.label + sfx, amount: 0, note: 'in der Stickerei enthalten' } : { label: 'Motiv ' + m.label + (m.size === 'gross' ? ' (groß)' : '') + sfx, amount: m.price }));
+      });
       return rows;
     }
     function currentPrice() {
-      const base = Number(currentProduct.price) || 0;
-      if (cfg.mode === 'ohne') return base;
-      const nPos = POSITIONS.filter(p => p.id in cfg.positions).length;
-      const posAdd = embroideryTotal(nPos);
-      let motifAdd = MOTIFS.filter(m => cfg.selectedMotifs[m.id]).reduce((s, m) => s + m.price, 0);
-      // Nur Motiv (ohne Text): die Stickerei (9,90 €) enthält das erste Motiv – wir rechnen das teuerste gewählte Motiv an
-      if (motifOnly()) motifAdd -= Math.max(...MOTIFS.filter(m => cfg.selectedMotifs[m.id]).map(m => m.price));
-      const line2Add = POSITIONS.filter(p => p.id in cfg.positions && String(cfg.positions[p.id].text || '').includes('\n')).length * LINE2_PRICE;
-      return base + posAdd + motifAdd + line2Add;
+      if (cfg.mode === 'ohne') return Number(currentProduct.price) || 0;
+      return priceBreakdown().reduce((sum, r) => sum + r.amount, 0);
     }
 
     function isNew() {
@@ -899,7 +932,7 @@
       const posBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
-          <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.${hasMotifs ? ' Kein Text gewünscht? Lass das Feld leer und wähle im nächsten Schritt ein Motiv.' : ''}</div>${setDeal}
+          <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.${hasMotifs ? ' Kein Text gewünscht? Lass das Feld leer und wähle im nächsten Schritt ein Motiv.' : ''}${POSITIONS.length > 1 ? ' <b>Jedes Textil im Set gestaltest du einzeln.</b> Häkchen weg = dieses Textil bleibt ohne Bestickung.' : ''}</div>${setDeal}
           <div class="pos-list ${POSITIONS.length === 1 ? 'pos-list--single' : ''}">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -1015,6 +1048,7 @@
               <div class="bld__ttl"><small id="bld-count"></small><b id="bld-title"></b></div>
               <span class="bld__price" id="bld-price"></span>
             </div>
+            <div class="bld__tabs" id="bld-tabs" hidden></div>
             <ol class="bld__dots" id="bld-dots" aria-label="Schritte"></ol>
             <div class="bld__body">
               <div class="bld__preview"><div class="dz" id="design-editor"></div></div>
@@ -1171,7 +1205,8 @@
     function personalizationReady() {
       const capOk = !capOption || !!cfg.capColor;
       if (POSITIONS.length === 0 || cfg.mode === 'ohne') return capOk;
-      return capOk && ((hasText() && !!cfg.threadColor) || motifOnly());
+      const L = designList();
+      return capOk && L.length > 0 && L.every(e => e.ready);
     }
 
     function primaryAction() {
@@ -1199,7 +1234,7 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && builderOpen) closeBuilder(); });
     function builderTextReady() {
-      const a = activePosIds();
+      const a = curIds();
       if (!a.length) return false;
       const empty = a.every(id => !(cfg.positions[id].text || '').trim());
       return empty || (hasText() && !!cfg.threadColor);          // leer = „nur Motiv" ist erlaubt
@@ -1224,6 +1259,21 @@
       // Text wurde (z.B. über den Mülleimer) entfernt → Knopf führt zurück zum Text-Schritt
       const textIdx = steps.findIndex(st => st.dataset.step === 'text');
       if (last && !hasText() && !motifOnly()) { ok = true; label = 'Text oder Motiv fehlt – zurück'; }
+      // Sets: nach einem Textil geht es mit dem nächsten weiter
+      const bEl = document.getElementById('builder');
+      if (bEl) { bEl.classList.toggle('bld--multi', isMulti()); bEl.classList.toggle('bld--curoff', isMulti() && !(cfg.cur in cfg.positions)); }
+      if (isMulti()) {
+        const curOn = cfg.cur in cfg.positions, pend = texPending();
+        if (!curOn) {
+          const any = activePosIds().length > 0; ok = !!pend || any;
+          label = pend ? 'Weiter: ' + texName(pend) + ' gestalten' : any ? 'Weiter: Anordnen & prüfen' : 'Bitte mindestens ein Textil besticken';
+        } else if (last && (hasText() || motifOnly()) && !(cfg.unknownMotifCodes || []).length) {
+          const bad = texUnready();
+          if (pend) { ok = true; label = 'Weiter: ' + texName(pend) + ' gestalten'; }
+          else if (bad) { ok = true; label = texName(bad) + ' ist noch nicht fertig – dorthin'; }
+        }
+      }
+      renderTexTabs();
       next.disabled = !ok; next.textContent = label;
       renderBuilderDots();
       if (last) renderBuilderSummary();
@@ -1234,14 +1284,17 @@
       steps.forEach((st, i) => { st.hidden = i !== bIdx; });
       const cur = steps[bIdx];
       document.getElementById('bld-title').textContent = cur.dataset.title;
-      document.getElementById('bld-count').textContent = `Schritt ${bIdx + 1} von ${steps.length}`;
+      const curPos = POSITIONS.find(p => p.id === cfg.cur);
+      document.getElementById('bld-count').textContent = (isMulti() && curPos ? texName(curPos) + ' · ' : '') + `Schritt ${bIdx + 1} von ${steps.length}`;
+      POSITIONS.forEach(p => { const c = document.getElementById('poscard-' + p.id); if (c) c.classList.toggle('cur', p.id === cfg.cur); });
       renderBuilderDots();
       document.getElementById('bld-back').style.visibility = bIdx === 0 ? 'hidden' : 'visible';
       if (bIdx === steps.length - 1) el.setAttribute('data-last', ''); else el.removeAttribute('data-last');
       // Text-Schritt: erste Stickstelle gleich aktivieren, damit man sofort tippen kann
-      if (!Object.keys(cfg.positions).length && POSITIONS[0] && (cur.dataset.step === 'text' || POSITIONS.length === 1)) {
-        const cb = document.querySelector(`#poscard-${POSITIONS[0].id} input[type=checkbox]`); if (cb) cb.checked = true;
-        togglePosition(POSITIONS[0].id, true);
+      const aid = isMulti() ? cfg.cur : (POSITIONS[0] && POSITIONS[0].id);
+      if (aid && !(aid in cfg.positions) && !cfg.off[aid] && (cur.dataset.step === 'text' || POSITIONS.length === 1)) {
+        const cb = document.querySelector(`#poscard-${aid} input[type=checkbox]`); if (cb) cb.checked = true;
+        togglePosition(aid, true);
       }
       document.getElementById('bld-panel').scrollTop = 0;
       updateBuilderNav(); renderDesign();
@@ -1250,7 +1303,7 @@
     function builderToText() {
       const i = builderSteps().findIndex(st => st.dataset.step === 'text'); if (i < 0) return;
       bIdx = i; builderShow();
-      const inp = POSITIONS[0] && document.getElementById('posinput-' + POSITIONS[0].id); if (inp) inp.focus();
+      const inp = POSITIONS[0] && document.getElementById('posinput-' + (cfg.cur || POSITIONS[0].id)); if (inp) inp.focus();
     }
     function builderStepOk(key) {
       const hasMotifStepEl = builderSteps().some(st => st.dataset.step === 'motiv');
@@ -1268,8 +1321,60 @@
       }).join('');
     }
     function builderJump(i) { if (i === bIdx) return; if (i > bIdx && !builderCanReach(i)) return; bIdx = i; builderShow(); }
+    // ── Sets: zwischen den Textilien wechseln ──
+    function texPending() { return isMulti() ? (POSITIONS.find(p => !(p.id in cfg.positions) && !cfg.off[p.id]) || null) : null; }   // noch nicht angefasst
+    function texUnready() { const e = designList().find(x => !x.ready); return e ? e.pos : null; }
+    function saveDesign() { if (isMulti() && cfg.cur) cfg.designs[cfg.cur] = liveDesign(); }
+    function buildRecs(base) {
+      const byCode = {}; MOTIFS.forEach(m => { if (m.code) byCode[m.code] = m; });
+      return (base || []).map(r => {
+        const codes = (Array.isArray(r.codes) ? r.codes : String(r.codes || '').split(/[^A-Za-z0-9]+/))
+          .map(c => String(c).toUpperCase().trim()).filter(c => byCode[c]);
+        return { title: r.title || codes.map(c => byCode[c].name).join(' & '), img: r.img || '', codes, motifs: codes.map(c => byCode[c]) };
+      }).filter(r => r.codes.length).slice(0, 4);
+    }
+    // Motiv-Empfehlung passend zum gerade geöffneten Textil (z.B. Lätzchen im Kuschelset)
+    function setTexRecs() {
+      if (!isMulti()) return;
+      const p = POSITIONS.find(x => x.id === cfg.cur); if (!p) return;
+      const def = MOTIF_REC_DEFAULTS.find(d => d.match.test(String(p.label || '').toLowerCase()));
+      if (def) MOTIF_RECS = buildRecs(def.recs);
+    }
+    function loadDesign(id) {
+      const d = cfg.designs[id] || {};
+      cfg.font = d.font || FONTS[0];
+      cfg.threadColor = ('threadColor' in d) ? d.threadColor : defaultThread();
+      cfg.threadTouched = !!d.threadTouched;
+      cfg.selectedMotifs = d.selectedMotifs || {}; cfg.layout = d.layout || null; cfg.unknownMotifCodes = []; dzSel = 'name';
+      const fi = FONTS.indexOf(cfg.font);
+      document.querySelectorAll('.fontbtn').forEach(el => el.classList.toggle('selected', +el.dataset.i === fi));
+      renderThreadSwatches();
+      const lbl = document.getElementById('thread-label');
+      if (lbl) lbl.textContent = 'Garnfarbe' + (cfg.threadColor ? ': ' + cfg.threadColor.name : '');
+      setTexRecs(); syncMotifInput(); renderMotifs();
+    }
+    function switchTextile(id, step) {
+      if (!isMulti() || !POSITIONS.some(p => p.id === id)) return;
+      if (id === cfg.cur && step == null) return;
+      if (id !== cfg.cur) { saveDesign(); cfg.cur = id; loadDesign(id); }
+      const ti = builderSteps().findIndex(st => st.dataset.step === 'text');
+      bIdx = step == null ? Math.max(0, ti) : step;
+      updatePrice(); builderShow();
+    }
     function builderGo(d) {
       const steps = builderSteps();
+      if (d > 0 && isMulti()) {
+        const pend = texPending(), atEnd = bIdx === steps.length - 1;
+        if (!(cfg.cur in cfg.positions)) {
+          if (pend) { switchTextile(pend.id); return; }
+          const first = designList()[0]; if (!first) return;
+          switchTextile(first.pos.id, steps.length - 1); return;
+        }
+        if (atEnd && (hasText() || motifOnly()) && !(cfg.unknownMotifCodes || []).length) {
+          if (pend) { switchTextile(pend.id); return; }
+          const bad = texUnready(); if (bad) { switchTextile(bad.id); return; }
+        }
+      }
       const textIdx = steps.findIndex(st => st.dataset.step === 'text');
       if (d > 0 && bIdx === steps.length - 1 && !hasText() && !motifOnly()) { bIdx = textIdx; builderShow(); return; }
       if (d > 0 && bIdx === steps.length - 1) {
@@ -1284,18 +1389,35 @@
       bIdx += d; builderShow();
     }
     function textLabel(t) { const l = String(t || '').split('\n').filter(x => x.trim()); return l.length > 1 ? l.map((x, i) => `Zeile ${i + 1}: ${x}`).join(' | ') : (l[0] || ''); }
+    function renderTexTabs() {
+      const box = document.getElementById('bld-tabs'); if (!box) return;
+      if (!isMulti()) { box.hidden = true; return; }
+      const L = designList();
+      box.hidden = false;
+      box.innerHTML = '<span class="bld__tabslbl">Welches Textil gestaltest du?</span>' + POSITIONS.map(p => {
+        const e = L.find(x => x.pos.id === p.id);
+        const st = e ? (e.ready ? '✓ gestaltet' : 'in Arbeit') : (cfg.off[p.id] ? 'ohne Bestickung' : 'noch offen');
+        return `<button type="button" class="${p.id === cfg.cur ? 'cur' : ''} ${e && e.ready ? 'done' : ''}" onclick="switchTextile('${p.id}')" ${p.id === cfg.cur ? 'aria-current="true"' : ''}><b>${escH(texName(p))}</b><small>${st}</small></button>`;
+      }).join('');
+    }
     function renderBuilderSummary() {
       const ul = document.getElementById('bld-summary'); if (!ul) return;
-      const rows = [];
+      const rows = [], L = designList(), many = isMulti();
       if (capOption && cfg.capColor) rows.push(['Farbe', cfg.capColor]);
-      POSITIONS.forEach(p => { if (p.id in cfg.positions) {
-        const lines = String(cfg.positions[p.id].text || '').split('\n').filter(x => x.trim());
-        rows.push([POSITIONS.length > 1 ? p.label : 'Text', (lines.length ? lines.join(' / ') : 'ohne Text – nur Motiv') + (cfg.positions[p.id].place ? ' (' + cfg.positions[p.id].place + ')' : '')]); } });
-      if (hasText()) { rows.push(['Schrift', cfg.font.nr + ' – ' + cfg.font.name]); if (cfg.threadColor) rows.push(['Garnfarbe', cfg.threadColor.name]); }
-      const ch = chosenMotifList(); rows.push(['Motiv', ch.length ? ch.map(m => m.label).join(', ') : 'ohne']);
+      (many ? POSITIONS : L.map(e => e.pos)).forEach(p => {
+        const e = L.find(x => x.pos.id === p.id);
+        if (many) rows.push({ head: texName(p), id: p.id });
+        if (!e) { rows.push(['Bestickung', 'ohne']); return; }
+        const lines = e.text.split('\n').filter(x => x.trim());
+        rows.push(['Text', (lines.length ? lines.join(' / ') : 'ohne Text – nur Motiv') + (e.c.place ? ' (' + e.c.place + ')' : '')]);
+        if (e.hasT) { rows.push(['Schrift', e.d.font.nr + ' – ' + e.d.font.name]); if (e.d.threadColor) rows.push(['Garnfarbe', e.d.threadColor.name]); }
+        rows.push(['Motiv', e.motifs.length ? e.motifs.map(m => m.label).join(', ') : 'ohne']);
+      });
       const pb = priceBreakdown(), unit = currentPrice();
       ul.innerHTML = '<li class="sub" style="display:block;padding:10px 12px 4px;border:none"><p class="bld__sumtitle">Deine Gestaltung</p></li>'
-        + rows.map(r => `<li class="sub"><span>${escH(r[0])}</span><span>${escH(r[1])}</span></li>`).join('')
+        + rows.map(r => r.head
+            ? `<li class="sub" style="padding-top:12px"><span><b style="color:var(--color-text)">${escH(r.head)}</b></span><span>${r.id === cfg.cur ? '' : `<button type="button" class="bld__sumedit" onclick="switchTextile('${r.id}')">✎ ändern</button>`}</span></li>`
+            : `<li class="sub"><span>${escH(r[0])}</span><span>${escH(r[1])}</span></li>`).join('')
         + '<li class="sub" style="display:block;padding:14px 12px 4px;border:none"><p class="bld__sumtitle">So setzt sich der Preis zusammen</p></li>'
         + pb.map(r => `<li class="sub"><span>${escH(r.label)}</span><span>${r.note ? '<small>' + escH(r.note) + '</small>' : euro(r.amount)}</span></li>`).join('')
         + (qty > 1 ? `<li class="sub"><span>Stückpreis</span><span>${euro(unit)}</span></li><li class="sub"><span>Menge</span><span>× ${qty}</span></li>` : '')
@@ -1398,12 +1520,7 @@
       } catch (_) {}
       const base = (Array.isArray(own) && own.length) ? own
         : ((MOTIF_REC_DEFAULTS.find(d => d.match.test(String(slug || '').toLowerCase())) || {}).recs || []);
-      const byCode = {}; MOTIFS.forEach(m => { if (m.code) byCode[m.code] = m; });
-      MOTIF_RECS = base.map(r => {
-        const codes = (Array.isArray(r.codes) ? r.codes : String(r.codes || '').split(/[^A-Za-z0-9]+/))
-          .map(c => String(c).toUpperCase().trim()).filter(c => byCode[c]);
-        return { title: r.title || codes.map(c => byCode[c].name).join(' & '), img: r.img || '', codes, motifs: codes.map(c => byCode[c]) };
-      }).filter(r => r.codes.length).slice(0, 4);
+      MOTIF_RECS = buildRecs(base); setTexRecs();
       renderMotifRecs();
     }
     function renderMotifRecs() {
@@ -1539,7 +1656,7 @@
     let dzSel = 'name';
 
     function designName() {
-      const id = Object.keys(cfg.positions).find(k => (cfg.positions[k].text || '').trim());
+      const id = curIds().find(k => (cfg.positions[k].text || '').trim());
       return id ? cfg.positions[id].text.trim() : '';
     }
     function chosenMotifList() { return MOTIFS.filter(m => cfg.selectedMotifs[m.id]); }
@@ -1599,7 +1716,7 @@
       if (!showName && dzSel === 'name') dzSel = chosen[0].id;
       box.hidden = false;
       box.innerHTML = `
-        <div class="dz__head"><span class="dz__title">Dein Design – frei anordnen</span>
+        <div class="dz__head"><span class="dz__title">${isMulti() && POSITIONS.find(p => p.id === cfg.cur) ? escH(texName(POSITIONS.find(p => p.id === cfg.cur))) : 'Dein Design'} – frei anordnen</span>
           ${cfg.layout.custom ? `<button type="button" class="dz__reset" onclick="resetLayout()">↺ Unsere Empfehlung</button>` : ''}</div>
         <div class="dz__hint">Name und Motive mit dem Finger oder der Maus verschieben. Am runden Punkt unten rechts vergrößern, oben drehen.</div>
         <div class="dz__stage" id="dz-stage" style="background-color:${bg}">
@@ -1799,7 +1916,7 @@
       const st = dzState(dzSel); if (!st) return;
       if (what === 'd') {            // Mülleimer: Motiv abwählen bzw. Text leeren
         if (dzSel === 'name') {
-          POSITIONS.forEach(p => { const c = cfg.positions[p.id]; if (!c) return;
+          POSITIONS.forEach(p => { const c = cfg.positions[p.id]; if (!c || !curIds().includes(p.id)) return;
             ['posinput-', 'posinput2-'].forEach(pre => { const el = document.getElementById(pre + p.id); if (el) el.value = ''; });
             c.l1 = ''; c.l2 = ''; c.text = ''; });
           updatePrice(); checkReady(); renderDesign();
@@ -1871,20 +1988,20 @@
     }
 
     // Für Bestellung: gut lesbare Beschreibung + genaue Koordinaten
-    function designSummary() {
-      const chosen = chosenMotifList(); if (!cfg.layout) return null;
-      const n = cfg.layout.name, pct = s => Math.round(s * 100) + ' %';
+    function designSummary(e) {
+      const L = e.d.layout; if (!L) return null;
+      const n = L.name, pct = s => Math.round(s * 100) + ' %';
       const rel = (a) => { const dx = a.x - n.x, dy = a.y - n.y;
         if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return 'auf dem Namen';
         return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'rechts vom Namen' : 'links vom Namen') : (dy < 0 ? 'über dem Namen' : 'unter dem Namen'); };
-      const noName = !designName();
+      const noName = !e.hasT;
       const parts = noName ? ['ohne Text'] : [`Name ${pct(n.s)}${n.r ? ', ' + n.r + '° gedreht' : ''}`];
       const coords = noName ? [] : [`Name ${n.x}/${n.y} ${pct(n.s)} ${n.r}°`];
-      chosen.forEach(m => { const a = cfg.layout.items[m.id]; if (!a) return;
+      e.motifs.forEach(m => { const a = L.items[m.id]; if (!a) return;
         const lbl = m.code || m.label;
         parts.push(`${lbl} ${noName ? 'bei ' + Math.round(a.x) + '/' + Math.round(a.y) : rel(a)}, ${pct(a.s)}${a.r ? ', ' + a.r + '° gedreht' : ''}${a.f ? ', gespiegelt' : ''}`);
         coords.push(`${lbl} ${a.x}/${a.y} ${pct(a.s)} ${a.r}°${a.f ? ' gespiegelt' : ''}`); });
-      return { text: (cfg.layout.custom ? 'Selbst angeordnet: ' : 'Unsere Empfehlung: ') + parts.join('; '), coords: coords.join(' | ') + ' (x/y in % vom Stickbereich, Mitte = 50/50)' };
+      return { text: (L.custom ? 'Selbst angeordnet: ' : 'Unsere Empfehlung: ') + parts.join('; '), coords: coords.join(' | ') + ' (x/y in % vom Stickbereich, Mitte = 50/50)' };
     }
 
     function toggleMotif(id) {
@@ -1909,6 +2026,7 @@
       } else {
         delete cfg.positions[id];
       }
+      if (isMulti()) cfg.off[id] = !on;
       document.getElementById('poscard-' + id).classList.toggle('active', on);
       document.getElementById('postext-' + id).style.display = on ? 'block' : 'none';
       if (on) { const inp = document.getElementById('posinput-' + id); if (inp) inp.focus(); }
@@ -1988,10 +2106,11 @@
       if (!hint) return;
 
       if (ready) {
-        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: ${textLabel(cfg.positions[id].text) ? '„' + textLabel(cfg.positions[id].text) + '"' : 'nur Motiv'}${cfg.positions[id].place ? ' (' + cfg.positions[id].place + ')' : ''}`);
+        const many = isMulti();
+        const parts = designList().map(e => `${many ? texName(e.pos) : e.pos.label}: ${textLabel(e.text) ? '„' + textLabel(e.text) + '"' : 'nur Motiv'}${e.c.place ? ' (' + e.c.place + ')' : ''}${many && e.motifs.length ? ' + ' + e.motifs.map(m => m.code || m.label).join(', ') : ''}`);
         hint.className = 'personalize-hint complete';
-        const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-        hint.textContent = `Bereit — ${parts.join(' · ')}` + (hasText() && cfg.threadColor ? ` · Garn: ${cfg.threadColor.name}` : '') + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
+        const chosenM = many ? [] : MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
+        hint.textContent = `Bereit — ${parts.join(' · ')}` + (!many && hasText() && cfg.threadColor ? ` · Garn: ${cfg.threadColor.name}` : '') + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
       } else {
         hint.className = 'personalize-hint';
         hint.textContent = 'Gestalte dein Stück in wenigen Schritten: Farbe, Text, Motiv.';
@@ -2000,9 +2119,10 @@
 
     // Gestaltung merken, damit man sie aus dem Warenkorb heraus wieder öffnen und ändern kann
     function designSnapshot() {
-      return { mode: cfg.mode, capColor: cfg.capColor || null, positions: JSON.parse(JSON.stringify(cfg.positions)),
-        fontNr: cfg.font ? cfg.font.nr : 1, thread: cfg.threadColor ? cfg.threadColor.name : null, threadTouched: !!cfg.threadTouched,
-        motifs: Object.keys(cfg.selectedMotifs).filter(id => cfg.selectedMotifs[id]), layout: cfg.layout ? JSON.parse(JSON.stringify(cfg.layout)) : null };
+      const ser = d => ({ fontNr: d.font ? d.font.nr : 1, thread: d.threadColor ? d.threadColor.name : null, threadTouched: !!d.threadTouched,
+        motifs: Object.keys(d.selectedMotifs).filter(id => d.selectedMotifs[id]), layout: d.layout ? JSON.parse(JSON.stringify(d.layout)) : null });
+      const per = {}; designList().forEach(e => { per[e.pos.id] = ser(e.d); });
+      return { mode: cfg.mode, capColor: cfg.capColor || null, positions: JSON.parse(JSON.stringify(cfg.positions)), ...ser(liveDesign()), per };
     }
     function restoreDesignFromCart() {
       const uid = new URLSearchParams(location.search).get('edit'); if (!uid) return;
@@ -2021,11 +2141,23 @@
         togglePosition(id, true);
         const k = (POSITIONS.find(p => p.id === id).placements || []).indexOf(src.place); if (k > 0) setPlacement(id, k);
       });
+      if (isMulti() && d.per) {
+        // Set: jedes Textil mit seiner eigenen Gestaltung zurückholen; nicht bestickte bleiben ohne
+        cfg.designs = {}; cfg.off = {};
+        Object.keys(d.per).forEach(id => { const x = d.per[id], sm = {};
+          (x.motifs || []).forEach(m => { if (MOTIFS.some(k => k.id === m)) sm[m] = true; });
+          cfg.designs[id] = { font: FONTS.find(f => f.nr === x.fontNr) || FONTS[0], threadColor: THREAD_COLORS.find(t => t.name === x.thread) || null,
+            threadTouched: !!x.threadTouched, selectedMotifs: sm, layout: x.layout || null }; });
+        POSITIONS.forEach(p => { if (!(p.id in cfg.positions)) cfg.off[p.id] = true; });
+        cfg.cur = (POSITIONS.find(p => p.id in cfg.positions) || POSITIONS[0]).id;
+        loadDesign(cfg.cur); updatePrice();
+      } else {
       const fi = FONTS.findIndex(f => f.nr === d.fontNr); if (fi >= 0) selectFont(fi);
       if (d.thread) selectThread(d.thread, !d.threadTouched);
       cfg.selectedMotifs = {}; (d.motifs || []).forEach(id => { if (MOTIFS.some(m => m.id === id)) cfg.selectedMotifs[id] = true; });
       syncMotifInput(); renderMotifs(); updatePrice();
       cfg.layout = d.layout || null;
+      }
       openBuilder(); bIdx = builderSteps().length - 1; builderShow();
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
     }
@@ -2038,23 +2170,21 @@
       if (POSITIONS.length > 0 && cfg.mode === 'ohne') {
         options['Bestickung'] = 'Ohne Bestickung';
       } else if (POSITIONS.length > 0) {
-        const active = Object.keys(cfg.positions);
-        if (!active.length || !personalizationReady()) return;
-        if (hasText()) {
-          options['Garnfarbe'] = cfg.threadColor.name;
-          options['Schriftart'] = cfg.font.nr + ' – ' + cfg.font.name;
-        }
-        POSITIONS.forEach(p => {
-          if (!(p.id in cfg.positions)) return;
-          options[p.label] = textLabel(cfg.positions[p.id].text) || NO_TEXT_LABEL;
-          if (cfg.positions[p.id].place) options[p.label + ' – Stelle'] = cfg.positions[p.id].place;
+        const L = designList(), many = isMulti();
+        if (!L.length || !personalizationReady()) return;
+        // Set: alles je Textil (Schlüssel mit Textil-Namen); Einzelprodukt: wie bisher ohne Zusatz
+        L.forEach(e => {
+          const pre = many ? texName(e.pos) + ' – ' : '';
+          options[e.pos.label] = textLabel(e.text) || NO_TEXT_LABEL;
+          if (e.c.place) options[e.pos.label + ' – Stelle'] = e.c.place;
+          if (e.hasT) {
+            options[pre + 'Garnfarbe'] = e.d.threadColor.name;
+            options[pre + 'Schriftart'] = e.d.font.nr + ' – ' + e.d.font.name;
+          }
+          if (e.motifs.length) options[pre + 'Motive'] = e.motifs.map(m => m.label).join(', ');
+          const ds = designSummary(e);
+          if (ds) { options[pre + 'Design-Anordnung'] = ds.text; options[pre + 'Design-Koordinaten'] = ds.coords; }
         });
-        const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-        if (chosenM.length) {
-          options['Motive'] = chosenM.map(m => m.label).join(', ');
-        }
-        const ds = designSummary();
-        if (ds) { options['Design-Anordnung'] = ds.text; options['Design-Koordinaten'] = ds.coords; }
       }
       const view = cfg.previewPos;
       const previewUrl = (typeof view === 'string' && view[0] === 'g') ? currentGallery()[+view.slice(1)] : displayImage();
