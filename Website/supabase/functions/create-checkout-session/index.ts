@@ -49,6 +49,8 @@ Deno.serve(async (req) => {
     // Bestickung: fixer Preis 9,90 € pro Stelle; Geschenk-Set-Staffel
     // (jede weitere Bestickung 2,00 € günstiger, Floor 3,90 €) — identisch zur Website.
     const STITCH_PRICE = 9.90
+    // Zweite Textzeile (+5,90 €) – identisch halten mit product.html (LINE2_PRICE); Option-Wert: "Zeile 1: … | Zeile 2: …"
+    const LINE2_PRICE = 5.90
     // Motiv-Katalog – identisch halten mit js/motif-catalog.js (Preisliste: klein +5,90 €, groß +9,90 €)
     const MOTIF_PRICES: Record<string, number> = { klein: 5.90, gross: 9.90 }
     const GROSS = ['M1', 'M2', 'M3', 'M5', 'M7', 'M8', 'M9', 'T1', 'T3', 'T4', 'T7', 'T9', 'T16', 'D2', 'D4', 'D6', 'D7', 'G1', 'G2']
@@ -74,6 +76,9 @@ Deno.serve(async (req) => {
       const isSet = Array.isArray(p.bundle_items) && p.bundle_items.filter((x: any) => x && x.name).length > 0
       let embroidery = 0
       for (let k = 1; k <= nPos; k++) embroidery += isSet ? Math.max(STITCH_PRICE - (k - 1) * 2, 3.90) : STITCH_PRICE
+      for (const pos of (p.positions || [])) {
+        if (Object.prototype.hasOwnProperty.call(opts, pos.label) && /^Zeile 1: .* \| Zeile 2: ./.test(String(opts[pos.label]))) embroidery += LINE2_PRICE
+      }
       // Motive (aus product.motifs; options['Motive'] = "Label, Label")
       let motifAdd = 0
       if (opts['Motive']) {

@@ -181,6 +181,8 @@
     }
     const ck = document.querySelector('.ck-box');
     if (ck && getComputedStyle(ck).display !== 'none') { setTimeout(openWhenFree, 5000); return; }
+    // Nicht stören, solange das Gestaltungs-Fenster auf der Produktseite offen ist
+    if (document.body.classList.contains('bld-open')) { setTimeout(openWhenFree, 8000); return; }
     open();
   }
   setTimeout(openWhenFree, Math.max(0, DELAY_MS - (Date.now() - start)));
