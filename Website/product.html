@@ -148,6 +148,12 @@
     .dz__tools { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
     .dz__tools button { border: 1.5px solid var(--color-border); background: #fff; border-radius: 10px; min-width: 38px; height: 36px; padding: 0 10px; font: 700 0.8rem var(--font-main); color: var(--color-text); cursor: pointer; }
     .dz__tools button:hover { border-color: var(--color-primary); }
+    .dz__tools button:disabled { opacity: .35; cursor: default; }
+    .dz__tools button small { font-size: 0.72rem; font-weight: 700; }
+    .dz__tools .dz__del { color: #b3261e; border-color: #e5c4c1; display: inline-grid; place-items: center; }
+    .bld .dz__tools { gap: 5px; flex-wrap: nowrap; }
+    .bld .dz__tools button { min-width: 0; flex: 0 1 auto; padding: 0 9px; }
+    @media (max-width: 420px) { .bld .dz__tools button small { display: none; } .bld .dz__tools button { padding: 0 8px; min-width: 36px; } }
     .dz__tools .dz__which { font-size: 0.72rem; color: var(--color-muted); margin-right: auto; }
     .dz__warn { font-size: 0.72rem; color: #c0392b; margin-top: 6px; }
     .dz__note { font-size: 0.7rem; color: var(--color-muted); margin-top: 8px; }
@@ -308,7 +314,8 @@
     .bld .dz__title, .bld .dz__hint, .bld .dz__note, .bld .mplace__ex { display: none; }
     .bld .dz__head { position: absolute; right: 8px; top: 8px; z-index: 3; margin: 0; }
     .bld__preview .dz { position: relative; }
-    .bld:not([data-last]) .dz__tools, .bld:not([data-last]) .dz__head { display: none; }
+    .bld:not([data-last]) .dz__head { display: none; }
+    .bld .dz__which { display: none; }
     .bld .dz__tools { justify-content: center; margin-top: 8px; }
     .bld .dz__tools .dz__which { margin-right: 0; flex: 1 0 100%; text-align: center; }
     .bld .dz__warn { text-align: center; }
@@ -795,12 +802,19 @@
       return sum;
     }
 
+    // Text vorhanden? / Nur-Motiv-Bestellung? (identische Regel am Server: create-checkout-session)
+    const NO_TEXT_LABEL = 'Nur Motiv – ohne Text';
+    function activePosIds() { return Object.keys(cfg.positions); }
+    function hasText() { const a = activePosIds(); return a.length > 0 && a.every(id => (cfg.positions[id].text || '').trim()); }
+    function motifOnly() { const a = activePosIds(); return a.length > 0 && a.every(id => !(cfg.positions[id].text || '').trim()) && MOTIFS.some(m => cfg.selectedMotifs[m.id]); }
     function currentPrice() {
       const base = Number(currentProduct.price) || 0;
       if (cfg.mode === 'ohne') return base;
       const nPos = POSITIONS.filter(p => p.id in cfg.positions).length;
       const posAdd = embroideryTotal(nPos);
-      const motifAdd = MOTIFS.filter(m => cfg.selectedMotifs[m.id]).reduce((s, m) => s + m.price, 0);
+      let motifAdd = MOTIFS.filter(m => cfg.selectedMotifs[m.id]).reduce((s, m) => s + m.price, 0);
+      // Nur Motiv (ohne Text): die Stickerei (9,90 €) enthält das erste Motiv – wir rechnen das teuerste gewählte Motiv an
+      if (motifOnly()) motifAdd -= Math.max(...MOTIFS.filter(m => cfg.selectedMotifs[m.id]).map(m => m.price));
       const line2Add = POSITIONS.filter(p => p.id in cfg.positions && String(cfg.positions[p.id].text || '').includes('\n')).length * LINE2_PRICE;
       return base + posAdd + motifAdd + line2Add;
     }
@@ -841,7 +855,7 @@
       const posBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
-          <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.</div>${setDeal}
+          <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.${hasMotifs ? ' Kein Text gewünscht? Lass das Feld leer und wähle im nächsten Schritt ein Motiv.' : ''}</div>${setDeal}
           <div class="pos-list">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -967,7 +981,7 @@
                   <section class="bld__step" data-step="text" data-title="Dein Text">${posBlock}${fontBlock}${threadBlock}</section>
                   ${hasMotifs ? `<section class="bld__step" data-step="motiv" data-title="Motiv dazu?">${motifBlock}</section>` : ''}
                   <section class="bld__step" data-step="fertig" data-title="Anordnen &amp; prüfen">
-                    <p class="bld__lead">Verschiebe Text und Motive oben mit dem Finger oder der Maus. Mit den Knöpfen kannst du vergrößern, drehen und mittig setzen.</p>
+                    <p class="bld__lead">Tippe oben ein Element an und verschiebe es mit dem Finger oder der Maus. Mit den Knöpfen darunter kannst du es vergrößern, drehen, spiegeln, mittig setzen oder entfernen.</p>
                     <ul class="bld__sum" id="bld-summary"></ul>
                     <p class="bld__lead" style="font-size:.76rem">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</p>
                   </section>
@@ -1111,9 +1125,7 @@
     function personalizationReady() {
       const capOk = !capOption || !!cfg.capColor;
       if (POSITIONS.length === 0 || cfg.mode === 'ohne') return capOk;
-      const active = Object.keys(cfg.positions);
-      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
-      return allFilled && !!cfg.threadColor && capOk;
+      return capOk && ((hasText() && !!cfg.threadColor) || motifOnly());
     }
 
     function primaryAction() {
@@ -1141,8 +1153,10 @@
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && builderOpen) closeBuilder(); });
     function builderTextReady() {
-      const active = Object.keys(cfg.positions);
-      return active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim()) && !!cfg.threadColor;
+      const a = activePosIds();
+      if (!a.length) return false;
+      const empty = a.every(id => !(cfg.positions[id].text || '').trim());
+      return empty || (hasText() && !!cfg.threadColor);          // leer = „nur Motiv" ist erlaubt
     }
     function updateBuilderNav() {
       if (!builderOpen) return;
@@ -1151,9 +1165,19 @@
       const pr = document.getElementById('bld-price'); if (pr) pr.textContent = euro(currentPrice());
       let ok = true, label = last ? 'In den Warenkorb · ' + euro(currentPrice() * qty) : 'Weiter: ' + steps[bIdx + 1].dataset.title;
       if (key === 'farbe') ok = !capOption || !!cfg.capColor;
-      if (key === 'text') { ok = builderTextReady(); if (!ok) label = 'Bitte Text eingeben'; }
-      if (key === 'motiv') { ok = !(cfg.unknownMotifCodes || []).length; if (ok && !chosenMotifList().length) label = 'Weiter ohne Motiv'; }
+      const hasMotifStepEl = steps.some(st => st.dataset.step === 'motiv');
+      if (key === 'text') {
+        ok = builderTextReady() && (hasText() || hasMotifStepEl);
+        if (!ok) label = 'Bitte Text eingeben'; else if (!hasText()) label = 'Weiter ohne Text – nur Motiv';
+      }
+      if (key === 'motiv') {
+        ok = !(cfg.unknownMotifCodes || []).length;
+        if (ok && !chosenMotifList().length) { if (hasText()) label = 'Weiter ohne Motiv'; else { ok = false; label = 'Bitte ein Motiv wählen'; } }
+      }
       if (last) ok = personalizationReady() && !(cfg.unknownMotifCodes || []).length;
+      // Text wurde (z.B. über den Mülleimer) entfernt → Knopf führt zurück zum Text-Schritt
+      const textIdx = steps.findIndex(st => st.dataset.step === 'text');
+      if (last && !hasText() && !motifOnly()) { ok = true; label = 'Text oder Motiv fehlt – zurück'; }
       next.disabled = !ok; next.textContent = label;
       if (last) renderBuilderSummary();
     }
@@ -1177,6 +1201,8 @@
     }
     function builderGo(d) {
       const steps = builderSteps();
+      const textIdx = steps.findIndex(st => st.dataset.step === 'text');
+      if (d > 0 && bIdx === steps.length - 1 && !hasText() && !motifOnly()) { bIdx = textIdx; builderShow(); return; }
       if (d > 0 && bIdx === steps.length - 1) {
         if (!personalizationReady()) return;
         handleAddToCart(); closeBuilder();
@@ -1191,9 +1217,8 @@
       const ul = document.getElementById('bld-summary'); if (!ul) return;
       const rows = [];
       if (capOption && cfg.capColor) rows.push(['Farbe', cfg.capColor]);
-      POSITIONS.forEach(p => { if (p.id in cfg.positions) rows.push([POSITIONS.length > 1 ? p.label : 'Text', textLabel(cfg.positions[p.id].text) + (cfg.positions[p.id].place ? ' (' + cfg.positions[p.id].place + ')' : '')]); });
-      rows.push(['Schrift', cfg.font.nr + ' – ' + cfg.font.name]);
-      if (cfg.threadColor) rows.push(['Garnfarbe', cfg.threadColor.name]);
+      POSITIONS.forEach(p => { if (p.id in cfg.positions) rows.push([POSITIONS.length > 1 ? p.label : 'Text', (textLabel(cfg.positions[p.id].text) || 'ohne Text – nur Motiv') + (cfg.positions[p.id].place ? ' (' + cfg.positions[p.id].place + ')' : '')]); });
+      if (hasText()) { rows.push(['Schrift', cfg.font.nr + ' – ' + cfg.font.name]); if (cfg.threadColor) rows.push(['Garnfarbe', cfg.threadColor.name]); }
       if (POSITIONS.some(p => p.id in cfg.positions && String(cfg.positions[p.id].text || '').includes('\n'))) rows.push(['Zweite Zeile', '+ ' + euro(LINE2_PRICE)]);
       const ch = chosenMotifList(); rows.push(['Motiv', ch.length ? ch.map(m => m.label).join(', ') : 'ohne']);
       rows.push(['Preis' + (qty > 1 ? ' (' + qty + ' Stück)' : ''), euro(currentPrice() * qty)]);
@@ -1477,7 +1502,7 @@
       }
       const m = MOTIFS.find(x => x.id === k); if (!m) return '';
       const w = (m.size === 'gross' ? 30 : 21) * st.s;
-      return `<img src="${escH(motifCutout(m))}" ${m.code ? '' : 'class="blend"'} style="width:${w.toFixed(2)}cqw" alt="${escH(m.label)}" draggable="false">`;
+      return `<img src="${escH(motifCutout(m))}" ${m.code ? '' : 'class="blend"'} style="width:${w.toFixed(2)}cqw${st.f ? ';transform:scaleX(-1)' : ''}" alt="${escH(m.label)}" draggable="false">`;
     }
 
     function renderDesign() {
@@ -1488,9 +1513,13 @@
       const chosen = chosenMotifList();
       ensureLayout(chosen);
       if (dzSel !== 'name' && !cfg.layout.items[dzSel]) dzSel = 'name';
+      // Nur Motiv: ein einzelnes Motiv in die Mitte setzen (solange nichts selbst verschoben wurde)
+      if (!name && chosen.length === 1 && !cfg.layout.custom) { const it = cfg.layout.items[chosen[0].id]; it.x = 50; it.y = 50; }
       const rec = motifPlaceRec(chosen);
       const bg = fabricTone();
-      const keys = ['name', ...chosen.map(m => m.id)];
+      const showName = !!name || !chosen.length;
+      const keys = [...(showName ? ['name'] : []), ...chosen.map(m => m.id)];
+      if (!showName && dzSel === 'name') dzSel = chosen[0].id;
       box.hidden = false;
       box.innerHTML = `
         <div class="dz__head"><span class="dz__title">Dein Design – frei anordnen</span>
@@ -1505,11 +1534,13 @@
         </div>
         <div class="dz__tools">
           <span class="dz__which" id="dz-which"></span>
-          <button type="button" onclick="dzNudge('s',-0.1)" aria-label="Kleiner">−</button>
-          <button type="button" onclick="dzNudge('s',0.1)" aria-label="Größer">+</button>
-          <button type="button" onclick="dzNudge('r',-15)" aria-label="Nach links drehen">⟲</button>
-          <button type="button" onclick="dzNudge('r',15)" aria-label="Nach rechts drehen">⟳</button>
+          <button type="button" onclick="dzNudge('s',-0.1)" aria-label="Kleiner" title="Kleiner">−</button>
+          <button type="button" onclick="dzNudge('s',0.1)" aria-label="Größer" title="Größer">+</button>
+          <button type="button" onclick="dzNudge('r',-15)" aria-label="Nach links drehen" title="Nach links drehen">⟲</button>
+          <button type="button" onclick="dzNudge('r',15)" aria-label="Nach rechts drehen" title="Nach rechts drehen">⟳</button>
+          <button type="button" id="dz-flip" onclick="dzNudge('f',0)" aria-label="Spiegeln" title="Motiv spiegeln">⇋ <small>Spiegeln</small></button>
           <button type="button" onclick="dzNudge('c',0)">Mittig</button>
+          <button type="button" class="dz__del" onclick="dzNudge('d',0)" aria-label="Entfernen" title="Ausgewähltes Element entfernen"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
         </div>
         <div class="dz__warn" id="dz-warn" hidden>Ein Teil ragt über den Stickbereich – bitte etwas nach innen schieben oder verkleinern.</div>
         ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel von unseren Musterstücken" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>. Unsere Empfehlung ist schon voreingestellt.</span></div>` : ''}
@@ -1608,7 +1639,8 @@
     function dzUpdateWhich() {
       const el = document.getElementById('dz-which'); if (!el) return;
       const m = MOTIFS.find(x => x.id === dzSel);
-      el.textContent = 'Ausgewählt: ' + (dzSel === 'name' ? 'Name' : (m ? (m.code || m.label) : ''));
+      el.textContent = 'Ausgewählt: ' + (dzSel === 'name' ? 'Text' : (m ? (m.code || m.label) : ''));
+      const fl = document.getElementById('dz-flip'); if (fl) fl.disabled = dzSel === 'name';   // Text spiegeln ergibt keinen Sinn
     }
     function dzApply(k) {
       const el = document.querySelector(`.dz__el[data-k="${CSS.escape(k)}"]`); if (!el) return;
@@ -1616,7 +1648,7 @@
       el.style.cssText = dzStyle(st);
       const inner = el.firstElementChild;
       if (k === 'name') inner.style.fontSize = (14 * st.s).toFixed(2) + 'cqw';
-      else { const m = MOTIFS.find(x => x.id === k); inner.style.width = ((m && m.size === 'gross' ? 30 : 21) * st.s).toFixed(2) + 'cqw'; }
+      else { const m = MOTIFS.find(x => x.id === k); inner.style.width = ((m && m.size === 'gross' ? 30 : 21) * st.s).toFixed(2) + 'cqw'; inner.style.transform = st.f ? 'scaleX(-1)' : ''; }
     }
     function dzSelect(k) {
       dzSel = k;
@@ -1633,6 +1665,16 @@
     }
     function dzNudge(what, v) {
       const st = dzState(dzSel); if (!st) return;
+      if (what === 'd') {            // Mülleimer: Motiv abwählen bzw. Text leeren
+        if (dzSel === 'name') {
+          POSITIONS.forEach(p => { const c = cfg.positions[p.id]; if (!c) return;
+            ['posinput-', 'posinput2-'].forEach(pre => { const el = document.getElementById(pre + p.id); if (el) el.value = ''; });
+            c.l1 = ''; c.l2 = ''; c.text = ''; });
+          updatePrice(); checkReady(); renderDesign();
+        } else { const id = dzSel; dzSel = 'name'; if (cfg.selectedMotifs[id]) toggleMotif(id); renderDesign(); }
+        return;
+      }
+      if (what === 'f') { if (dzSel === 'name') return; st.f = !st.f; dzApply(dzSel); dzChanged(); return; }
       if (what === 's') st.s = Math.min(2, Math.max(0.5, +(st.s + v).toFixed(2)));
       else if (what === 'r') st.r = ((st.r + v) % 360 + 360) % 360;
       else if (what === 'c') st.x = 50;
@@ -1703,12 +1745,13 @@
       const rel = (a) => { const dx = a.x - n.x, dy = a.y - n.y;
         if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return 'auf dem Namen';
         return Math.abs(dx) >= Math.abs(dy) ? (dx > 0 ? 'rechts vom Namen' : 'links vom Namen') : (dy < 0 ? 'über dem Namen' : 'unter dem Namen'); };
-      const parts = [`Name ${pct(n.s)}${n.r ? ', ' + n.r + '° gedreht' : ''}`];
-      const coords = [`Name ${n.x}/${n.y} ${pct(n.s)} ${n.r}°`];
+      const noName = !designName();
+      const parts = noName ? ['ohne Text'] : [`Name ${pct(n.s)}${n.r ? ', ' + n.r + '° gedreht' : ''}`];
+      const coords = noName ? [] : [`Name ${n.x}/${n.y} ${pct(n.s)} ${n.r}°`];
       chosen.forEach(m => { const a = cfg.layout.items[m.id]; if (!a) return;
         const lbl = m.code || m.label;
-        parts.push(`${lbl} ${rel(a)}, ${pct(a.s)}${a.r ? ', ' + a.r + '° gedreht' : ''}`);
-        coords.push(`${lbl} ${a.x}/${a.y} ${pct(a.s)} ${a.r}°`); });
+        parts.push(`${lbl} ${noName ? 'bei ' + Math.round(a.x) + '/' + Math.round(a.y) : rel(a)}, ${pct(a.s)}${a.r ? ', ' + a.r + '° gedreht' : ''}${a.f ? ', gespiegelt' : ''}`);
+        coords.push(`${lbl} ${a.x}/${a.y} ${pct(a.s)} ${a.r}°${a.f ? ' gespiegelt' : ''}`); });
       return { text: (cfg.layout.custom ? 'Selbst angeordnet: ' : 'Unsere Empfehlung: ') + parts.join('; '), coords: coords.join(' | ') + ' (x/y in % vom Stickbereich, Mitte = 50/50)' };
     }
 
@@ -1801,17 +1844,16 @@
       }
 
       const active = Object.keys(cfg.positions);
-      const allFilled = active.length > 0 && active.every(id => (cfg.positions[id].text || '').trim());
       const badCodes = (cfg.unknownMotifCodes || []).length > 0;
-      const ready = allFilled && !!cfg.threadColor && capOk && !badCodes;
+      const ready = personalizationReady() && !badCodes;
       if (btn) { btn.disabled = false; btn.textContent = !ready ? 'Jetzt personalisieren' : 'In den Warenkorb'; }
       if (!hint) return;
 
       if (ready) {
-        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: „${textLabel(cfg.positions[id].text)}"${cfg.positions[id].place ? ' (' + cfg.positions[id].place + ')' : ''}`);
+        const parts = active.map(id => `${POSITIONS.find(p => p.id === id).label}: ${textLabel(cfg.positions[id].text) ? '„' + textLabel(cfg.positions[id].text) + '"' : 'nur Motiv'}${cfg.positions[id].place ? ' (' + cfg.positions[id].place + ')' : ''}`);
         hint.className = 'personalize-hint complete';
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-        hint.textContent = `Bereit — ${parts.join(' · ')} · Garn: ${cfg.threadColor.name}` + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
+        hint.textContent = `Bereit — ${parts.join(' · ')}` + (hasText() && cfg.threadColor ? ` · Garn: ${cfg.threadColor.name}` : '') + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
       } else {
         hint.className = 'personalize-hint';
         hint.textContent = 'Gestalte dein Stück in wenigen Schritten: Farbe, Text, Motiv.';
@@ -1828,12 +1870,14 @@
         options['Bestickung'] = 'Ohne Bestickung';
       } else if (POSITIONS.length > 0) {
         const active = Object.keys(cfg.positions);
-        if (!active.length || !cfg.threadColor) return;
-        options['Garnfarbe'] = cfg.threadColor.name;
-        options['Schriftart'] = cfg.font.nr + ' – ' + cfg.font.name;
+        if (!active.length || !personalizationReady()) return;
+        if (hasText()) {
+          options['Garnfarbe'] = cfg.threadColor.name;
+          options['Schriftart'] = cfg.font.nr + ' – ' + cfg.font.name;
+        }
         POSITIONS.forEach(p => {
           if (!(p.id in cfg.positions)) return;
-          options[p.label] = textLabel(cfg.positions[p.id].text);
+          options[p.label] = textLabel(cfg.positions[p.id].text) || NO_TEXT_LABEL;
           if (cfg.positions[p.id].place) options[p.label + ' – Stelle'] = cfg.positions[p.id].place;
         });
         const chosenM = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);

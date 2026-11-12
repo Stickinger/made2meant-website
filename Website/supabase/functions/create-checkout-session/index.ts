@@ -81,17 +81,24 @@ Deno.serve(async (req) => {
       }
       // Motive (aus product.motifs; options['Motive'] = "Label, Label")
       let motifAdd = 0
+      const motifPrices: number[] = []
       if (opts['Motive']) {
         const byLabel: Record<string, number> = {}
         for (const m of (p.motifs || [])) byLabel[String(m.label || '').trim()] = Number(m.price) || 0
-        motifAdd = String(opts['Motive']).split(',').map((s) => s.trim()).filter(Boolean)
-          .reduce((s: number, label: string) => {
-            if (label in byLabel) return s + byLabel[label]
-            // Motiv-Katalog (js/motif-catalog.js): Label beginnt mit dem Code, z.B. "M7 Feuerdrache"
-            const code = label.split(' ')[0]
-            return s + (code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
-          }, 0)
+        for (const label of String(opts['Motive']).split(',').map((s) => s.trim()).filter(Boolean)) {
+          if (label in byLabel) { motifPrices.push(byLabel[label]); continue }
+          // Motiv-Katalog (js/motif-catalog.js): Label beginnt mit dem Code, z.B. "M7 Feuerdrache"
+          const code = label.split(' ')[0]
+          motifPrices.push(code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
+        }
+        motifAdd = motifPrices.reduce((s, x) => s + x, 0)
       }
+      // Nur Motiv (ohne Text): die Stickerei (9,90 €) enthält das erste Motiv – das teuerste wird angerechnet.
+      // Identisch halten mit product.html (motifOnly / NO_TEXT_LABEL).
+      const selected = (p.positions || []).filter((pos: any) => Object.prototype.hasOwnProperty.call(opts, pos.label))
+      const motifOnly = selected.length > 0 && motifPrices.length > 0 &&
+        selected.every((pos: any) => String(opts[pos.label]) === 'Nur Motiv – ohne Text')
+      if (motifOnly) motifAdd -= Math.max(...motifPrices)
       return base + embroidery + motifAdd
     }
 
