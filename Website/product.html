@@ -162,8 +162,9 @@
     .dz__tools button:hover { border-color: var(--color-primary); }
     .dz__tools button:disabled { opacity: .35; cursor: default; }
     .dz__tools button small { font-size: 0.72rem; font-weight: 700; }
+    .dz__tools .dz__addtext { border-color: var(--color-primary); color: var(--color-primary); white-space: nowrap; }
     .dz__tools .dz__del { color: #b3261e; border-color: #e5c4c1; display: inline-grid; place-items: center; }
-    .bld .dz__tools { gap: 5px; flex-wrap: nowrap; }
+    .bld .dz__tools { gap: 5px; flex-wrap: wrap; }
     .bld .dz__tools button { min-width: 0; flex: 0 1 auto; padding: 0 9px; }
     @media (max-width: 420px) { .bld .dz__tools button small { display: none; } .bld .dz__tools button { padding: 0 8px; min-width: 36px; } }
     .dz__tools .dz__which { font-size: 0.72rem; color: var(--color-muted); margin-right: auto; }
@@ -1216,6 +1217,12 @@
       document.getElementById('bld-panel').scrollTop = 0;
       updateBuilderNav(); renderDesign();
     }
+    // Text wurde entfernt → zurück zum Text-Schritt und gleich ins Feld springen
+    function builderToText() {
+      const i = builderSteps().findIndex(st => st.dataset.step === 'text'); if (i < 0) return;
+      bIdx = i; builderShow();
+      const inp = POSITIONS[0] && document.getElementById('posinput-' + POSITIONS[0].id); if (inp) inp.focus();
+    }
     function builderGo(d) {
       const steps = builderSteps();
       const textIdx = steps.findIndex(st => st.dataset.step === 'text');
@@ -1557,6 +1564,7 @@
           <button type="button" onclick="dzNudge('r',15)" aria-label="Nach rechts drehen" title="Nach rechts drehen">⟳</button>
           <button type="button" id="dz-flip" onclick="dzNudge('f',0)" aria-label="Spiegeln" title="Motiv spiegeln">⇋ <small>Spiegeln</small></button>
           <button type="button" onclick="dzNudge('c',0)">Mittig</button>
+          ${showName ? '' : '<button type="button" class="dz__addtext" onclick="builderToText()">+ Text hinzufügen</button>'}
           <button type="button" class="dz__del" onclick="dzNudge('d',0)" aria-label="Entfernen" title="Ausgewähltes Element entfernen"><svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button>
         </div>
         ${(() => { const T = textileStageCfg(); return T && T.examples && T.examples.length ? `<div class="dz__examples">
