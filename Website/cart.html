@@ -168,7 +168,7 @@
                 <strong>${esc(item.name)}</strong><br>
                 ${item.options && Object.keys(item.options).length ? `
                   <dl class="cart-opts">
-                    ${Object.entries(item.options).filter(([k]) => k !== 'Design-Koordinaten' && k !== 'Design-Anordnung').map(([k,v]) => `<div><dt>${esc(k === 'Design-Anordnung' ? 'Anordnung' : k)}</dt><dd>${esc(String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – '))}</dd></div>`).join('')}
+                    ${Object.entries(item.options).filter(([k]) => !/Design-(Koordinaten|Anordnung)$/.test(k)).map(([k,v]) => `<div><dt>${esc(String(k).replace(/ Bestickung – Stelle$/, ' – Stelle').replace(/ Bestickung$/, ' – Text'))}</dt><dd>${esc(String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – '))}</dd></div>`).join('')}
                   </dl>` : ''}
                 ${Array.isArray(item.breakdown) && item.breakdown.length > 1 ? `
                   <ul class="cart-price">

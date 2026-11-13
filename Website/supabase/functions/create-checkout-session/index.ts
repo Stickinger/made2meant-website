@@ -82,9 +82,10 @@ Deno.serve(async (req) => {
       // Motive (aus product.motifs; options['Motive'] = "Label, Label")
       let motifAdd = 0
       const motifPrices: number[] = []
+      const ownByLabel: Record<string, number> = {}
+      for (const m of (p.motifs || [])) ownByLabel[String(m.label || '').trim()] = Number(m.price) || 0
       if (opts['Motive']) {
-        const byLabel: Record<string, number> = {}
-        for (const m of (p.motifs || [])) byLabel[String(m.label || '').trim()] = Number(m.price) || 0
+        const byLabel = ownByLabel
         for (const label of String(opts['Motive']).split(',').map((s) => s.trim()).filter(Boolean)) {
           if (label in byLabel) { motifPrices.push(byLabel[label]); continue }
           // Motiv-Katalog (js/motif-catalog.js): Label beginnt mit dem Code, z.B. "M7 Feuerdrache"
@@ -99,6 +100,22 @@ Deno.serve(async (req) => {
       const motifOnly = selected.length > 0 && motifPrices.length > 0 &&
         selected.every((pos: any) => String(opts[pos.label]) === 'Nur Motiv – ohne Text')
       if (motifOnly) motifAdd -= Math.max(...motifPrices)
+      // Sets: jedes Textil hat eigene Motive – options['<Textil> – Motive'] (Textil = Stickstellen-Label ohne „Bestickung").
+      // Identisch halten mit product.html (texName / handleAddToCart).
+      const texName = (l: any) => String(l || '').replace(/\s*[-–]?\s*Bestickung\s*$/i, '').trim() || String(l || '')
+      for (const pos of selected) {
+        const list = opts[texName(pos.label) + ' – Motive']
+        if (!list) continue
+        const pr: number[] = []
+        for (const label of String(list).split(',').map((s) => s.trim()).filter(Boolean)) {
+          if (label in ownByLabel) { pr.push(ownByLabel[label]); continue }
+          const code = label.split(' ')[0]
+          pr.push(code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
+        }
+        let add = pr.reduce((s, x) => s + x, 0)
+        if (pr.length && String(opts[pos.label]) === 'Nur Motiv – ohne Text') add -= Math.max(...pr)
+        motifAdd += add
+      }
       return base + embroidery + motifAdd
     }
 

@@ -326,6 +326,8 @@
     .bld__tabs button.done small { color: #3F6B4C; font-weight: 700; }
     .bld--multi .pos-card:not(.cur) { display: none; }
     .bld--curoff .bld__step[data-step="text"] > .fld ~ .fld { display: none; }
+    .setcols { margin-bottom: 6px; }
+    .setcol + .setcol { margin-top: 14px; }
     .bld__sumedit { background: none; border: none; padding: 0; font: 700 0.78rem var(--font-main); color: var(--color-primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 560px) { .bld__tabslbl { flex: 1 0 100%; } .bld__tabs button { flex: 1 1 0; min-width: 0; padding: 6px 10px; } }
     .bld__top { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
@@ -613,6 +615,8 @@
       cur: null,                          // Sets: gerade geöffnetes Textil (Stickstellen-ID)
       designs: {},                        // Sets: Gestaltung der anderen Textilien { posId: { font, threadColor, selectedMotifs, layout } }
       off: {},                            // Sets: Textilien, die bewusst ohne Bestickung bleiben
+      setColors: {},                      // Sets: gewählte Farbe je Teil { produkt-slug: 'Braun' }
+      setPreview: '',                     // Sets: Foto des zuletzt angeklickten Teils in seiner Farbe
     };
 
     const imgCache = {};
@@ -697,6 +701,7 @@
       }));
       cfg.previewPos = currentProduct.image_url ? 'main' : null;   // Start: Hauptbild des Produkts
       cfg.cur = POSITIONS[0] ? POSITIONS[0].id : null;
+      await loadSetParts();
 
       // Eigene Motive aus dem Admin (falls vorhanden) + unser Motiv-Katalog (für alle bestickbaren Produkte)
       const ownMotifs = (currentProduct.motifs || []).map((m, i) => ({
@@ -893,7 +898,7 @@
     }
     function currentPrice() {
       if (cfg.mode === 'ohne') return Number(currentProduct.price) || 0;
-      return priceBreakdown().reduce((sum, r) => sum + r.amount, 0);
+      return Math.round(priceBreakdown().reduce((sum, r) => sum + r.amount, 0) * 100) / 100;
     }
 
     function isNew() {
@@ -1041,6 +1046,7 @@
 
           <div class="divide"></div>
           ${capBlock}
+          ${SETP.some(x => x.values.length) ? `<div class="setcols"><div class="fld__hint" style="margin-bottom:10px"><b>Stell dir dein Set zusammen:</b> Jedes Teil gibt es in allen Farben – einfach antippen.</div>${setColorBlockHtml(false)}</div>` : ''}
 
           ${personalizable ? `<div class="bld" id="builder" hidden role="dialog" aria-modal="true" aria-label="Dein Stück gestalten">
             <div class="bld__top">
@@ -1056,6 +1062,8 @@
                 <div id="embroidery-fields">
                   ${capBlockBuilder ? `<section class="bld__step" data-step="farbe" data-title="Farbe des Textils" data-dot="Farbe wählen">
                     <p class="bld__lead">Welche Farbe soll dein Stück haben? Oben siehst du den Stoff.</p>${capBlockBuilder}</section>` : ''}
+                  ${!capBlockBuilder && SETP.some(x => x.values.length) ? `<section class="bld__step" data-step="farbe" data-title="Farben im Set" data-dot="Farben wählen">
+                    <p class="bld__lead">Welche Farbe soll jedes Teil im Set haben? Alle Farben sind frei kombinierbar.</p>${setColorBlockHtml(true)}</section>` : ''}
                   <section class="bld__step" data-step="text" data-title="Dein Text" data-dot="Text schreiben">${posBlock}${fontBlock}${threadBlock}</section>
                   ${hasMotifs ? `<section class="bld__step" data-step="motiv" data-title="Motiv dazu?" data-dot="Motiv aussuchen">${motifBlock}</section>` : ''}
                   <section class="bld__step" data-step="fertig" data-title="Anordnen &amp; prüfen" data-dot="Anordnen &amp; prüfen">
@@ -1136,7 +1144,8 @@
       const galleryThumbs = currentGallery().map((url, i) =>
         `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
       ).join('');
-      el.innerHTML = mainThumb + display + galleryThumbs;
+      const setThumb = cfg.setPreview ? `<button class="thumb ${cfg.previewPos === 'set' ? 'active' : ''}" onclick="setPreview('set')" aria-label="Gewählte Farbe"><img src="${cfg.setPreview}" alt="Set-Teil in der gewählten Farbe"></button>` : '';
+      el.innerHTML = mainThumb + setThumb + display + galleryThumbs;
     }
 
     function renderCanvas() {
@@ -1147,7 +1156,7 @@
 
       const view = cfg.previewPos;                       // null = unser Foto (farbabhängig), 'g<i>' = Galeriefoto
       const isGallery = typeof view === 'string' && view[0] === 'g';
-      const url = isGallery ? currentGallery()[+view.slice(1)] : ((view === 'main' && mainImage()) || displayImage());
+      const url = isGallery ? currentGallery()[+view.slice(1)] : ((view === 'set' && cfg.setPreview) || (view === 'main' && mainImage()) || displayImage());
       const img = getImg(url);
       if (img && img.complete && img.naturalWidth) {
         const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
@@ -1264,7 +1273,8 @@
       if (bEl) { bEl.classList.toggle('bld--multi', isMulti()); bEl.classList.toggle('bld--curoff', isMulti() && !(cfg.cur in cfg.positions)); }
       if (isMulti()) {
         const curOn = cfg.cur in cfg.positions, pend = texPending();
-        if (!curOn) {
+        if (key === 'farbe') { /* Farben gelten fürs ganze Set – normal weiter zum Text */ }
+        else if (!curOn) {
           const any = activePosIds().length > 0; ok = !!pend || any;
           label = pend ? 'Weiter: ' + texName(pend) + ' gestalten' : any ? 'Weiter: Anordnen & prüfen' : 'Bitte mindestens ein Textil besticken';
         } else if (last && (hasText() || motifOnly()) && !(cfg.unknownMotifCodes || []).length) {
@@ -1324,7 +1334,7 @@
     // ── Sets: zwischen den Textilien wechseln ──
     function texPending() { return isMulti() ? (POSITIONS.find(p => !(p.id in cfg.positions) && !cfg.off[p.id]) || null) : null; }   // noch nicht angefasst
     function texUnready() { const e = designList().find(x => !x.ready); return e ? e.pos : null; }
-    function saveDesign() { if (isMulti() && cfg.cur) cfg.designs[cfg.cur] = liveDesign(); }
+    function saveDesign() { if (!isMulti() || !cfg.cur) return; if (cfg.cur in cfg.positions) ensureLayout(chosenMotifList()); cfg.designs[cfg.cur] = liveDesign(); }
     function buildRecs(base) {
       const byCode = {}; MOTIFS.forEach(m => { if (m.code) byCode[m.code] = m; });
       return (base || []).map(r => {
@@ -1365,7 +1375,8 @@
       const steps = builderSteps();
       if (d > 0 && isMulti()) {
         const pend = texPending(), atEnd = bIdx === steps.length - 1;
-        if (!(cfg.cur in cfg.positions)) {
+        const onColor = steps[bIdx] && steps[bIdx].dataset.step === 'farbe';
+        if (!onColor && !(cfg.cur in cfg.positions)) {
           if (pend) { switchTextile(pend.id); return; }
           const first = designList()[0]; if (!first) return;
           switchTextile(first.pos.id, steps.length - 1); return;
@@ -1407,12 +1418,16 @@
       (many ? POSITIONS : L.map(e => e.pos)).forEach(p => {
         const e = L.find(x => x.pos.id === p.id);
         if (many) rows.push({ head: texName(p), id: p.id });
+        const part = many ? SETP.find(x => x.posId === p.id) : null;
+        if (part && cfg.setColors[part.slug]) rows.push([part.opt, cfg.setColors[part.slug]]);
         if (!e) { rows.push(['Bestickung', 'ohne']); return; }
         const lines = e.text.split('\n').filter(x => x.trim());
         rows.push(['Text', (lines.length ? lines.join(' / ') : 'ohne Text – nur Motiv') + (e.c.place ? ' (' + e.c.place + ')' : '')]);
         if (e.hasT) { rows.push(['Schrift', e.d.font.nr + ' – ' + e.d.font.name]); if (e.d.threadColor) rows.push(['Garnfarbe', e.d.threadColor.name]); }
         rows.push(['Motiv', e.motifs.length ? e.motifs.map(m => m.label).join(', ') : 'ohne']);
       });
+      // Set-Teile ohne Stickstelle (z.B. Waschlappen)
+      SETP.filter(x => !(many && x.posId) && cfg.setColors[x.slug]).forEach(x => { rows.push({ head: x.name, id: cfg.cur }); rows.push([x.opt, cfg.setColors[x.slug]]); });
       const pb = priceBreakdown(), unit = currentPrice();
       ul.innerHTML = '<li class="sub" style="display:block;padding:10px 12px 4px;border:none"><p class="bld__sumtitle">Deine Gestaltung</p></li>'
         + rows.map(r => r.head
@@ -1750,7 +1765,8 @@
     // Stofffarbe für den Hintergrund: aus dem Farbfoto der gewählten Produktfarbe gemessen (ohne weißen Fotohintergrund)
     const _toneCache = {};
     function fabricTone() {
-      const url = (capOption && cfg.capColor) ? colorSwatchImage(cfg.capColor) : displayImage();
+      const part = curPart();
+      const url = (part && cfg.setColors[part.slug]) ? partSwatch(part, cfg.setColors[part.slug]) : (capOption && cfg.capColor) ? colorSwatchImage(cfg.capColor) : displayImage();
       if (!url) return '#efe7da';
       if (_toneCache[url]) return _toneCache[url];
       _toneCache[url] = '#efe7da';
@@ -1805,7 +1821,77 @@
         im.src = url;
       });
     }
+    // ── Sets: die Teile im Set sind die Einzelprodukte – jedes in allen seinen Farben wählbar ──
+    // Welche Einzelprodukte in welchem Set stecken (slug). opt = Beschriftung der Auswahl, wenn es keine Farbe ist.
+    // Unbekanntes Set: die Teile werden über die Namen der Stickstellen gefunden.
+    const SET_PARTS_CFG = {
+      badeset:    [{ slug: 'bio-kapuzenhandtuch' }, { slug: 'bio-tier-waschlappen', name: 'Waschlappen', opt: 'Tier' }, { slug: 'bio-musselintuch' }],
+      kuschelset: [{ slug: 'bio-musselindecke' }, { slug: 'baumwoll-laetzchen' }],
+    };
+    let SETP = [];   // [{ slug, name, opt, values, images, image_url, posId }]
+    async function loadSetParts() {
+      SETP = [];
+      const conf = SET_PARTS_CFG[String(currentProduct.slug || '').toLowerCase()];
+      if (!conf && !isMulti()) return;
+      try {
+        const norm = t => String(t || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
+        const { data: prods } = await db.from('products').select('id, slug, name, options, image_url').eq('active', true);
+        const others = (prods || []).filter(x => x.slug !== currentProduct.slug);
+        const posFor = slug => POSITIONS.find(p => { const k = norm(texName(p)); return k && norm(slug).includes(k); });
+        const list = conf ? conf.map(c => ({ c, prod: others.find(x => x.slug === c.slug) }))
+          : POSITIONS.map(p => ({ c: {}, prod: others.find(x => norm(x.slug).includes(norm(texName(p)))) }));
+        const hits = list.filter(x => x.prod);
+        if (!hits.length) return;
+        const { data: imgs } = await db.from('product_images').select('product_id, url, option_values, sort_order').in('product_id', hits.map(x => x.prod.id)).order('sort_order');
+        SETP = hits.map(({ c, prod }) => {
+          const o = (prod.options || []).find(x => /kappe|farbe/i.test(x.name));
+          const pos = posFor(prod.slug);
+          return { slug: prod.slug, name: c.name || (pos ? texName(pos) : prod.name), opt: c.opt || 'Farbe', values: (o && o.values) || [],
+            images: (imgs || []).filter(i => i.product_id === prod.id), image_url: prod.image_url || '', posId: pos ? pos.id : null };
+        });
+        SETP.forEach(p => { if (p.values.length && !cfg.setColors[p.slug]) cfg.setColors[p.slug] = p.values[0]; });
+      } catch (e) { console.warn('Set-Teile konnten nicht geladen werden', e); SETP = []; }
+    }
+    function curPart() { return isMulti() ? (SETP.find(p => p.posId === cfg.cur) || null) : null; }
+    // Foto eines Set-Teils in genau dieser Farbe
+    function partSwatch(p, value) {
+      const one = p.images.find(img => { const k = Object.keys(img.option_values || {}); return k.length === 1 && img.option_values[k[0]] === value; });
+      if (one) return one.url;
+      const any = p.images.find(img => Object.values(img.option_values || {}).includes(value));
+      return (any && any.url) || p.image_url || '/assets/images/placeholder.png';
+    }
+    function setColorBlockHtml(big) {
+      return SETP.filter(p => p.values.length).map(p => `
+        <div class="fld setcol">
+          <span class="fld__label js-setlabel" data-part="${escH(p.slug)}">${escH(p.name)}: ${escH(cfg.setColors[p.slug] || '')}</span>
+          <div class="cswatches ${big ? 'cswatches--big' : ''}">
+            ${p.values.map(v => `<button type="button" class="cswatch setsw ${v === cfg.setColors[p.slug] ? 'selected' : ''}" data-part="${escH(p.slug)}" data-val="${escH(v)}" title="${escH(v)}" aria-label="${escH(p.name)} in ${escH(v)}" onclick="selectSetColor(this.dataset.part, this.dataset.val)"><img src="${escH(partSwatch(p, v))}" alt="${escH(v)}" loading="lazy"></button>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+    function selectSetColor(slug, value, quiet) {
+      const p = SETP.find(x => x.slug === slug); if (!p || !p.values.includes(value)) return;
+      cfg.setColors[slug] = value;
+      document.querySelectorAll('.setsw').forEach(el => { if (el.dataset.part === slug) el.classList.toggle('selected', el.dataset.val === value); });
+      document.querySelectorAll('.js-setlabel').forEach(el => { if (el.dataset.part === slug) el.textContent = p.name + ': ' + value; });
+      if (quiet) return;
+      cfg.setPreview = partSwatch(p, value); cfg.previewPos = 'set';      // großes Bild zeigt das Teil in der Farbe
+      renderThumbs(); renderCanvas();
+      if (builderOpen) {
+        // Vorschau im Gestaltungs-Fenster: gleich das angeklickte Textil in seiner Farbe zeigen
+        if (p.posId && p.posId !== cfg.cur) switchTextile(p.posId, bIdx); else { renderDesign(); updateBuilderNav(); }
+      }
+    }
     function textileCandidates() {
+      const part = curPart();
+      if (part) {
+        const okP = img => img && img.url && !/bestickt|\/hero\/|hero-/i.test(img.url);
+        const col = cfg.setColors[part.slug];
+        let l = part.images.filter(okP);
+        const byCol = col ? l.filter(img => Object.values(img.option_values || {}).includes(col)) : [];
+        l = byCol.length ? byCol : l.filter(img => !Object.keys(img.option_values || {}).length);
+        if (l.length) return l.map(i => i.url).slice(0, 6);
+      }
       const ok = img => img && img.url && !/bestickt|\/hero\/|hero-/i.test(img.url);
       let list = productImages.filter(ok);
       if (capOption && cfg.capColor) list = list.filter(img => Object.values(img.option_values || {}).includes(cfg.capColor));
@@ -1831,14 +1917,16 @@
         ] },
     ];
     function textileStageCfg() {
-      const slug = String(currentProduct?.slug || '').toLowerCase();
-      return TEXTILE_STAGES.find(t => t.match.test(slug) && !(t.notSet && isGiftSet())) || null;
+      const part = curPart();
+      const slug = String((part ? part.slug : currentProduct?.slug) || '').toLowerCase();
+      return TEXTILE_STAGES.find(t => t.match.test(slug)) || null;
     }
     let _texLayout = null;
     window.addEventListener('resize', () => { if (_texLayout) _texLayout(); });
     function applyTextileProduct() {
       const T = textileStageCfg(); _texLayout = null;
-      const c = T && T.colors[String(cfg.capColor || '').toLowerCase()];
+      const part = curPart();
+      const c = T && T.colors[String((part ? cfg.setColors[part.slug] : cfg.capColor) || '').toLowerCase()];
       const st = document.getElementById('dz-stage'), hoop = document.getElementById('dz-hoop');
       if (!c || !st || !hoop) return false;
       const R = { l: c.v[0] + T.rect.dx, t: c.v[1] + T.rect.dy, w: T.rect.w, h: c.h || T.rect.h };   // rundere Lätzchen: Stickbereich etwas niedriger, damit er auf dem Stoff bleibt
@@ -2122,7 +2210,7 @@
       const ser = d => ({ fontNr: d.font ? d.font.nr : 1, thread: d.threadColor ? d.threadColor.name : null, threadTouched: !!d.threadTouched,
         motifs: Object.keys(d.selectedMotifs).filter(id => d.selectedMotifs[id]), layout: d.layout ? JSON.parse(JSON.stringify(d.layout)) : null });
       const per = {}; designList().forEach(e => { per[e.pos.id] = ser(e.d); });
-      return { mode: cfg.mode, capColor: cfg.capColor || null, positions: JSON.parse(JSON.stringify(cfg.positions)), ...ser(liveDesign()), per };
+      return { mode: cfg.mode, capColor: cfg.capColor || null, positions: JSON.parse(JSON.stringify(cfg.positions)), ...ser(liveDesign()), per, setColors: { ...cfg.setColors } };
     }
     function restoreDesignFromCart() {
       const uid = new URLSearchParams(location.search).get('edit'); if (!uid) return;
@@ -2132,6 +2220,7 @@
       cfg.editUid = uid; qty = Math.max(1, parseInt(item.quantity) || 1);
       const qd = document.getElementById('qty-display'); if (qd) qd.textContent = qty;
       if (capOption && d.capColor && (capOption.values || []).includes(d.capColor)) selectCap(d.capColor);
+      Object.keys(d.setColors || {}).forEach(slug => selectSetColor(slug, d.setColors[slug], true));
       Object.keys(d.positions || {}).forEach(id => {
         if (!POSITIONS.some(p => p.id === id)) return;
         const src = d.positions[id], a = document.getElementById('posinput-' + id), b = document.getElementById('posinput2-' + id);
@@ -2167,6 +2256,8 @@
       const setContent = Array.isArray(currentProduct.bundle_items) ? currentProduct.bundle_items.filter(i => i && i.name) : [];
       if (setContent.length) options['Set-Inhalt'] = setContent.map(i => (i.qty > 1 ? i.qty + '× ' : '') + i.name).join(', ');
       if (capOption) options[capOption.name] = cfg.capColor;
+      // Set: gewählte Farbe je Teil (auch ohne Bestickung)
+      SETP.forEach(x => { if (cfg.setColors[x.slug]) options[x.name + ' – ' + x.opt] = cfg.setColors[x.slug]; });
       if (POSITIONS.length > 0 && cfg.mode === 'ohne') {
         options['Bestickung'] = 'Ohne Bestickung';
       } else if (POSITIONS.length > 0) {
