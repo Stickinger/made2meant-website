@@ -65,6 +65,8 @@ h2 { font-size: clamp(1.6rem, 3.2vw, 2.6rem); }
      eine Zeile für sich (statt zusätzlich zu umbrechen) */
   .announcebar:has(.shipbar--active) .announcebar__item:not(.shipbar) { display: none; }
 }
+/* Ruhiger: mit Inhalt im Warenkorb zeigt die Leiste nur noch den Versand-Fortschritt (kein Umbruch in zwei Zeilen) */
+.announcebar:has(.shipbar--active) .announcebar__item:not(.shipbar) { display: none; }
 
 /* Navigation: schwebende Glas-Pille über dem Hero */
 .navbar, .navbar.scrolled { background: transparent; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; border: 0;

@@ -25,6 +25,10 @@
     .cart-opts > div { display: flex; gap: 8px; padding: 1px 0; }
     .cart-opts dt { flex: 0 0 96px; color: var(--color-muted); }
     .cart-opts dd { margin: 0; color: var(--color-text); min-width: 0; overflow-wrap: anywhere; }
+    .cart-pricebox { margin: 0 0 8px; font-size: 0.82rem; }
+    .cart-pricebox summary { cursor: pointer; color: var(--color-muted); list-style: none; text-decoration: underline; text-underline-offset: 3px; }
+    .cart-pricebox summary::-webkit-details-marker { display: none; }
+    .cart-pricebox[open] summary { margin-bottom: 6px; }
     .cart-price { list-style: none; margin: 0 0 8px; padding: 8px 10px; max-width: 360px; font-size: 0.8rem; border: 1px solid var(--color-border); border-radius: 10px; background: rgba(255,255,255,.5); }
     .cart-price li { display: flex; justify-content: space-between; gap: 12px; padding: 1px 0; color: var(--color-muted); }
     .cart-price__sum { margin-top: 4px; padding-top: 5px !important; border-top: 1px solid var(--color-border); font-weight: 700; color: var(--color-text) !important; }
@@ -171,10 +175,10 @@
                     ${Object.entries(item.options).filter(([k]) => !/Design-(Koordinaten|Anordnung)$/.test(k)).map(([k,v]) => `<div><dt>${esc(String(k).replace(/ Bestickung – Stelle$/, ' – Stelle').replace(/ Bestickung$/, ' – Text'))}</dt><dd>${esc(String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – '))}</dd></div>`).join('')}
                   </dl>` : ''}
                 ${Array.isArray(item.breakdown) && item.breakdown.length > 1 ? `
-                  <ul class="cart-price">
-                    ${item.breakdown.map(r => `<li><span>${esc(r.label)}</span><span>${r.note ? esc(r.note) : '€' + Number(r.amount).toFixed(2)}</span></li>`).join('')}
-                    <li class="cart-price__sum"><span>Stückpreis</span><span>€${item.price.toFixed(2)}</span></li>
-                  </ul>` : `<span style="color:var(--color-muted); font-size:0.85rem;">€${item.price.toFixed(2)} / Stück</span>`}
+                  <details class="cart-pricebox"><summary>${euroCart(item.price)} pro Stück · Preis im Detail</summary><ul class="cart-price">
+                    ${item.breakdown.map(r => `<li><span>${esc(r.label)}</span><span>${r.note ? esc(r.note) : euroCart(r.amount)}</span></li>`).join('')}
+                    <li class="cart-price__sum"><span>Stückpreis</span><span>${euroCart(item.price)}</span></li>
+                  </ul></details>` : `<span style="color:var(--color-muted); font-size:0.85rem;">${euroCart(item.price)} / Stück</span>`}
                 ${item.design && item.uid && item.slug ? `<div><a class="cart-edit" href="/product.html?slug=${encodeURIComponent(item.slug)}&edit=${encodeURIComponent(item.uid)}">✎ Gestaltung bearbeiten</a></div>` : ''}
               </div>
             </div>
@@ -189,7 +193,7 @@
               onchange="handleQtyChange(${idx}, this.value)"
             >
           </td>
-          <td><strong>€${(item.price * item.quantity).toFixed(2)}</strong></td>
+          <td><strong>${euroCart((item.price * item.quantity))}</strong></td>
           <td>
             <button class="remove-btn" onclick="handleRemove(${idx})" title="Entfernen" aria-label="${esc(item.name)} entfernen">✕</button>
           </td>
@@ -229,12 +233,12 @@
             <h3 style="margin-bottom:20px;">Zusammenfassung</h3>
             <div class="cart-summary__row">
               <span>Zwischensumme</span>
-              <span>€${total.toFixed(2)}</span>
+              <span>${euroCart(total)}</span>
             </div>
             ${disc.amount > 0 ? `
               <div class="cart-summary__row" style="color:var(--color-success)">
                 <span>Rabatt (${esc(disc.code)})</span>
-                <span>−€${disc.amount.toFixed(2)}</span>
+                <span>−${euroCart(disc.amount)}</span>
               </div>` : ''}
             <div class="disc-box">
               <input type="text" id="cart-disc-input" placeholder="Rabattcode" autocomplete="off"
@@ -247,17 +251,17 @@
             ${disc.amount > 0 ? `<button class="disc-remove" onclick="removeCartDiscount()">Rabatt entfernen</button>` : ''}
             <div class="cart-summary__row" style="margin-top:12px;">
               <span>Versand</span>
-              <span>${shipping === 0 ? '<span style="color:var(--color-success)">Kostenlos</span>' : '€' + shipping.toFixed(2)}</span>
+              <span>${shipping === 0 ? '<span style="color:var(--color-success)">Kostenlos</span>' : euroCart(shipping)}</span>
             </div>
             <div class="ship-progress">
               <div class="ship-progress__track"><div class="ship-progress__fill" style="width:${Math.min(100, total / 119 * 100).toFixed(0)}%"></div></div>
               ${shipping > 0
-                ? `<span class="ship-progress__label">Noch <strong>€${(119 - total).toFixed(2)}</strong> bis zum kostenlosen Versand</span>`
+                ? `<span class="ship-progress__label">Noch <strong>${euroCart((119 - total))}</strong> bis zum kostenlosen Versand</span>`
                 : `<span class="ship-progress__label ship-progress__label--done">Geschafft – du erhältst kostenlosen Versand!</span>`}
             </div>
             <div class="cart-summary__row cart-summary__row--total">
               <span>Gesamt</span>
-              <span>€${grandTotal.toFixed(2)}</span>
+              <span>${euroCart(grandTotal)}</span>
             </div>
             <a href="/checkout.html" class="btn btn--primary" style="display:block; margin-top:20px; text-align:center;">
               Zur Kasse →
@@ -302,7 +306,7 @@
         return renderCart();
       }
       setDiscountCode(data.code);
-      discNotice = 'Code „' + data.code + '“ angewendet: −€' + Number(data.amount).toFixed(2);
+      discNotice = 'Code „' + data.code + '“ angewendet: − ' + euroCart(data.amount);
       renderCart();
     }
 
@@ -319,7 +323,7 @@
     const SHIP_POPUP_KEY = 'shipmodal_dismissed';
     let shipSuggestions = [];
 
-    function euroCart(n) { return '€' + Number(n || 0).toFixed(2).replace('.', ','); }
+    function euroCart(n) { return '€ ' + Number(n || 0).toFixed(2).replace('.', ','); }
 
     async function maybeShowShippingModal() {
       const total = getCartTotal();
@@ -385,7 +389,7 @@
 
     updateCartBadge();
     renderCart();
-    maybeShowShippingModal();
+    // Aufklapp-Fenster „Fast geschafft!" abgeschaltet – der Balken in der Zusammenfassung zeigt dasselbe ruhiger.
   </script>
 
 </body>

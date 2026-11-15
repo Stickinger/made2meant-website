@@ -274,16 +274,18 @@
     .motiftab.active { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
     /* Unsere Motiv-Empfehlung */
     .mrec__title { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-primary); margin: 6px 0 8px; }
-    .mrecs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-bottom: 14px; }
+    .mrecs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 14px; }
     .mrec { display: flex; gap: 12px; align-items: center; padding: 10px; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: #fbf6f1; text-align: left; cursor: pointer; font-family: var(--font-main); transition: all 0.15s; }
     .mrec:hover { border-color: var(--color-primary); }
     .mrec.active { border-color: var(--color-primary); background: #fbf1ec; box-shadow: 0 0 0 2px rgba(181,105,77,0.12); }
-    .mrec__img { flex: 0 0 72px; height: 72px; border-radius: calc(var(--radius) - 4px); overflow: hidden; background: #fff; display: grid; gap: 2px; }
+    .mrec__img { flex: 0 0 48px; height: 48px; border-radius: calc(var(--radius) - 4px); overflow: hidden; background: #fff; display: grid; gap: 2px; }
     .mrec__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
     .mrec__img--2 { grid-template-columns: 1fr 1fr; } .mrec__img--3 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
     .mrec__img--3 img:first-child { grid-row: span 2; }
     .mrec__body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-    .mrec__name { font-weight: 700; font-size: 0.9rem; color: var(--color-text); }
+    .mrec__name { font-weight: 700; font-size: 0.84rem; color: var(--color-text); }
+    .mrec { padding: 8px; gap: 10px; } .mrec__codes { display: none; }
+    .mrec__title { margin-top: 18px; }
     .mrec__codes { font-size: 0.76rem; color: var(--color-muted); }
     .mrec__cta { font-size: 0.75rem; font-weight: 700; color: var(--color-primary); }
     .motifcard { position: relative; }
@@ -313,6 +315,7 @@
     .pos-text input:focus { border-color: var(--color-primary); }
 
     .personalize-hint { font-size: 0.82rem; color: var(--color-muted); padding: 10px 14px; background: #fbf1ec; border: 1px solid #f0ddd4; border-radius: var(--radius); margin-bottom: 14px; }
+    .personalize-hint--empty { display: none; }
     .personalize-hint.complete { background: #eef4ef; border-color: #cfe0d4; color: var(--color-accent); }
 
     .buy-row { display: flex; gap: 12px; align-items: stretch; }
@@ -944,7 +947,6 @@
       const capBlock = (capOption && capOption.values?.length) ? `
         <div class="fld">
           <span class="fld__label js-caplabel" id="cap-label">Farbe${cfg.capColor ? ': ' + cfg.capColor : ''}</span>
-          <div class="fld__hint">Farbe antippen — das Hauptbild wechselt zur gewählten Farbe.</div>
           <div class="cswatches" id="cap-swatches">
             ${capOption.values.map(v => `<button type="button" class="cswatch ${v === cfg.capColor ? 'selected' : ''}" data-val="${escH(v)}" title="${escH(v)}" aria-label="Farbe ${escH(v)}" onclick="selectCap('${String(v).replace(/'/g, "\\'")}')"><img src="${escH(colorSwatchImage(v))}" alt="${escH(v)}" loading="lazy"></button>`).join('')}
           </div>
@@ -963,7 +965,7 @@
       const posBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Personalisierung</span>
-          <div class="fld__hint">Schreib deinen Wunschtext hinein — oben siehst du sofort, wie er aussieht.${hasMotifs ? ' Kein Text gewünscht? Lass das Feld leer und wähle im nächsten Schritt ein Motiv.' : ''}${POSITIONS.length > 1 ? ' <b>Jedes Textil im Set gestaltest du einzeln.</b> Häkchen weg = dieses Textil bleibt ohne Bestickung.' : ''}</div>${setDeal}
+${hasMotifs || POSITIONS.length > 1 ? `<div class="fld__hint">${POSITIONS.length > 1 ? 'Jedes Textil gestaltest du einzeln. Häkchen weg = ohne Bestickung.' : 'Kein Text gewünscht? Feld leer lassen und ein Motiv wählen.'}</div>` : ''}${setDeal}
           <div class="pos-list ${POSITIONS.length === 1 ? 'pos-list--single' : ''}">
             ${POSITIONS.map(pos => `
               <div class="pos-card" id="poscard-${pos.id}">
@@ -998,7 +1000,6 @@
       const fontBlock = !personalizable ? '' : `
         <div class="fld">
           <span class="fld__label">Schriftart</span>
-          <div class="fld__hint">Echte Stickproben von unserem Schriften-Musterstoff.</div>
           <div class="fonts" id="font-picker">
             ${FONTS.map((f, i) => `<button type="button" class="fontbtn ${i === 0 ? 'selected' : ''}" data-i="${i}" onclick="selectFont(${i})" aria-label="Schrift ${f.nr}: ${f.name}">${f.recommended ? '<span class="fontbtn__rec">Empfohlen</span>' : ''}<img src="${f.img}" alt="${f.sample} in Schrift ${f.name}, echt gestickt" loading="lazy"><small><b>${f.nr}</b> ${f.name}</small></button>`).join('')}
           </div>
@@ -1010,12 +1011,12 @@
       const motifBlock = !hasMotifs ? '' : `
         <div class="fld" id="motif-field">
           <span class="fld__label">Motiv <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
-          <div class="fld__hint">Such dir unten ein oder mehrere Motive aus und gib die Nummer ein (z.B. <b>T2</b> oder <b>G1, D7</b>) – oder tipp einfach aufs Bild. Kleines Motiv + ${euro(MOTIF_PRICES.klein)}, großes Motiv + ${euro(MOTIF_PRICES.gross)}.</div>
-          <div id="motif-recs"></div>
-          <input type="text" id="motif-codes" class="motif-codes" placeholder="Motiv-Nummer, z.B. T2, G1" autocomplete="off" oninput="setMotifCodes(this.value)">
+          <div class="fld__hint">Motiv auf dem Foto antippen. Klein + ${euro(MOTIF_PRICES.klein)}, groß + ${euro(MOTIF_PRICES.gross)}.</div>
+          <input type="text" id="motif-codes" class="motif-codes" style="display:none" aria-hidden="true" tabindex="-1" oninput="setMotifCodes(this.value)">
           <div class="motif-chosen" id="motif-chosen"></div>
           <div class="motiftabs" id="motif-tabs"></div>
           <div class="motifgrid" id="motif-grid"></div>
+          <div id="motif-recs"></div>
         </div>`;
 
       const stepBar = '' && `
@@ -1038,8 +1039,8 @@
           </div>
         </div>`;
 
-      const shipLink = '<a href="/faq.html" style="color:inherit">zzgl. Versand</a> (3,90 €, ab 119 € gratis)';
-      const priceNote = personalizable ? 'inkl. MwSt. ' + shipLink + ' · Grundpreis + gewählte Stickstellen' : 'inkl. MwSt. ' + shipLink;
+      const shipLink = '<a href="/faq.html" style="color:inherit">zzgl. Versand</a>';
+      const priceNote = personalizable ? 'inkl. MwSt. ' + shipLink : 'inkl. MwSt. ' + shipLink;
 
       document.getElementById('product-detail').innerHTML = `
         <div class="gallery">
@@ -1051,11 +1052,9 @@
             <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Produktfoto"></canvas>
           </div>
           <div class="thumbs" id="thumbs"></div>
-          ${personalizable ? '<div class="gallery__hint" id="gallery-hint">Beispielfoto — dein Wunschtext wird an der gewählten Stelle bestickt.</div>' : ''}
         </div>
 
         <div class="pinfo">
-          <div class="pinfo__eyebrow">${personalizable ? 'Individuell bestickt' : 'made2meant'}</div>
           <h1 class="pinfo__title">${p.name}</h1>
           ${p.description && !(setItems.length && /^Enthält:/.test(p.description)) ? `<p class="pinfo__tag">${p.description}</p>` : ''}
           <div class="pinfo__price" id="price-display">${euro(currentPrice())}</div>
@@ -1065,14 +1064,10 @@
             <div class="set-box__title">Das ist im Set</div>
             <ul>${setItems.map(i => `<li><span class="set-box__qty">${Math.max(1, parseInt(i.qty) || 1)}×</span> ${escHtml(i.name)}</li>`).join('')}</ul>
           </div>` : ''}
-          <div class="pinfo__chips">
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M11 20A7 7 0 0 1 4 13V6h7a7 7 0 0 1 7 7 7 7 0 0 1-7 7z"/><path d="M11 20V9"/></svg>Hochwertige Materialien</span>
-            <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>Persönlich in Österreich bestickt</span>
-          </div>
 
           <div class="divide"></div>
           ${capBlock}
-          ${SETP.some(x => x.values.length) ? `<div class="setcols"><div class="fld__hint" style="margin-bottom:10px"><b>Stell dir dein Set zusammen:</b> Jedes Teil gibt es in allen Farben – einfach antippen.</div>${setColorBlockHtml(false)}</div>` : ''}
+          ${SETP.some(x => x.values.length) ? `<div class="setcols"><div class="fld__label" style="margin-bottom:10px">Farben im Set</div>${setColorBlockHtml(false)}</div>` : ''}
 
           ${personalizable ? `<div class="bld" id="builder" hidden role="dialog" aria-modal="true" aria-label="Dein Stück gestalten">
             <div class="bld__top">
@@ -1087,15 +1082,15 @@
               <div class="bld__panel" id="bld-panel">
                 <div id="embroidery-fields">
                   ${capBlockBuilder ? `<section class="bld__step" data-step="farbe" data-title="Farbe des Textils" data-dot="Farbe wählen">
-                    <p class="bld__lead">Welche Farbe soll dein Stück haben? Oben siehst du den Stoff.</p>${capBlockBuilder}</section>` : ''}
+${capBlockBuilder}</section>` : ''}
                   ${!capBlockBuilder && SETP.some(x => x.values.length) ? `<section class="bld__step" data-step="farbe" data-title="Farben im Set" data-dot="Farben wählen">
-                    <p class="bld__lead">Welche Farbe soll jedes Teil im Set haben? Alle Farben sind frei kombinierbar.</p>${setColorBlockHtml(true)}</section>` : ''}
+${setColorBlockHtml(true)}</section>` : ''}
                   <section class="bld__step" data-step="text" data-title="Dein Text" data-dot="Text schreiben">${posBlock}${fontBlock}${threadBlock}</section>
                   ${hasMotifs ? `<section class="bld__step" data-step="motiv" data-title="Motiv dazu?" data-dot="Motiv aussuchen">${motifBlock}</section>` : ''}
                   <section class="bld__step" data-step="fertig" data-title="Anordnen &amp; prüfen" data-dot="Anordnen &amp; prüfen">
-                    <p class="bld__lead">Tippe oben ein Element an und verschiebe es mit dem Finger oder der Maus. Mit den Knöpfen darunter kannst du es vergrößern, drehen, spiegeln, mittig setzen oder entfernen.</p>
+                    <p class="bld__lead">Zum Verschieben einfach antippen und ziehen.</p>
                     <ul class="bld__sum" id="bld-summary"></ul>
-                    <p class="bld__lead" style="font-size:.76rem">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</p>
+                    <p class="bld__lead" style="font-size:.76rem">Die Vorschau ist angenähert. Passt etwas technisch nicht, melden wir uns vorher.</p>
                   </section>
                 </div>
               </div>
@@ -1108,7 +1103,7 @@
           <div id="step-1" hidden></div>
           <div id="step-2" hidden></div>
 
-          ${personalizable ? '<div class="personalize-hint" id="hint" role="status">Gestalte dein Stück in wenigen Schritten: Farbe, Text, Motiv.</div>' : '<div id="hint"></div>'}
+          ${personalizable ? '<div class="personalize-hint personalize-hint--empty" id="hint" role="status"></div>' : '<div id="hint"></div>'}
 
           <div class="buy-row">
             <div class="qty-selector">
@@ -1592,7 +1587,7 @@
       if (!box) return;
       if (!MOTIF_RECS.length) { box.innerHTML = ''; return; }
       const chosen = MOTIFS.filter(m => m.code && cfg.selectedMotifs[m.id]).map(m => m.code).sort().join(',');
-      box.innerHTML = `<div class="mrec__title">★ Unsere Empfehlung</div><div class="mrecs">${MOTIF_RECS.map((r, i) => {
+      box.innerHTML = `<div class="mrec__title">Beliebt bei diesem Stück</div><div class="mrecs">${MOTIF_RECS.map((r, i) => {
         const pics = r.img ? [r.img] : r.motifs.map(m => m.url).slice(0, 3);
         const active = [...r.codes].sort().join(',') === chosen;
         const price = r.motifs.reduce((a, m) => a + (Number(m.price) || 0), 0);
@@ -1650,7 +1645,7 @@
       };
       const shown = groups.length < 2 ? groups : (cfg.motifGroup === 'ALL' ? groups : groups.filter(g => g.key === cfg.motifGroup));
       grid.className = 'mpals';
-      grid.innerHTML = `<p class="mpal__hint">Das sind Fotos unserer echten Stickmuster. <b>Tippe ein Motiv direkt auf dem Foto an</b> – nochmal tippen wählt es wieder ab.</p>`
+      grid.innerHTML = ``
         + shown.map(g => palette(g, shown.length > 1)).join('');
     }
 
@@ -1818,7 +1813,7 @@
         </div>
         ${(() => { const T = textileStageCfg(); return T && T.examples && T.examples.length ? `<div class="dz__examples">
           <div class="dz__exthumbs">${T.examples.map(e => `<button type="button" onclick="openExample('${e.img}', '${escH(e.alt).replace(/'/g, '')}')" aria-label="Beispielfoto vergrößern"><img src="${e.img}" alt="${escH(e.alt)}" loading="lazy"></button>`).join('')}</div>
-          <p><b>Beispielfotos</b> echter Stickereien – nur damit du dir vorstellen kannst, wie es gestickt aussieht.</p></div>` : ''; })()}
+          <p><b>Beispielfotos</b> – so sieht es gestickt aus.</p></div>` : ''; })()}
         <div class="dz__warn" id="dz-warn" hidden>Ein Teil ragt über den Stickbereich – bitte etwas nach innen schieben oder verkleinern.</div>
         ${rec && rec.img ? `<div class="mplace__ex"><img class="mplace__photo" src="${escH(rec.img)}" alt="Beispiel von unseren Musterstücken" loading="lazy"><span>So sticken wir es bei unseren Musterstücken – <b>${escH((MOTIF_PLACES.find(p => p.key === rec.place) || {}).label || '')}</b>. Unsere Empfehlung ist schon voreingestellt.</span></div>` : ''}
         <div class="dz__note">Vorschau: Schrift und Größen sind angenähert. Wir sticken mit deiner gewählten Maschinenschrift und halten uns an deine Anordnung; wenn etwas technisch nicht passt, melden wir uns vorher.</div>`;
@@ -2276,7 +2271,7 @@
         hint.textContent = `Bereit — ${parts.join(' · ')}` + (!many && hasText() && cfg.threadColor ? ` · Garn: ${cfg.threadColor.name}` : '') + (chosenM.length ? ` · Motiv: ${chosenM.map(m => m.code || m.label).join(', ')}` : '');
       } else {
         hint.className = 'personalize-hint';
-        hint.textContent = 'Gestalte dein Stück in wenigen Schritten: Farbe, Text, Motiv.';
+        hint.textContent = ''; hint.className = 'personalize-hint personalize-hint--empty';
       }
     }
 

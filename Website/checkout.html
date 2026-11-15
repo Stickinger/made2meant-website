@@ -38,7 +38,8 @@
     .co-secure svg { width: 15px; height: 15px; }
 
     .disc-box { display: flex; gap: 8px; margin: 16px 0 4px; }
-    .disc-box input { flex: 1; text-transform: uppercase; letter-spacing: 0.04em; }
+    .disc-box input { flex: 1; min-width: 0; text-transform: uppercase; letter-spacing: 0.04em; padding: 10px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); font: inherit; font-size: 0.9rem; }
+    .summary__item > span:last-child { white-space: nowrap; }
     .disc-box input::placeholder { text-transform: none; letter-spacing: normal; }
     .disc-box button { padding: 0 16px; white-space: nowrap; font-size: 0.85rem; }
     #disc-msg { font-size: 0.8rem; min-height: 1.1em; margin-bottom: 4px; }
