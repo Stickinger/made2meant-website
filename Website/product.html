@@ -340,6 +340,20 @@
     .bld--curoff .bld__step[data-step="text"] > .fld ~ .fld { display: none; }
     .setcols { margin-bottom: 6px; }
     .setcol + .setcol { margin-top: 14px; }
+    /* Handy: Textfeld sofort erreichbar, beim Schreiben bleibt die Vorschau klein über der Tastatur sichtbar */
+    @media (max-width: 899px) {
+      .bld .bld__step[data-step="text"] > .fld:first-child { display: flex; flex-direction: column; }
+      .bld .bld__step[data-step="text"] > .fld:first-child > .fld__label { display: none; }
+      .bld .bld__step[data-step="text"] > .fld:first-child > .fld__hint { order: 5; margin-top: 10px; }
+      .bld .pos-text input[type=text] { font-size: 1.05rem; padding: 13px 14px; }
+      .bld[data-cur="text"] .dz__tools, .bld[data-cur="farbe"] .dz__tools { display: none; }   /* Anordnen kommt im letzten Schritt */
+      .bld--typing .bld__dots, .bld--typing .bld__tabs, .bld--typing .dz__tools, .bld--typing .dz__examples, .bld--typing .dz__warn, .bld--typing .bld__price { display: none !important; }
+      .bld--typing .bld__top { padding-top: 4px; padding-bottom: 4px; }
+      .bld--typing .bld__preview { padding: 6px 14px 2px; }
+      .bld--typing .bld__preview .dz { max-width: min(100%, calc(var(--bldh, 100vh) * 0.40)); }
+      .bld--typing .bld__panel { padding-top: 6px; }
+      .bld--typing .bld__foot { padding-top: 6px; padding-bottom: 6px; }
+    }
     .bld__sumedit { background: none; border: none; padding: 0; font: 700 0.78rem var(--font-main); color: var(--color-primary); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
     @media (max-width: 560px) { .bld__tabslbl { flex: 1 0 100%; } .bld__tabs button { flex: 1 1 0; min-width: 0; padding: 6px 10px; } }
     .bld__top { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--color-surface); border-bottom: 1px solid var(--color-border); }
@@ -960,10 +974,10 @@
                 </label>
                 <div class="pos-text" id="postext-${pos.id}">
                   <label for="posinput-${pos.id}">Dein Text</label>
-                  <input type="text" id="posinput-${pos.id}" maxlength="24" placeholder="z.B. Emma" autocomplete="off"
+                  <input type="text" id="posinput-${pos.id}" maxlength="24" placeholder="z.B. Emma" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()"
                          onfocus="setPreview('${pos.id}')" oninput="setPositionLine('${pos.id}', 1, this.value)">
                   <button type="button" class="pos-line2btn" id="posline2btn-${pos.id}" onclick="toggleLine2('${pos.id}')">+ Zweite Zeile hinzufügen (+ ${euro(LINE2_PRICE)})</button>
-                  <input type="text" id="posinput2-${pos.id}" maxlength="24" placeholder="Zweite Zeile, z.B. 12.03.2026" autocomplete="off" hidden
+                  <input type="text" id="posinput2-${pos.id}" maxlength="24" placeholder="Zweite Zeile, z.B. 12.03.2026" autocomplete="off" enterkeyhint="done" onkeydown="if(event.key==='Enter')this.blur()" hidden
                          oninput="setPositionLine('${pos.id}', 2, this.value)">
                   ${pos.placements.length > 1 ? `
                   <span class="pos-place__label">Wo sollen wir sticken?</span>
@@ -1245,15 +1259,37 @@
       if (cfg.mode !== 'mit') setMode('mit');
       builderOpen = true; bIdx = 0;
       el.hidden = false; document.body.classList.add('bld-open');
-      builderShow();
+      bldViewport(); builderShow();
       if (window.m2mTrack) m2mTrack('builder', 'open');
     }
     function closeBuilder() {
       const el = document.getElementById('builder'); if (!el) return;
-      builderOpen = false; el.hidden = true; document.body.classList.remove('bld-open');
+      builderOpen = false; el.hidden = true; document.body.classList.remove('bld-open'); el.classList.remove('bld--typing'); bldViewport();
       checkReady();
     }
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && builderOpen) closeBuilder(); });
+    // ── Handy: Fenster an den sichtbaren Bereich anpassen (Tastatur!) und beim Schreiben Platz machen ──
+    function bldViewport() {
+      const el = document.getElementById('builder'); if (!el) return;
+      const vv = window.visualViewport;
+      if (!builderOpen || !vv || window.innerWidth >= 900) { el.style.height = ''; el.style.top = ''; el.style.bottom = ''; el.style.removeProperty('--bldh'); return; }
+      el.style.top = vv.offsetTop + 'px'; el.style.bottom = 'auto'; el.style.height = vv.height + 'px';
+      el.style.setProperty('--bldh', vv.height + 'px');
+      if (_texLayout) _texLayout();
+    }
+    if (window.visualViewport) { visualViewport.addEventListener('resize', bldViewport); visualViewport.addEventListener('scroll', bldViewport); }
+    const isTextField = el => !!el && el.tagName === 'INPUT' && el.type === 'text' && !!el.closest('#builder');
+    document.addEventListener('focusin', e => {
+      if (!isTextField(e.target)) return;
+      document.getElementById('builder').classList.add('bld--typing');
+      const inp = e.target;
+      setTimeout(() => { bldViewport(); if (_texLayout) _texLayout(); if (window.innerWidth < 900) inp.scrollIntoView({ block: 'nearest' }); }, 320);
+    });
+    document.addEventListener('focusout', e => {
+      if (!isTextField(e.target)) return;
+      setTimeout(() => { if (isTextField(document.activeElement)) return;
+        const el = document.getElementById('builder'); if (el) el.classList.remove('bld--typing'); bldViewport(); if (_texLayout) _texLayout(); }, 160);
+    });
     function builderTextReady() {
       const a = curIds();
       if (!a.length) return false;
@@ -1270,7 +1306,7 @@
       const hasMotifStepEl = steps.some(st => st.dataset.step === 'motiv');
       if (key === 'text') {
         ok = builderTextReady() && (hasText() || hasMotifStepEl);
-        if (!ok) label = 'Bitte Text eingeben'; else if (!hasText()) label = 'Weiter ohne Text – nur Motiv';
+        if (!ok) label = 'Bitte Text eingeben'; else if (!hasText()) label = 'Weiter ohne Text';
       }
       if (key === 'motiv') {
         ok = !(cfg.unknownMotifCodes || []).length;
@@ -1305,6 +1341,7 @@
       bIdx = Math.max(0, Math.min(steps.length - 1, bIdx));
       steps.forEach((st, i) => { st.hidden = i !== bIdx; });
       const cur = steps[bIdx];
+      el.dataset.cur = cur.dataset.step;
       document.getElementById('bld-title').textContent = cur.dataset.title;
       const curPos = POSITIONS.find(p => p.id === cfg.cur);
       document.getElementById('bld-count').textContent = (isMulti() && curPos ? texName(curPos) + ' · ' : '') + `Schritt ${bIdx + 1} von ${steps.length}`;
@@ -1734,7 +1771,7 @@
       if (k === 'name') {
         const fp = FONT_PREVIEW[cfg.font?.nr] || FONT_PREVIEW[1];
         const col = cfg.threadColor ? cfg.threadColor.hex : '#1A1A1A';
-        return `<span style="font-family:${fp.family};font-weight:${fp.weight};font-size:${(14 * st.s).toFixed(2)}cqw;color:${col};text-align:center;line-height:1.08;transform:skewX(${fp.skew}deg);text-shadow:0 1px 0 rgba(255,255,255,.25)">${designName() ? escH(designName()).replace(/\n/g, '<br>') : '<i style="opacity:.45;font-style:normal">Dein Text</i>'}</span>`;
+        return `<span style="font-family:${fp.family};font-weight:${fp.weight};font-size:${(14 * st.s).toFixed(2)}cqw;color:${col};text-align:center;line-height:1.08;transform:skewX(${fp.skew}deg);text-shadow:0 1px 0 rgba(255,255,255,.25)">${designName() ? escH(designName()).replace(/\n/g, '<br>') : '<i style="opacity:.6;font-style:normal;font-size:.62em;font-family:var(--font-main);font-weight:700">Hier tippen &amp; schreiben</i>'}</span>`;
       }
       const m = MOTIFS.find(x => x.id === k); if (!m) return '';
       const w = (m.size === 'gross' ? 30 : 21) * st.s;
@@ -2014,6 +2051,14 @@
       if (k === 'name') inner.style.fontSize = (14 * st.s).toFixed(2) + 'cqw';
       else { const m = MOTIFS.find(x => x.id === k); inner.style.width = ((m && m.size === 'gross' ? 30 : 21) * st.s).toFixed(2) + 'cqw'; inner.style.transform = st.f ? 'scaleX(-1)' : ''; }
     }
+    // Text in der Vorschau angetippt → direkt ins Textfeld (am Handy öffnet sich die Tastatur)
+    function dzTextTap() {
+      const st = builderSteps()[bIdx], onText = st && st.dataset.step === 'text';
+      if (!onText && designName()) return;          // in den anderen Schritten wählt Tippen nur aus
+      if (!onText) { builderToText(); return; }
+      const inp = document.getElementById('posinput-' + (cfg.cur || (POSITIONS[0] && POSITIONS[0].id)));
+      if (inp) inp.focus();
+    }
     function dzSelect(k) {
       dzSel = k;
       document.querySelectorAll('.dz__el').forEach(e => e.classList.toggle('sel', e.dataset.k === k));
@@ -2071,6 +2116,8 @@
       });
       hoop.addEventListener('pointermove', e => {
         if (!drag) return;
+        if (!drag.moved && Math.abs(e.clientX - drag.sx) + Math.abs(e.clientY - drag.sy) < 6) return;   // noch ein Tippen, kein Ziehen
+        drag.moved = true;
         const st = dzState(drag.k), H = drag.H;
         if (drag.mode === 'm') {
           let x = drag.x0 + (e.clientX - drag.sx) / H.width * 100, y = drag.y0 + (e.clientY - drag.sy) / H.height * 100;
@@ -2090,7 +2137,8 @@
         }
         dzApply(drag.k); dzCheckBounds();
       });
-      const end = () => { if (!drag) return; const moved = true; drag = null; gv.classList.remove('on'); gh.classList.remove('on'); if (moved) dzChanged(); };
+      const end = () => { if (!drag) return; const moved = drag.moved, k = drag.k, mode = drag.mode; drag = null; gv.classList.remove('on'); gh.classList.remove('on');
+        if (moved) dzChanged(); else if (k === 'name' && mode === 'm') dzTextTap(); };
       hoop.addEventListener('pointerup', end); hoop.addEventListener('pointercancel', end);
       hoop.addEventListener('keydown', e => {
         const el = e.target.closest('.dz__el'); if (!el) return;
