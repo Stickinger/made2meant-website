@@ -257,6 +257,18 @@
     .mchip--bad { border-color: #d9534f; background: #fdeeee; color: #a33; padding: 4px 10px; }
     .motifcard__code { font-size: 0.85rem; font-weight: 800; color: var(--color-text); letter-spacing: 0.03em; }
     .motiftabs { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 12px; }
+    /* Motiv-Paletten: Foto des Musterstoffs mit anklickbaren Motiven */
+    .mpals { display: block; }
+    .mpal__hint { font-size: 0.86rem; color: var(--color-muted); margin: 0 0 10px; }
+    .mpal__title { font-size: 0.95rem; font-weight: 800; margin: 18px 0 8px; color: var(--color-text); }
+    .mpal { position: relative; width: 100%; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--color-border); background: #e9dfcf; margin-bottom: 10px; }
+    .mpal > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .mpal__hot { position: absolute; border: 2px solid transparent; border-radius: 10px; background: transparent; cursor: pointer; padding: 0; transition: border-color .12s, background .12s; }
+    .mpal__hot:hover, .mpal__hot:focus-visible { border-color: rgba(255,255,255,.95); background: rgba(255,255,255,.18); outline: none; }
+    .mpal__hot.selected { border-color: var(--color-primary); border-width: 3px; background: rgba(255,255,255,.22); box-shadow: 0 0 0 2px rgba(255,255,255,.85); }
+    .mpal__tick { position: absolute; top: -9px; right: -9px; width: 24px; height: 24px; border-radius: 50%; background: var(--color-primary); color: #fff; font: 800 0.8rem/24px var(--font-main); text-align: center; font-style: normal; display: none; box-shadow: 0 0 0 2px #fff; }
+    .mpal__hot.selected .mpal__tick { display: block; }
+    .mpal__size { position: absolute; left: 3px; bottom: 3px; padding: 1px 6px; border-radius: 99px; background: rgba(255,255,255,.88); color: var(--color-text); font: 700 0.62rem/1.5 var(--font-main); font-style: normal; }
     .motiftab { padding: 6px 14px; border: 1.5px solid var(--color-border); border-radius: 99px; background: var(--color-surface); font-family: var(--font-main); font-weight: 600; font-size: 0.8rem; color: var(--color-text); cursor: pointer; }
     .motiftab:hover { border-color: var(--color-primary); }
     .motiftab.active { border-color: var(--color-primary); background: #fbf1ec; color: var(--color-primary); }
@@ -1581,13 +1593,28 @@
         const n = MOTIFS.filter(m => (g.key === 'ALL' || m.group === g.key) && cfg.selectedMotifs[m.id]).length;
         return `<button type="button" class="motiftab ${g.key === cfg.motifGroup ? 'active' : ''}" onclick="setMotifGroup('${g.key}')">${escH(g.name)}${n ? `<span class="motiftab__n">${n}</span>` : ''}</button>`;
       }).join('');
-      grid.innerHTML = MOTIFS.filter(m => groups.length < 2 || cfg.motifGroup === 'ALL' || m.group === cfg.motifGroup).map(m => `
+      const PAL = (typeof MOTIF_PALETTES !== 'undefined') ? MOTIF_PALETTES : {};
+      const card = m => `
         <button type="button" class="motifcard ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" data-id="${m.id}" onclick="toggleMotif('${m.id}')" title="${escH(m.label)}">
           <img src="${escH(m.url)}" alt="${escH(m.name || m.label)}" loading="lazy">
           ${m.code && recCodes.has(m.code) ? '<span class="motifcard__star">★ Tipp</span>' : ''}
           ${m.code ? `<span class="motifcard__code">${escH(m.code)}</span><span class="motifcard__name">${escH(m.name)}</span>` : `<span class="motifcard__name">${escH(m.label)}</span>`}
           <span class="motifcard__price">+ ${euro(m.price)}${m.size === 'gross' ? ' · groß' : ''}</span>
-        </button>`).join('');
+        </button>`;
+      // Je Gruppe das Foto unserer echten Stick-Palette – jedes Motiv darauf ist anklickbar
+      const palette = (g, withTitle) => {
+        const P = PAL[g.key], ms = MOTIFS.filter(m => m.group === g.key);
+        const hot = P ? ms.filter(m => P.boxes[m.code]) : [], rest = ms.filter(m => !hot.includes(m));
+        return (withTitle ? `<h4 class="mpal__title">${escH(g.name)}</h4>` : '')
+          + (hot.length ? `<div class="mpal" style="aspect-ratio:${P.ratio}"><img src="${P.img}" alt="Unsere gestickte Motiv-Palette: ${escH(g.name)}" loading="lazy">
+              ${hot.map(m => { const b = P.boxes[m.code]; return `<button type="button" class="mpal__hot ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" onclick="toggleMotif('${m.id}')" aria-pressed="${cfg.selectedMotifs[m.id] ? 'true' : 'false'}" aria-label="${escH(m.label)}, plus ${euro(m.price)}" title="${escH(m.label)} · + ${euro(m.price)}"><i class="mpal__tick">✓</i>${m.size === 'gross' ? '<i class="mpal__size">groß</i>' : ''}</button>`; }).join('')}
+            </div>` : '')
+          + (rest.length ? `<div class="motifgrid">${rest.map(card).join('')}</div>` : '');
+      };
+      const shown = groups.length < 2 ? groups : (cfg.motifGroup === 'ALL' ? groups : groups.filter(g => g.key === cfg.motifGroup));
+      grid.className = 'mpals';
+      grid.innerHTML = `<p class="mpal__hint">Das sind Fotos unserer echten Stickmuster. <b>Tippe ein Motiv direkt auf dem Foto an</b> – nochmal tippen wählt es wieder ab.</p>`
+        + shown.map(g => palette(g, shown.length > 1)).join('');
     }
 
     function setMotifGroup(key) { cfg.motifGroup = key; renderMotifs(); }
