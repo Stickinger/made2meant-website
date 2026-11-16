@@ -1980,7 +1980,37 @@ ${setColorBlockHtml(true)}</section>` : ''}
         colors: {
           'altrosa': { img: '/assets/textil/strickdecke-altrosa.webp', v: [0.550, 0.705], dark: false },
           'taupe':   { img: '/assets/textil/strickdecke-beige.webp',   v: [0.580, 0.752], dark: false },
-        } },
+        },
+        examples: [
+          { img: '/assets/textil/strickdecke-beispiel-elina.webp', alt: 'Echt gestickt: „Elina" mit Reh und Hase in der Ecke' },
+          { img: '/assets/textil/strickdecke-beispiel-elina-ganz.webp', alt: 'Echt gestickt: Strickdecke „Elina", gefaltet' },
+        ] },
+      // Kapuzenhandtuch: Handtuch flach, Kapuze oben; gestickt wird mittig auf dem Rücken. v = linke obere Ecke des Stickbereichs.
+      { match: /kapuzenhandtuch/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.50, h: 0.19 }, pad: '38% 22% 8%', padM: '30% 16% 8%',
+        colors: {
+          'creme':    { img: '/assets/textil/kapuzenhandtuch-creme.webp',    v: [0.25, 0.55], dark: false },
+          'braun':    { img: '/assets/textil/kapuzenhandtuch-braun.webp',    v: [0.25, 0.50], dark: true },
+          'blaugrau': { img: '/assets/textil/kapuzenhandtuch-blaugrau.webp', v: [0.25, 0.55], dark: true },
+          'salbei':   { img: '/assets/textil/kapuzenhandtuch-salbei.webp',   v: [0.25, 0.50], dark: true },
+          'altrosa':  { img: '/assets/textil/kapuzenhandtuch-altrosa.webp',  v: [0.25, 0.50], dark: false },
+        },
+        examples: [
+          { img: '/assets/textil/kapuzenhandtuch-beispiel-fabian.webp', alt: 'Echt gestickt: „Fabian" mit Wolf' },
+          { img: '/assets/textil/kapuzenhandtuch-beispiel-laura.webp', alt: 'Echt gestickt: „Laura" mit Reh und Hase' },
+          { img: '/assets/textil/kapuzenhandtuch-beispiel-meliya.webp', alt: 'Echt gestickt: „Meliya" mit Reh' },
+          { img: '/assets/textil/kapuzenhandtuch-beispiel-rosalie.webp', alt: 'Echt gestickt: „Rosalie" mit Blumen' },
+        ] },
+      // Schmusetuch (Gans): ganzes Tuch; gestickt wird mittig auf dem Dreieck.
+      { match: /kuscheltuch|schmusetuch/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.30, h: 0.20 }, pad: '26% 30% 18%', padM: '24% 24% 16%',
+        colors: {
+          'creme':   { img: '/assets/textil/schmusetuch-creme.webp',   v: [0.35, 0.39], dark: false },
+          'caramel': { img: '/assets/textil/schmusetuch-caramel.webp', v: [0.35, 0.39], dark: true },
+          'sand':    { img: '/assets/textil/schmusetuch-sand.webp',    v: [0.37, 0.41], w: 0.26, h: 0.173, dark: false },
+        },
+        examples: [
+          { img: '/assets/textil/schmusetuch-beispiel-luna.webp', alt: 'Echt gestickt: „Luna" mit Bär auf dem Mond' },
+          { img: '/assets/textil/schmusetuch-beispiel-veronika.webp', alt: 'Echt gestickt: „Veronika" mit Bär auf dem Mond' },
+        ] },
       // Tierrucksack: ganzer Rucksack von vorne; gestickt wird oben über der Vordertasche (beim Hasen zwischen den Ohren).
       { match: /rucksack/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.44, h: 0.17 },
         colors: {
@@ -2009,6 +2039,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       // Musselindecke: noch kein Blanko-Foto je Farbe – nur echte Stick-Beispiele zum Ansehen
       { match: /musselindecke/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.3, h: 0.12 }, colors: {},
         examples: [
+          { img: '/assets/textil/musselindecke-beispiel-amelie.webp', alt: 'Echt gestickt: „Amelie" mit Reh, Gans und Herz' },
           { img: '/assets/textil/musselindecke-beispiel-marina.webp', alt: 'Echt gestickt: „Marina" mit Katze auf Blütenmotiv' },
           { img: '/assets/textil/musselindecke-beispiel-florian.webp', alt: 'Echt gestickt: „Florian" mit Burg auf Blättermotiv' },
         ] },
