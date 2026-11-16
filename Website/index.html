@@ -96,7 +96,29 @@
     .herofull__slide.active { opacity: 1; }
     .herofull__fallback { position: absolute; inset: 0; }
     .hero-deco { position: absolute; inset: 0; width: 100%; height: 100%; }
-    .herofull__slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 68% center; display: block; }
+    .herofull__slide img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--pos, 68% center); display: block; }
+    /* Geteilter Hero (Hochformat-Fotos): Computer = Text links, Foto rechts · Handy = Foto oben, Text darunter */
+    .herofull.herofull--split .herofull__bg { background: #F6F3EE; }
+    .herofull.herofull--split .herofull__scrim, .herofull.herofull--split .herofull__fallback { display: none; }
+    .herofull.herofull--split .herofull__title { color: var(--color-text); }
+    .herofull.herofull--split .hero-name { color: var(--color-primary); }
+    .herofull.herofull--split .herofull__text { color: var(--color-muted); }
+    .herofull.herofull--split .btn--cream { background: var(--color-text); color: #fff; border-color: var(--color-text); }
+    @media (min-width: 901px) {
+      .herofull.herofull--split .herofull__slide img { left: 46%; width: 54%; }
+      .herofull.herofull--split .hero-dots { left: 73%; bottom: 20px; transform: translateX(-50%); }
+      .herofull.herofull--split .hero-nav--prev { left: calc(46% + 18px); }
+      .herofull.herofull--split .herofull__content { max-width: 44%; }
+    }
+    @media (max-width: 900px) {
+      .herofull.herofull--split { min-height: 0; display: block; }
+      .herofull.herofull--split .herofull__slides { position: relative; inset: auto; height: min(62vh, 120vw); }
+      .herofull.herofull--split .herofull__content { padding: 22px 20px 30px; }
+      .herofull.herofull--split .herofull__title { margin-bottom: 10px; }
+      .herofull.herofull--split .herofull__text { margin-bottom: 18px; }
+      .herofull.herofull--split .hero-dots { top: calc(min(62vh, 120vw) - 24px); bottom: auto; }
+      .herofull.herofull--split .hero-nav { top: calc(min(62vh, 120vw) / 2); }
+    }
     .hero-name { color: var(--color-primary); transition: opacity 0.35s ease; }
     .hero-name.swap { opacity: 0; }
 
@@ -126,7 +148,8 @@
     .herofull__cta { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
     @media (max-width: 700px) {
       .herofull { min-height: 78vh; align-items: flex-end; }
-      .herofull__photo, .herofull__slide img { object-position: 62% top; }
+      .herofull__photo { object-position: 62% top; }
+      .herofull__slide img { object-position: var(--posm, 62% top); }
       .herofull__scrim { background: linear-gradient(180deg, rgba(246,243,238,0.5) 0%, rgba(246,243,238,0.2) 30%, rgba(246,243,238,0.85) 72%, rgba(246,243,238,0.98) 100%); }
       .herofull__content { padding: 24px 0 40px; }
     }
@@ -360,7 +383,7 @@
   <main id="main">
 
     <!-- ===== HERO (Bild-Diashow + dynamischer Name) ===== -->
-    <section class="herofull">
+    <section class="herofull herofull--split">
       <div class="herofull__bg"></div>
       <div class="herofull__slides" id="hero-slides"></div>
       <div class="herofull__scrim"></div>
@@ -400,14 +423,11 @@
 
     <!-- Kategorien-Sektion („Wonach suchst du?") vorerst entfernt – Kategorien noch nicht sinnvoll. -->
 
-    <!-- ===== BESTSELLER ===== -->
+    <!-- ===== ALLE PRODUKTE ===== -->
     <section class="section reveal" style="padding-top:24px">
       <div class="container">
-        <div class="sec-head sec-head--row">
-          <div>
-            <h2>Unsere Bestseller.</h2>
-          </div>
-          <a href="/shop.html" class="btn btn--ghost">Alle Produkte ansehen →</a>
+        <div class="sec-head">
+          <h2>Unsere Produkte.</h2>
         </div>
         <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
       </div>
@@ -433,20 +453,6 @@
             <a href="/qualitaet.html" class="btn btn--ghost" style="padding-left:0">Mehr über unsere Materialien →</a>
           </div>
         </div>
-      </div>
-    </section>
-
-
-    <!-- ===== GESCHENK-BUNDLES ===== -->
-    <section class="section reveal">
-      <div class="container">
-        <div class="sec-head sec-head--row">
-          <div>
-            <h2>Unsere fertigen Geschenk-Sets.</h2>
-          </div>
-          <a href="/shop.html?typ=set" class="btn btn--ghost">Alle Sets ansehen →</a>
-        </div>
-        <div class="pgrid" id="bundle-grid"><p class="loading">Wird geladen…</p></div>
       </div>
     </section>
 
@@ -595,11 +601,14 @@
     // Lege Fotos als /assets/images/hero-1.jpg … hero-4.jpg ab (fehlt eins, bleibt der Farbverlauf).
     const HERO_GRAD = [['#EFE7DA','#E4D3BE'],['#ECE6DC','#D9C7B4'],['#E7E5DC','#CFC6AE'],['#F1E8DD','#E1CDB6']];
     let HERO_SLIDES = [
-      { name: 'Leni', img: '/assets/images/hero-1.jpg', c1: '#EFE7DA', c2: '#E4D3BE' },
-      { name: 'Emma', img: '/assets/images/hero-2.jpg', c1: '#ECE6DC', c2: '#D9C7B4' },
-      { name: 'Max',  img: '/assets/images/hero-3.jpg', c1: '#E7E5DC', c2: '#CFC6AE' },
-      { name: 'Mia',  img: '/assets/images/hero-4.jpg', c1: '#F1E8DD', c2: '#E1CDB6' },
+      { name: 'Elina',   img: '/assets/hero/elina.webp',   pos: '50% 56%', posm: '50% 55%', c1: '#EFE7DA', c2: '#E4D3BE' },
+      { name: 'Amelie',  img: '/assets/hero/amelie.webp',  pos: '50% 42%', posm: '50% 40%', c1: '#ECE6DC', c2: '#D9C7B4' },
+      { name: 'Theo',    img: '/assets/hero/theo.webp',    pos: '50% 50%', posm: '60% 50%', c1: '#E7E5DC', c2: '#CFC6AE' },
+      { name: 'Florian', img: '/assets/hero/florian.webp', pos: '50% 58%', posm: '40% 62%', c1: '#F1E8DD', c2: '#E1CDB6' },
     ];
+    // true = die Stickerei-Fotos oben verwenden; false = Hero-Bilder aus dem Admin (Einstellungen → Bilder)
+    const HERO_LOCAL = true;
+    if (!HERO_LOCAL) document.querySelector('.herofull').classList.remove('herofull--split');
 
     // Qualitäts-Galerie: Werkstatt-Foto (Admin) + echte bestickte Stücke + unsere Motiv-Musterstoffe
     const QUALITY_SLIDES = [
@@ -642,7 +651,7 @@
         const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
         v = (data && data.value) || {};
       } catch (_) {}
-      if (Array.isArray(v.hero) && v.hero.some(s => s && s.img)) {
+      if (!HERO_LOCAL && Array.isArray(v.hero) && v.hero.some(s => s && s.img)) {
         HERO_SLIDES = v.hero.filter(s => s && (s.img || s.name)).map((s, i) => ({
           name: s.name || '', img: s.img || '',
           c1: HERO_GRAD[i % HERO_GRAD.length][0], c2: HERO_GRAD[i % HERO_GRAD.length][1],
@@ -708,7 +717,7 @@
       const box = document.getElementById('hero-slides');
       if (!box) return;
       box.innerHTML = HERO_SLIDES.map((s, i) =>
-        `<div class="herofull__slide ${i === 0 ? 'active' : ''}">
+        `<div class="herofull__slide ${i === 0 ? 'active' : ''}" style="${s.pos ? '--pos:' + s.pos + ';' : ''}${s.posm ? '--posm:' + s.posm + ';' : ''}">
           <div class="herofull__fallback" style="background:linear-gradient(120deg, ${s.c1} 0%, ${s.c2} 62%, ${s.c2} 100%)">
             <svg class="hero-deco" viewBox="0 0 600 500" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
               <circle cx="415" cy="215" r="185" fill="rgba(255,255,255,0.40)"/>
@@ -762,14 +771,8 @@
         el.innerHTML = list.length ? list.map(shopCard).join('') : `<p class="empty" style="grid-column:1/-1;color:var(--color-muted)">${empty}</p>`;
       };
 
-      // Geschenk-Bundles
-      fill('bundle-grid', products.filter(isBundle).slice(0, 5), 'Unsere fertigen Geschenk-Sets sind bald verfügbar.');
-
-      // Bestseller (Flag; sonst die beliebtesten Einzelprodukte)
-      // Bestseller legst du im Admin per Stern fest (auch Sets möglich)
-      let best = products.filter(p => p.bestseller);
-      if (!best.length) best = products.filter(p => !isBundle(p));
-      fill('bestseller-grid', best.slice(0, 5), 'Bald verfügbar.');
+      // Alle Produkte direkt auf der Startseite (gleiche Reihenfolge wie im Shop)
+      fill('bestseller-grid', products, 'Bald verfügbar.');
     }
 
     init();
