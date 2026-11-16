@@ -1974,6 +1974,19 @@ ${setColorBlockHtml(true)}</section>` : ''}
           { img: '/assets/textil/laetzchen-beispiel-tim.webp', alt: 'Echt gestickt: „Tim" mit Babydrache' },
           { img: '/assets/textil/laetzchen-beispiel-gruppe.webp', alt: 'Echt gestickt: vier Lätzchen mit Namen und Motiv' },
         ] },
+      // Strickdecke: ganze Decke flach fotografiert; gestickt wird unten rechts in der Ecke, knapp über dem Rand.
+      // v = linke obere Ecke des Stickbereichs im Foto.
+      { match: /strickdecke/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.30, h: 0.115 },
+        colors: {
+          'altrosa': { img: '/assets/textil/strickdecke-altrosa.webp', v: [0.550, 0.705], dark: false },
+          'taupe':   { img: '/assets/textil/strickdecke-beige.webp',   v: [0.580, 0.752], dark: false },
+        } },
+      // Musselindecke: noch kein Blanko-Foto je Farbe – nur echte Stick-Beispiele zum Ansehen
+      { match: /musselindecke/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.3, h: 0.12 }, colors: {},
+        examples: [
+          { img: '/assets/textil/musselindecke-beispiel-marina.webp', alt: 'Echt gestickt: „Marina" mit Katze auf Blütenmotiv' },
+          { img: '/assets/textil/musselindecke-beispiel-florian.webp', alt: 'Echt gestickt: „Florian" mit Burg auf Blättermotiv' },
+        ] },
     ];
     function textileStageCfg() {
       const part = curPart();
