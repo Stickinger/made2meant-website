@@ -1981,6 +1981,31 @@ ${setColorBlockHtml(true)}</section>` : ''}
           'altrosa': { img: '/assets/textil/strickdecke-altrosa.webp', v: [0.550, 0.705], dark: false },
           'taupe':   { img: '/assets/textil/strickdecke-beige.webp',   v: [0.580, 0.752], dark: false },
         } },
+      // Tierrucksack: ganzer Rucksack von vorne; gestickt wird oben über der Vordertasche (beim Hasen zwischen den Ohren).
+      { match: /rucksack/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.44, h: 0.17 },
+        colors: {
+          'bär (grau)':   { img: '/assets/textil/rucksack-baer.webp', v: [0.28, 0.165], dark: false, pad: '10% 26% 24%', padM: '8% 20% 22%' },
+          'hase (beige)': { img: '/assets/textil/rucksack-hase.webp', v: [0.35, 0.17], w: 0.30, h: 0.25, dark: false, pad: '8% 30% 20%', padM: '8% 26% 18%' },
+        },
+        examples: [
+          { img: '/assets/textil/rucksack-beispiel-noel.webp', alt: 'Echt gestickt: „Noel" mit Lokomotive' },
+          { img: '/assets/textil/rucksack-beispiel-matteo.webp', alt: 'Echt gestickt: „Matteo" mit zwei Drachen' },
+        ] },
+      // Musselintuch: Ecke des Tuchs je Farbe; gestickt wird in der Ecke. v = linke obere Ecke des Stickbereichs im Foto.
+      { match: /musselintuch/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.40, h: 0.1875 }, pad: '9% 24% 30%', padM: '8% 16% 26%',
+        colors: {
+          'weiß':      { img: '/assets/textil/musselintuch-weiss.webp',     v: [0.30, 0.41], dark: false },
+          'creme':     { img: '/assets/textil/musselintuch-creme.webp',     v: [0.30, 0.41], dark: false },
+          'rosa':      { img: '/assets/textil/musselintuch-rosa.webp',      v: [0.30, 0.49], dark: false },
+          'altrosa':   { img: '/assets/textil/musselintuch-rosa.webp',      v: [0.30, 0.49], dark: false },
+          'blaubeere': { img: '/assets/textil/musselintuch-blaubeere.webp', v: [0.32, 0.4325], dark: false },
+          'blume':     { img: '/assets/textil/musselintuch-blume.webp',     v: [0.32, 0.3325], dark: false },
+        },
+        examples: [
+          { img: '/assets/textil/musselintuch-beispiel-reh.webp', alt: 'Echt gestickt: Reh und Gans mit Herz' },
+          { img: '/assets/textil/musselintuch-beispiel-liam.webp', alt: 'Echt gestickt: „Liam" mit Piratenschiff' },
+          { img: '/assets/textil/musselintuch-beispiel-leonard.webp', alt: 'Echt gestickt: „Leonard" mit Zweig und Schnecke' },
+        ] },
       // Musselindecke: noch kein Blanko-Foto je Farbe – nur echte Stick-Beispiele zum Ansehen
       { match: /musselindecke/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.3, h: 0.12 }, colors: {},
         examples: [
@@ -2000,8 +2025,10 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const part = curPart();
       const c = T && T.colors[String((part ? cfg.setColors[part.slug] : cfg.capColor) || '').toLowerCase()];
       const st = document.getElementById('dz-stage'), hoop = document.getElementById('dz-hoop');
+      if (st) st.style.padding = '';
       if (!c || !st || !hoop) return false;
-      const R = { l: c.v[0] + T.rect.dx, t: c.v[1] + T.rect.dy, w: T.rect.w, h: c.h || T.rect.h };   // rundere Lätzchen: Stickbereich etwas niedriger, damit er auf dem Stoff bleibt
+      { const pad = (window.innerWidth < 900 && (c.padM || T.padM)) || c.pad || T.pad; if (pad) st.style.padding = pad; }   // mehr Platz unter dem Stickbereich → die Ecke des Tuchs bleibt sichtbar
+      const R = { l: c.v[0] + T.rect.dx, t: c.v[1] + T.rect.dy, w: c.w || T.rect.w, h: c.h || T.rect.h };   // rundere Lätzchen: Stickbereich etwas niedriger, damit er auf dem Stoff bleibt
       st.classList.add('has-photo', 'dz__stage--product');
       hoop.style.aspectRatio = String((R.w * T.aspect) / R.h);
       st.style.backgroundColor = '#fbfbfa';

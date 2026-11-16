@@ -101,13 +101,14 @@
     .herofull__blur { display: none; }
     .herofull.herofull--split .herofull__fallback { display: none; }
     @media (min-width: 901px) {
-      .herofull.herofull--split { --hh: clamp(560px, 90vh, 860px); --pw: calc(var(--hh) * 0.75); height: var(--hh); min-height: 0; }
+      .herofull.herofull--split { --hh: clamp(560px, 90vh, 860px); --pw: 58%; height: var(--hh); min-height: 0; }
       .herofull.herofull--split .herofull__blur { display: block; position: absolute; inset: -60px; background-size: cover; background-position: center; filter: blur(34px) saturate(1.05); transform: scale(1.05); }
       .herofull.herofull--split .herofull__scrim { background: linear-gradient(90deg, rgba(30,14,10,0.55) 0%, rgba(30,14,10,0.38) 45%, rgba(30,14,10,0.22) 100%); right: var(--pw); }
-      .herofull.herofull--split .herofull__slide img { left: auto; right: 0; width: var(--pw); box-shadow: -18px 0 48px rgba(30,14,10,0.28); }
+      .herofull.herofull--split .herofull__slide img { left: auto; right: 0; width: var(--pw); object-position: var(--pos, 50% 50%); box-shadow: -18px 0 48px rgba(30,14,10,0.28); }
       .herofull.herofull--split .hero-dots { left: calc(100% - var(--pw) / 2); bottom: 20px; transform: translateX(-50%); }
       .herofull.herofull--split .hero-nav--prev { left: calc(100% - var(--pw) + 18px); }
-      .herofull.herofull--split .herofull__content { max-width: calc(100% - var(--pw) - 24px); }
+      .herofull.herofull--split .herofull__content { max-width: calc(100% - var(--pw) - 24px); padding-left: clamp(32px, 4vw, 72px); }
+      .herofull.herofull--split .herofull__title { font-size: clamp(1.9rem, 3.3vw, 3.4rem); }
     }
     @media (max-width: 900px) {
       .herofull.herofull--split { --sh: min(70vh, 150vw); min-height: 0; display: block; }
@@ -118,6 +119,7 @@
       .herofull.herofull--split .herofull__text { color: var(--color-muted); margin-bottom: 18px; }
       .herofull.herofull--split .btn--cream { background: var(--color-text); color: #fff; border-color: var(--color-text); }
       .herofull.herofull--split .herofull__slides { position: relative; inset: auto; height: var(--sh); }
+      .herofull.herofull--split .herofull__slide img { object-position: var(--posm, 50% 50%); }
       .herofull.herofull--split .herofull__content { padding: 22px 20px 30px; }
       .herofull.herofull--split .hero-dots { top: calc(var(--sh) - 24px); bottom: auto; }
       .herofull.herofull--split .hero-nav { top: calc(var(--sh) / 2); }
