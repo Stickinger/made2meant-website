@@ -105,19 +105,21 @@
     .herofull.herofull--split .herofull__text { color: var(--color-muted); }
     .herofull.herofull--split .btn--cream { background: var(--color-text); color: #fff; border-color: var(--color-text); }
     @media (min-width: 901px) {
-      .herofull.herofull--split .herofull__slide img { left: 46%; width: 54%; }
-      .herofull.herofull--split .hero-dots { left: 73%; bottom: 20px; transform: translateX(-50%); }
-      .herofull.herofull--split .hero-nav--prev { left: calc(46% + 18px); }
-      .herofull.herofull--split .herofull__content { max-width: 44%; }
+      /* Foto als Hochformat-Fläche rechts (3:4) – zeigt deutlich mehr vom Bild */
+      .herofull.herofull--split { --hh: clamp(560px, 90vh, 860px); --pw: calc(var(--hh) * 0.75); height: var(--hh); min-height: 0; }
+      .herofull.herofull--split .herofull__slide img { left: auto; right: 0; width: var(--pw); }
+      .herofull.herofull--split .hero-dots { left: calc(100% - var(--pw) / 2); bottom: 20px; transform: translateX(-50%); }
+      .herofull.herofull--split .hero-nav--prev { left: calc(100% - var(--pw) + 18px); }
+      .herofull.herofull--split .herofull__content { max-width: calc(100% - var(--pw) - 24px); }
     }
     @media (max-width: 900px) {
-      .herofull.herofull--split { min-height: 0; display: block; }
-      .herofull.herofull--split .herofull__slides { position: relative; inset: auto; height: min(62vh, 120vw); }
+      .herofull.herofull--split { --sh: min(70vh, 150vw); min-height: 0; display: block; }
+      .herofull.herofull--split .herofull__slides { position: relative; inset: auto; height: var(--sh); }
       .herofull.herofull--split .herofull__content { padding: 22px 20px 30px; }
       .herofull.herofull--split .herofull__title { margin-bottom: 10px; }
       .herofull.herofull--split .herofull__text { margin-bottom: 18px; }
-      .herofull.herofull--split .hero-dots { top: calc(min(62vh, 120vw) - 24px); bottom: auto; }
-      .herofull.herofull--split .hero-nav { top: calc(min(62vh, 120vw) / 2); }
+      .herofull.herofull--split .hero-dots { top: calc(var(--sh) - 24px); bottom: auto; }
+      .herofull.herofull--split .hero-nav { top: calc(var(--sh) / 2); }
     }
     .hero-name { color: var(--color-primary); transition: opacity 0.35s ease; }
     .hero-name.swap { opacity: 0; }
@@ -740,6 +742,20 @@
       if (dots) dots.innerHTML = HERO_SLIDES.map((s, i) =>
         `<button class="hero-dot ${i === 0 ? 'active' : ''}" role="tab" aria-label="Bild ${i + 1}: ${s.name}" aria-selected="${i === 0 ? 'true' : 'false'}" onclick="heroTo(${i})"></button>`
       ).join('');
+
+      // Wischen am Handy: nach links = nächstes Bild, nach rechts = vorheriges
+      if (!box.dataset.swipe) {
+        box.dataset.swipe = '1';
+        box.style.touchAction = 'pan-y';
+        let x0 = null, y0 = 0;
+        box.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+        box.addEventListener('touchend', e => {
+          if (x0 === null) return;
+          const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+          x0 = null;
+          if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.3) heroStep(dx < 0 ? 1 : -1);
+        }, { passive: true });
+      }
 
       // Bei nur einem Bild keine Steuerung nötig
       if (HERO_SLIDES.length < 2) {

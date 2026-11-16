@@ -24,6 +24,9 @@
     .cart-opts { margin: 6px 0 8px; font-size: 0.82rem; line-height: 1.4; }
     .cart-opts > div { display: flex; gap: 8px; padding: 1px 0; }
     .cart-opts dt { flex: 0 0 96px; color: var(--color-muted); }
+    .cart-opts__title { margin: 8px 0 0; font-size: 0.82rem; font-weight: 700; color: var(--color-text); }
+    .cart-opts__title + .cart-opts { margin-top: 2px; }
+    .cart-opts__title + .cart-opts dt { flex-basis: 64px; }
     .cart-opts dd { margin: 0; color: var(--color-text); min-width: 0; overflow-wrap: anywhere; }
     .cart-pricebox { margin: 0 0 8px; font-size: 0.82rem; }
     .cart-pricebox summary { cursor: pointer; color: var(--color-muted); list-style: none; text-decoration: underline; text-underline-offset: 3px; }
@@ -145,6 +148,32 @@
 
     function esc(s) { return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
+    // Optionen fürs Anzeigen ordnen: Sets werden je Textil gruppiert (Überschrift + kurze Zeilen).
+    function optGroups(options) {
+      const SHORT = { 'Garnfarbe': 'Garn', 'Schriftart': 'Schrift', 'Motive': 'Motiv' };
+      const entries = Object.entries(options || {}).filter(([k]) => !/Design-(Koordinaten|Anordnung)$/.test(k));
+      const parsed = entries.map(([k, v]) => {
+        const key = String(k).replace(/ Bestickung – Stelle$/, ' – Stelle').replace(/ Bestickung$/, ' – Text');
+        const m = key.match(/^(.+?) – (.+)$/);
+        return { key, group: m ? m[1] : '', label: m ? m[2] : key, value: String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – ') };
+      });
+      // Nur echte Set-Teile gruppieren (erkennbar an Farbe/Tier/Garnfarbe/Schriftart/Motive je Teil)
+      const isPart = {};
+      parsed.forEach(p => { if (p.group && /^(Farbe|Tier|Garnfarbe|Schriftart|Motive)$/.test(p.label)) isPart[p.group] = true; });
+      const out = [], byName = {};
+      parsed.forEach(p => {
+        if (p.group && isPart[p.group]) {
+          if (!byName[p.group]) { byName[p.group] = { title: p.group, rows: [] }; out.push(byName[p.group]); }
+          byName[p.group].rows.push([SHORT[p.label] || p.label, p.value]);
+        } else {
+          let g = out[out.length - 1];
+          if (!g || g.title) { g = { title: '', rows: [] }; out.push(g); }
+          g.rows.push([p.key, p.value]);
+        }
+      });
+      return out;
+    }
+
     async function renderCart() {
       const cart = getCart();
       const content = document.getElementById('cart-content');
@@ -171,9 +200,10 @@
               <div>
                 <strong>${esc(item.name)}</strong><br>
                 ${item.options && Object.keys(item.options).length ? `
+                  ${optGroups(item.options).map(g => `${g.title ? `<div class="cart-opts__title">${esc(g.title)}</div>` : ''}
                   <dl class="cart-opts">
-                    ${Object.entries(item.options).filter(([k]) => !/Design-(Koordinaten|Anordnung)$/.test(k)).map(([k,v]) => `<div><dt>${esc(String(k).replace(/ Bestickung – Stelle$/, ' – Stelle').replace(/ Bestickung$/, ' – Text'))}</dt><dd>${esc(String(v).replace(/^(Selbst angeordnet|Unsere Empfehlung): /, '$1 – '))}</dd></div>`).join('')}
-                  </dl>` : ''}
+                    ${g.rows.map(([k,v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}
+                  </dl>`).join('')}` : ''}
                 ${Array.isArray(item.breakdown) && item.breakdown.length > 1 ? `
                   <details class="cart-pricebox"><summary>${euroCart(item.price)} pro Stück · Preis im Detail</summary><ul class="cart-price">
                     ${item.breakdown.map(r => `<li><span>${esc(r.label)}</span><span>${r.note ? esc(r.note) : euroCart(r.amount)}</span></li>`).join('')}
