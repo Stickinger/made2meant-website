@@ -103,8 +103,18 @@
     window.ttq.page();
   }
 
+  // Eigene Geräte (Admin-Anmeldung oder ?notrack=1, siehe js/track.js) laden keine Tracker
+  function ownDevice() {
+    try {
+      const nt = new URLSearchParams(location.search).get('notrack');
+      if (nt === '1') localStorage.setItem('m2m_notrack', '1');
+      if (nt === '0') localStorage.removeItem('m2m_notrack');
+      return localStorage.getItem('m2m_notrack') === '1';
+    } catch (e) { return false; }
+  }
   function apply(c) {
     consentModeUpdate(c);
+    if (ownDevice()) return;
     loadGoogle(c);
     if (c.marketing) { loadMeta(); loadTikTok(); }
   }

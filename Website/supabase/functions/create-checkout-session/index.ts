@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const productIds = [...new Set((order.order_items || []).map((i: any) => i.product_id).filter(Boolean))]
     const productMap: Record<string, any> = {}
     if (productIds.length) {
-      const { data: prods } = await admin.from('products').select('id, price, positions, bundle_items, motifs').in('id', productIds)
+      const { data: prods } = await admin.from('products').select('id, slug, price, positions, bundle_items, motifs').in('id', productIds)
       for (const p of prods || []) productMap[p.id] = p
     }
 
@@ -60,6 +60,19 @@ Deno.serve(async (req) => {
     const MOTIF_CATALOG_SIZES: Record<string, string> = {}
     for (const c of GROSS) MOTIF_CATALOG_SIZES[c] = 'gross'
     for (const c of KLEIN) MOTIF_CATALOG_SIZES[c] = 'klein'
+    // Motivpreise je Textil – identisch halten mit product.html (motifTier / MOTIF_TIER_PRICES):
+    // nur große Motive (alle 9,90 €) bzw. nur kleine (alle 4,90 €); sonst Katalog (klein/groß).
+    const MOTIF_TIER_PRICES: Record<string, number> = { klein: 4.90, gross: 9.90 }
+    function motifTier(key: unknown): string | null {
+      const k = String(key || '').toLowerCase()
+      if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 'gross'
+      if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 'klein'
+      return null
+    }
+    function catalogMotifPrice(code: string, tier: string | null): number {
+      if (!(code in MOTIF_CATALOG_SIZES)) return 0
+      return tier ? MOTIF_TIER_PRICES[tier] : MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]]
+    }
     // Stückpreis serverseitig nach DEN GLEICHEN Regeln wie die Website nachrechnen
     // (Grundpreis aus den Produktdaten + Bestickung nach Regel + Motive).
     function trueUnitPrice(item: any): number {
@@ -79,6 +92,8 @@ Deno.serve(async (req) => {
       for (const pos of (p.positions || [])) {
         if (Object.prototype.hasOwnProperty.call(opts, pos.label) && /^Zeile 1: .* \| Zeile 2: ./.test(String(opts[pos.label]))) embroidery += LINE2_PRICE
       }
+      // Sets (mehrere Stickstellen): das Textil der Stickstelle bestimmt den Motivpreis, sonst das Produkt
+      const multi = (p.positions || []).length > 1
       // Motive (aus product.motifs; options['Motive'] = "Label, Label")
       let motifAdd = 0
       const motifPrices: number[] = []
@@ -90,7 +105,7 @@ Deno.serve(async (req) => {
           if (label in byLabel) { motifPrices.push(byLabel[label]); continue }
           // Motiv-Katalog (js/motif-catalog.js): Label beginnt mit dem Code, z.B. "M7 Feuerdrache"
           const code = label.split(' ')[0]
-          motifPrices.push(code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
+          motifPrices.push(catalogMotifPrice(code, multi ? null : motifTier(p.slug)))
         }
         motifAdd = motifPrices.reduce((s, x) => s + x, 0)
       }
@@ -110,7 +125,7 @@ Deno.serve(async (req) => {
         for (const label of String(list).split(',').map((s) => s.trim()).filter(Boolean)) {
           if (label in ownByLabel) { pr.push(ownByLabel[label]); continue }
           const code = label.split(' ')[0]
-          pr.push(code in MOTIF_CATALOG_SIZES ? MOTIF_PRICES[MOTIF_CATALOG_SIZES[code]] : 0)
+          pr.push(catalogMotifPrice(code, motifTier(multi ? texName(pos.label) : p.slug)))
         }
         let add = pr.reduce((s, x) => s + x, 0)
         if (pr.length && String(opts[pos.label]) === 'Nur Motiv – ohne Text') add -= Math.max(...pr)

@@ -3474,13 +3474,11 @@ const GALLERY_LIB = [
   ['/assets/qualitaet/muster-fahrzeuge.webp', 'Motive: Fahrzeuge (C)'],
   ['/assets/qualitaet/muster-dinos.webp', 'Motive: Dinos (D)'],
   ['/assets/qualitaet/garnfarben.webp', '15 Garnfarben zur Auswahl'],
-  ['/assets/hero/elina.webp', 'Handtuch „Elina“ mit Rehkitz & Hase'],
   ['/assets/hero/amelie.webp', 'Musselindecke „Amelie“'],
   ['/assets/hero/theo.webp', 'Mütze „Theo“ mit Hase'],
   ['/assets/hero/florian.webp', 'Musselindecke „Florian“ mit Burg'],
-  ['/assets/textil/strickdecke-beispiel-elina.webp', 'Strickdecke „Elina“ mit Rehkitz & Hase'],
   ['/assets/textil/kapuzenhandtuch-beispiel-fabian.webp', 'Kapuzenhandtuch „Fabian“ mit Wolf'],
-  ['/assets/textil/kapuzenhandtuch-beispiel-laura.webp', 'Kapuzenhandtuch „Laura“'],
+  ['/assets/textil/kapuzenhandtuch-beispiel-laura.webp', 'Kapuzenhandtuch „Laura“ mit Rehkitz & Hase'],
   ['/assets/textil/kapuzenhandtuch-beispiel-meliya.webp', 'Kapuzenhandtuch „Meliya“ mit Rehkitz'],
   ['/assets/textil/kapuzenhandtuch-beispiel-rosalie.webp', 'Kapuzenhandtuch „Rosalie“ mit Blumen'],
   ['/assets/textil/musselindecke-beispiel-amelie.webp', 'Musselindecke „Amelie“'],
@@ -3768,6 +3766,9 @@ async function init() {
     window.location.href = '/index.html';
     return;
   }
+
+  // Dieses Gerät nicht in der Besucherstatistik mitzählen (siehe js/track.js)
+  try { localStorage.setItem('m2m_notrack', '1'); } catch (_) {}
 
   document.getElementById('topbar-user').textContent = user.email;
   loadDashboard();

@@ -886,6 +886,24 @@
       return sum;
     }
 
+    // Motivpreise je Textil: manche Textilien gibt es nur mit großen Motiven (alle 9,90 €), andere nur mit kleinen (alle 4,90 €).
+    // Alles andere (z. B. Strickdecke) rechnet nach Katalog (klein/groß). Identisch halten mit create-checkout-session (motifTier).
+    const MOTIF_TIER_PRICES = { klein: 4.90, gross: 9.90 };
+    function motifTier(key) {
+      const k = String(key || '').toLowerCase();
+      if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 'gross';
+      if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 'klein';
+      return null;
+    }
+    // Sets: das Textil der Stickstelle zählt; Einzelprodukte: das Produkt
+    function tierOf(pos) { return motifTier(isMulti() && pos ? texName(pos) : (currentProduct && currentProduct.slug)); }
+    // Motiv mit dem Preis für dieses Textil (ohne pos: das gerade geöffnete)
+    function pm(m, pos) {
+      if (!m || !m.code) return m;
+      const t = tierOf(pos || POSITIONS.find(p => p.id === cfg.cur));
+      return t ? Object.assign({}, m, { size: t, price: MOTIF_TIER_PRICES[t] }) : m;
+    }
+
     // Text vorhanden? / Nur-Motiv-Bestellung? (identische Regel am Server: create-checkout-session)
     const NO_TEXT_LABEL = 'Nur Motiv – ohne Text';
     function activePosIds() { return Object.keys(cfg.positions); }
@@ -903,7 +921,7 @@
       return POSITIONS.filter(p => p.id in cfg.positions).map(p => {
         const d = (!isMulti() || p.id === cfg.cur) ? liveDesign()
           : (cfg.designs[p.id] || { font: FONTS[0], threadColor: defaultThread(), selectedMotifs: {}, layout: null });
-        const text = String(cfg.positions[p.id].text || ''), motifs = MOTIFS.filter(m => d.selectedMotifs[m.id]);
+        const text = String(cfg.positions[p.id].text || ''), motifs = MOTIFS.filter(m => d.selectedMotifs[m.id]).map(m => pm(m, p));
         const hasT = !!text.trim(), only = !hasT && motifs.length > 0;
         return { pos: p, c: cfg.positions[p.id], d, text, motifs, hasT, only, ready: (hasT && !!d.threadColor) || only };
       });
@@ -922,7 +940,7 @@
         if (e.text.includes('\n')) rows.push({ label: 'Zweite Textzeile' + sfx, amount: LINE2_PRICE });
         // Nur Motiv (ohne Text): die Stickerei (9,90 €) enthält das erste Motiv – wir rechnen das teuerste gewählte Motiv an
         const incl = e.only ? e.motifs.reduce((a, m) => (!a || m.price > a.price ? m : a), null) : null;
-        e.motifs.forEach(m => rows.push(m === incl ? { label: 'Motiv ' + m.label + sfx, amount: 0, note: 'in der Stickerei enthalten' } : { label: 'Motiv ' + m.label + (m.size === 'gross' ? ' (groß)' : '') + sfx, amount: m.price }));
+        e.motifs.forEach(m => rows.push(m === incl ? { label: 'Motiv ' + m.label + sfx, amount: 0, note: 'in der Stickerei enthalten' } : { label: 'Motiv ' + m.label + (m.size === 'gross' && !tierOf(e.pos) ? ' (groß)' : '') + sfx, amount: m.price }));
       });
       return rows;
     }
@@ -1012,7 +1030,7 @@ ${hasMotifs || POSITIONS.length > 1 ? `<div class="fld__hint">${POSITIONS.length
       const motifBlock = !hasMotifs ? '' : `
         <div class="fld" id="motif-field">
           <span class="fld__label">Motiv <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--color-muted)">— optional</span></span>
-          <div class="fld__hint">Motiv auf dem Foto antippen. Klein + ${euro(MOTIF_PRICES.klein)}, groß + ${euro(MOTIF_PRICES.gross)}.</div>
+          <div class="fld__hint">Motiv auf dem Foto antippen. ${(() => { const t = tierOf(POSITIONS.find(p => p.id === cfg.cur)); return t ? 'Jedes Motiv + ' + euro(MOTIF_TIER_PRICES[t]) + '.' : 'Klein + ' + euro(MOTIF_PRICES.klein) + ', groß + ' + euro(MOTIF_PRICES.gross) + '.'; })()}</div>
           <input type="text" id="motif-codes" class="motif-codes" style="display:none" aria-hidden="true" tabindex="-1" oninput="setMotifCodes(this.value)">
           <div class="motif-chosen" id="motif-chosen"></div>
           <div class="motiftabs" id="motif-tabs"></div>
@@ -1591,7 +1609,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       box.innerHTML = `<div class="mrec__title">Beliebt bei diesem Stück</div><div class="mrecs">${MOTIF_RECS.map((r, i) => {
         const pics = r.img ? [r.img] : r.motifs.map(m => m.url).slice(0, 3);
         const active = [...r.codes].sort().join(',') === chosen;
-        const price = r.motifs.reduce((a, m) => a + (Number(m.price) || 0), 0);
+        const price = r.motifs.reduce((a, m) => a + (Number(pm(m).price) || 0), 0);
         return `<button type="button" class="mrec ${active ? 'active' : ''}" onclick="applyMotifRec(${i})">
           <span class="mrec__img mrec__img--${pics.length}">${pics.map(u => `<img src="${escH(u)}" alt="" loading="lazy">`).join('')}</span>
           <span class="mrec__body">
@@ -1632,7 +1650,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
           <img src="${escH(m.url)}" alt="${escH(m.name || m.label)}" loading="lazy">
           ${m.code && recCodes.has(m.code) ? '<span class="motifcard__star">★ Tipp</span>' : ''}
           ${m.code ? `<span class="motifcard__code">${escH(m.code)}</span><span class="motifcard__name">${escH(m.name)}</span>` : `<span class="motifcard__name">${escH(m.label)}</span>`}
-          <span class="motifcard__price">+ ${euro(m.price)}${m.size === 'gross' ? ' · groß' : ''}</span>
+          <span class="motifcard__price">+ ${euro(pm(m).price)}${!tierOf(POSITIONS.find(p => p.id === cfg.cur)) && m.size === 'gross' ? ' · groß' : ''}</span>
         </button>`;
       // Je Gruppe das Foto unserer echten Stick-Palette – jedes Motiv darauf ist anklickbar
       const palette = (g, withTitle) => {
@@ -1675,7 +1693,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const box = document.getElementById('motif-chosen');
       if (!box) return;
       const chosen = MOTIFS.filter(m => cfg.selectedMotifs[m.id]);
-      box.innerHTML = chosen.map(m => `<span class="mchip"><img src="${escH(m.url)}" alt="">${escH(m.label)} · + ${euro(m.price)}<button type="button" class="mchip__x" aria-label="${escH(m.label)} entfernen" onclick="toggleMotif('${m.id}')">×</button></span>`).join('')
+      box.innerHTML = chosen.map(m => `<span class="mchip"><img src="${escH(m.url)}" alt="">${escH(m.label)} · + ${euro(pm(m).price)}<button type="button" class="mchip__x" aria-label="${escH(m.label)} entfernen" onclick="toggleMotif('${m.id}')">×</button></span>`).join('')
         + (cfg.unknownMotifCodes || []).map(c => `<span class="mchip mchip--bad">„${escH(c)}" gibt es nicht</span>`).join('');
       renderMotifPlace(chosen);
     }
@@ -1983,8 +2001,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
           'taupe':   { img: '/assets/textil/strickdecke-beige.webp',   v: [0.580, 0.752], dark: false },
         },
         examples: [
-          { img: '/assets/textil/strickdecke-beispiel-elina.webp', alt: 'Echt gestickt: „Elina" mit Reh und Hase in der Ecke' },
-          { img: '/assets/textil/strickdecke-beispiel-elina-ganz.webp', alt: 'Echt gestickt: Strickdecke „Elina", gefaltet' },
+          { img: '/assets/qualitaet/decke-emma.webp', alt: 'Echt gestickt: Strickdecke „Emma" mit Rehkitz' },
         ] },
       // Kapuzenhandtuch: Handtuch flach, Kapuze oben; gestickt wird mittig auf dem Rücken. v = linke obere Ecke des Stickbereichs.
       { match: /kapuzenhandtuch/, aspect: 0.75, rect: { dx: 0, dy: 0, w: 0.50, h: 0.19 }, pad: '38% 22% 8%', padM: '30% 16% 8%',

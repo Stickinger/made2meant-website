@@ -636,7 +636,7 @@
     // Lege Fotos als /assets/images/hero-1.jpg … hero-4.jpg ab (fehlt eins, bleibt der Farbverlauf).
     const HERO_GRAD = [['#EFE7DA','#E4D3BE'],['#ECE6DC','#D9C7B4'],['#E7E5DC','#CFC6AE'],['#F1E8DD','#E1CDB6']];
     let HERO_SLIDES = [
-      { name: 'Elina',   img: '/assets/hero/elina.webp',   pos: '50% 56%', posm: '50% 55%', c1: '#EFE7DA', c2: '#E4D3BE' },
+      { name: 'Laura',   img: '/assets/hero/laura.webp',   pos: '50% 40%', posm: '66% 40%', c1: '#EFE7DA', c2: '#E4D3BE' },
       { name: 'Amelie',  img: '/assets/hero/amelie.webp',  pos: '50% 42%', posm: '50% 40%', c1: '#ECE6DC', c2: '#D9C7B4' },
       { name: 'Theo',    img: '/assets/hero/theo.webp',    pos: '50% 50%', posm: '60% 50%', c1: '#E7E5DC', c2: '#CFC6AE' },
       { name: 'Florian', img: '/assets/hero/florian.webp', pos: '50% 58%', posm: '40% 62%', c1: '#F1E8DD', c2: '#E1CDB6' },
@@ -831,14 +831,14 @@
 
     // ── Unsere Empfehlungen ─────────────────────────────────────────
     // Fertige Designs: Der Link öffnet das Produkt mit Farbe, Motiv, Schrift und Garn schon gewählt
-    // (product.html → applyPresetFromLink). Motiv-Codes aus js/motif-catalog.js; Preise wie dort (klein 5,90 / groß 9,90).
+    // (product.html → applyPresetFromLink). Motiv-Codes aus js/motif-catalog.js; Preise je Textil wie in product.html (motifTier): nur groß = 9,90, nur klein = 4,90.
     const RECS = [
-      { slug: 'strickdecke',         farbe: 'Altrosa',     motiv: ['T2', 'T13'], schrift: 1, garn: 'Schwarz',     add: 11.80, img: 'strickdecke-beispiel-elina',       titel: 'Rehkitz & Hase',  alt: 'Strickdecke in Altrosa mit Rehkitz, Hase und Namen' },
+      { slug: 'kapuzenhandtuch',     farbe: 'Altrosa',     motiv: ['T2', 'T13'], schrift: 1, garn: 'Braun',       add: 19.80, img: 'kapuzenhandtuch-beispiel-laura',   titel: 'Rehkitz & Hase',  alt: 'Kapuzenhandtuch in Altrosa mit Rehkitz, Hase und Namen' },
       { slug: 'kapuzenhandtuch',     farbe: 'Blaugrau',    motiv: ['T7'],        schrift: 1, garn: 'Creme',       add: 9.90,  img: 'kapuzenhandtuch-beispiel-fabian',  titel: 'Kleiner Wolf',    alt: 'Kapuzenhandtuch in Blaugrau mit Wolf und Namen' },
-      { slug: 'musselindecke',       farbe: 'Blättermotiv', motiv: ['M6'],       schrift: 1, garn: 'Dunkelblau',  add: 5.90,  img: 'musselindecke-beispiel-florian',   titel: 'Ritterburg',      alt: 'Musselindecke mit Burg und Namen' },
-      { slug: 'rucksack',            farbe: 'Bär (Grau)',  motiv: ['C7'],        schrift: 1, garn: 'Dunkelblau',  add: 5.90,  img: 'rucksack-beispiel-noel',           titel: 'Lokomotive',      alt: 'Bären-Rucksack mit Lokomotive und Namen' },
-      { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 5.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
-      { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 5.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
+      { slug: 'musselindecke',       farbe: 'Blättermotiv', motiv: ['M6'],       schrift: 1, garn: 'Dunkelblau',  add: 9.90,  img: 'musselindecke-beispiel-florian',   titel: 'Ritterburg',      alt: 'Musselindecke mit Burg und Namen' },
+      { slug: 'rucksack',            farbe: 'Bär (Grau)',  motiv: ['C7'],        schrift: 1, garn: 'Dunkelblau',  add: 9.90,  img: 'rucksack-beispiel-noel',           titel: 'Lokomotive',      alt: 'Bären-Rucksack mit Lokomotive und Namen' },
+      { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 4.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
+      { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 4.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
     ];
     function renderRecs(products) {
       const el = document.getElementById('recs-grid'); if (!el) return;

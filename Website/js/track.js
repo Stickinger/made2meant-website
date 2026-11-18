@@ -3,6 +3,16 @@
 // Kein Cookie, keine IP, keine Geräte-ID → keine Einwilligung nötig.
 // Aktionen (Warenkorb, Kasse) werden als „event:…“-Zeilen in derselben Tabelle gespeichert.
 (function () {
+  // Eigene Geräte nicht mitzählen: Wer sich im Admin anmeldet, wird auf diesem Gerät/Browser
+  // dauerhaft ausgenommen (localStorage „m2m_notrack“). Von Hand: Seite mit ?notrack=1 öffnen
+  // (ausnehmen) bzw. ?notrack=0 (wieder mitzählen).
+  try {
+    const nt = new URLSearchParams(location.search).get('notrack');
+    if (nt === '1') localStorage.setItem('m2m_notrack', '1');
+    if (nt === '0') localStorage.removeItem('m2m_notrack');
+    if (localStorage.getItem('m2m_notrack') === '1') { window.m2mTrack = function () {}; return; }
+  } catch (_) {}
+
   function hasDb() { return typeof db !== 'undefined' && db && db.from; }
 
   // /index.html → /, /shop.html → /shop; bei Produkten den slug behalten, dazu utm-Parameter
