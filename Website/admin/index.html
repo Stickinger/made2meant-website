@@ -914,6 +914,13 @@
             <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 10px;">Qualitäts-Foto (Startseite)</label>
             <div id="si-quality" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
 
+            <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 4px;">Galerie auf der Startseite („Was Babys berührt …")</label>
+            <p style="font-size:0.8rem;color:var(--color-muted);margin:0 0 12px">Diese Fotos laufen in der Galerie, in dieser Reihenfolge. Klick unten ein Foto an, um es aufzunehmen (✓) oder wieder zu entfernen – oder lade ein eigenes hoch. Der Text erscheint klein auf dem Foto.</p>
+            <div id="si-gallery"></div>
+            <button type="button" class="btn-sm btn-sm--outline" style="margin-top:4px" onclick="addGallerySlide()">+ Eigenes Foto hochladen</button>
+            <div style="font-size:0.78rem;font-weight:700;color:var(--color-muted);margin:16px 0 8px;">Vorhandene Fotos – anklicken zum Auswählen</div>
+            <div id="si-gallery-lib" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+
             <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin:26px 0 4px;">Qualitätsseite (6 Fotos)</label>
             <p style="font-size:0.8rem;color:var(--color-muted);margin:0 0 12px">Je ein Foto pro Abschnitt der Seite „Qualität". Ohne Foto erscheint ein dezenter Farbverlauf mit Symbol.</p>
             <div id="si-qualitypage" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
@@ -3455,7 +3462,49 @@ async function saveSettings() {
 }
 
 // ── WEBSITE-BILDER (Hero / Über uns / Qualität) ──────────────
-let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '', qualityPage: {} };
+let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '', qualityPage: {}, qualitySlides: [] };
+// Galerie der Startseite: Fotos, die schon auf der Website liegen (anklicken = aufnehmen)
+const GALLERY_LIB = [
+  ['/assets/qualitaet/decke-emma.webp', 'Strickdecke „Emma“ mit Rehkitz'],
+  ['/assets/qualitaet/rucksack-paul.webp', 'Bären-Rucksack „Paul“ mit Drachen'],
+  ['/assets/qualitaet/gans-maria.webp', 'Schmusetuch „Maria“ mit Katze'],
+  ['/assets/qualitaet/laetzchen-tim.webp', 'Lätzchen „Tim“ mit Dino'],
+  ['/assets/qualitaet/muster-maerchen.webp', 'Motive: Märchen & Ritter (M)'],
+  ['/assets/qualitaet/muster-tiere.webp', 'Motive: Wald & Tiere (T)'],
+  ['/assets/qualitaet/muster-fahrzeuge.webp', 'Motive: Fahrzeuge (C)'],
+  ['/assets/qualitaet/muster-dinos.webp', 'Motive: Dinos (D)'],
+  ['/assets/qualitaet/garnfarben.webp', '15 Garnfarben zur Auswahl'],
+  ['/assets/hero/elina.webp', 'Handtuch „Elina“ mit Rehkitz & Hase'],
+  ['/assets/hero/amelie.webp', 'Musselindecke „Amelie“'],
+  ['/assets/hero/theo.webp', 'Mütze „Theo“ mit Hase'],
+  ['/assets/hero/florian.webp', 'Musselindecke „Florian“ mit Burg'],
+  ['/assets/textil/strickdecke-beispiel-elina.webp', 'Strickdecke „Elina“ mit Rehkitz & Hase'],
+  ['/assets/textil/kapuzenhandtuch-beispiel-fabian.webp', 'Kapuzenhandtuch „Fabian“ mit Wolf'],
+  ['/assets/textil/kapuzenhandtuch-beispiel-laura.webp', 'Kapuzenhandtuch „Laura“'],
+  ['/assets/textil/kapuzenhandtuch-beispiel-meliya.webp', 'Kapuzenhandtuch „Meliya“ mit Rehkitz'],
+  ['/assets/textil/kapuzenhandtuch-beispiel-rosalie.webp', 'Kapuzenhandtuch „Rosalie“ mit Blumen'],
+  ['/assets/textil/musselindecke-beispiel-amelie.webp', 'Musselindecke „Amelie“'],
+  ['/assets/textil/musselindecke-beispiel-florian.webp', 'Musselindecke „Florian“ mit Burg'],
+  ['/assets/textil/musselindecke-beispiel-marina.webp', 'Musselindecke „Marina“ mit Katze'],
+  ['/assets/textil/musselintuch-beispiel-leonard.webp', 'Musselintuch „Leonard“'],
+  ['/assets/textil/musselintuch-beispiel-liam.webp', 'Musselintuch „Liam“ mit Piratenschiff'],
+  ['/assets/textil/musselintuch-beispiel-reh.webp', 'Musselintuch mit Rehkitz & Gans'],
+  ['/assets/textil/rucksack-beispiel-noel.webp', 'Bären-Rucksack „Noel“ mit Lokomotive'],
+  ['/assets/textil/rucksack-beispiel-matteo.webp', 'Bären-Rucksack „Matteo“ mit Drachen'],
+  ['/assets/textil/laetzchen-beispiel-alex.webp', 'Lätzchen „Alex“ mit Dino-Ei'],
+  ['/assets/textil/laetzchen-beispiel-gruppe.webp', 'Lätzchen in vier Farben'],
+  ['/assets/textil/schmusetuch-beispiel-luna.webp', 'Schmusetuch „Luna“'],
+];
+function addGallerySlide() { siteImages.qualitySlides.push({ img: '', cap: '' }); renderSiteImages(); }
+function removeGallerySlide(i) { siteImages.qualitySlides.splice(i, 1); renderSiteImages(); }
+function moveGallerySlide(i, d) { const L = siteImages.qualitySlides, j = i + d; if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; renderSiteImages(); }
+function setGalleryCap(i, v) { if (siteImages.qualitySlides[i]) siteImages.qualitySlides[i].cap = v; }
+function toggleGalleryLib(k) {
+  const [img, cap] = GALLERY_LIB[k], L = siteImages.qualitySlides, at = L.findIndex(x => x.img === img);
+  if (at >= 0) L.splice(at, 1); else L.push({ img, cap });
+  renderSiteImages();
+}
+async function uploadGallery(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && siteImages.qualitySlides[i]) { siteImages.qualitySlides[i].img = url; renderSiteImages(); } }
 // Fotos der Qualitätsseite: Schlüssel = data-si auf qualitaet.html
 const QUALITY_PAGE_SLOTS = [
   ['stickerei',  '01 Gestickt, nicht gedruckt'],
@@ -3477,6 +3526,10 @@ async function loadSiteImages() {
     aboutLeo: v.aboutLeo || '',
     quality: v.quality || '',
     qualityPage: (v.qualityPage && typeof v.qualityPage === 'object') ? { ...v.qualityPage } : {},
+    // Noch nichts gespeichert → mit den Fotos starten, die gerade live zu sehen sind
+    qualitySlides: Array.isArray(v.qualitySlides) && v.qualitySlides.length
+      ? v.qualitySlides.map(s => ({ img: s.img || '', cap: s.cap || '' }))
+      : GALLERY_LIB.slice(0, 9).map(([img, cap]) => ({ img, cap })),
   };
   renderSiteImages();
 }
@@ -3518,6 +3571,24 @@ function renderSiteImages() {
   const quality = document.getElementById('si-quality');
   if (quality) quality.innerHTML = `<div style="text-align:center;">${siSlot(siteImages.quality, 'uploadQuality(', 170)}</div>`;
 
+  const gal = document.getElementById('si-gallery');
+  if (gal) gal.innerHTML = siteImages.qualitySlides.map((s, i) => `
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
+      <div style="text-align:center;">${siSlot(s.img, `uploadGallery(${i},`, 110)}</div>
+      <input type="text" placeholder="Text auf dem Foto (kann leer bleiben)" value="${(s.cap || '').replace(/"/g, '&quot;')}"
+             style="flex:1;min-width:110px;align-self:flex-start;" onchange="setGalleryCap(${i}, this.value)">
+      <button type="button" class="btn-sm btn-sm--outline" title="Nach vorne" onclick="moveGallerySlide(${i}, -1)">↑</button>
+      <button type="button" class="btn-sm btn-sm--outline" title="Nach hinten" onclick="moveGallerySlide(${i}, 1)">↓</button>
+      <button type="button" class="btn-sm btn-sm--outline" title="Entfernen" onclick="removeGallerySlide(${i})">✕</button>
+    </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Fotos ausgewählt – dann zeigt die Startseite die bisherige Auswahl.</p>';
+  const lib = document.getElementById('si-gallery-lib');
+  if (lib) lib.innerHTML = GALLERY_LIB.map(([img, cap], k) => {
+    const on = siteImages.qualitySlides.some(x => x.img === img);
+    return `<button type="button" title="${cap.replace(/"/g, '&quot;')}" onclick="toggleGalleryLib(${k})" style="position:relative;padding:0;border:3px solid ${on ? '#D9502F' : 'transparent'};border-radius:10px;background:#fff;cursor:pointer;line-height:0;">
+      <img src="${img}" alt="" loading="lazy" style="width:84px;height:84px;object-fit:cover;border-radius:7px;opacity:${on ? 1 : 0.75};">
+      ${on ? '<span style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#D9502F;color:#fff;font-size:13px;line-height:20px;font-weight:700;">✓</span>' : ''}
+    </button>`; }).join('');
+
   const qp = document.getElementById('si-qualitypage');
   if (qp) qp.innerHTML = QUALITY_PAGE_SLOTS.map(([key, label]) =>
     `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">${label}</div>${siSlot(siteImages.qualityPage[key] || '', `uploadQualityPage('${key}',`, 130)}${siteImages.qualityPage[key] ? `<button type="button" class="btn-sm btn-sm--outline" style="margin-top:6px;font-size:0.72rem" onclick="removeQualityPage('${key}')">Entfernen</button>` : ''}</div>`
@@ -3546,6 +3617,7 @@ async function saveSiteImages() {
     aboutLeo: siteImages.aboutLeo || '',
     quality: siteImages.quality || '',
     qualityPage: Object.fromEntries(Object.entries(siteImages.qualityPage || {}).filter(([, u]) => u)),
+    qualitySlides: (siteImages.qualitySlides || []).map(s => ({ img: (s.img || '').trim(), cap: (s.cap || '').trim() })).filter(s => s.img),
   };
   // Motiv-Empfehlungen liegen im selben Eintrag (öffentlich lesbar) – nicht überschreiben
   try {

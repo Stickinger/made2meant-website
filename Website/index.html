@@ -658,12 +658,15 @@
       { img: '/assets/qualitaet/garnfarben.webp',       cap: '15 Garnfarben zur Auswahl' },
     ];
     let qIndex = 0;
-    function renderQualitySlider(workshopImg) {
+    function renderQualitySlider(workshopImg, custom) {
       const track = document.getElementById('qslider-track'), dots = document.getElementById('qslider-dots');
       if (!track) return;
       const box = document.getElementById('qslider');
-      const slides = (workshopImg ? [{ img: workshopImg, cap: 'Unsere Werkstatt', alt: box.dataset.alt }] : []).concat(QUALITY_SLIDES);
-      track.innerHTML = slides.map((s, i) => `<div class="qslider__slide ${i === 0 ? 'active' : ''}"><img src="${s.img}" alt="${s.alt || s.cap}" ${i ? 'loading="lazy"' : ''} decoding="async"><span class="qslider__cap">${s.cap}</span></div>`).join('');
+      // Im Admin ausgewählte Fotos (Einstellungen → Website-Bilder → Galerie) haben Vorrang vor der festen Liste
+      const picked = (Array.isArray(custom) ? custom : []).filter(x => x && x.img).map(x => ({ img: x.img, cap: x.cap || '' }));
+      const slides = picked.length ? picked : (workshopImg ? [{ img: workshopImg, cap: 'Unsere Werkstatt', alt: box.dataset.alt }] : []).concat(QUALITY_SLIDES);
+      const esc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      track.innerHTML = slides.map((s, i) => `<div class="qslider__slide ${i === 0 ? 'active' : ''}"><img src="${esc(s.img)}" alt="${esc(s.alt || s.cap || 'Bestickte Babytextilien von made2meant')}" ${i ? 'loading="lazy"' : ''} decoding="async">${s.cap ? `<span class="qslider__cap">${esc(s.cap)}</span>` : ''}</div>`).join('');
       dots.innerHTML = slides.map((_, i) => `<button type="button" class="qslider__dot ${i === 0 ? 'active' : ''}" aria-label="Bild ${i + 1}" onclick="qSlide(0, ${i})"></button>`).join('');
       qIndex = 0;
       // Wischen am Handy
@@ -692,7 +695,7 @@
           c1: HERO_GRAD[i % HERO_GRAD.length][0], c2: HERO_GRAD[i % HERO_GRAD.length][1],
         }));
       }
-      renderQualitySlider(v.quality);
+      renderQualitySlider(v.quality, v.qualitySlides);
     }
 
     // Kategorie-Bilder aus dem Admin (Kategorien → Bild) auf die Kacheln legen.
