@@ -749,6 +749,7 @@
       if (MOTIFS.length) loadMotifRecs(currentProduct.slug);
       loadProductInfo(currentProduct);
       try { restoreDesignFromCart(); } catch (e) { console.warn('Gestaltung konnte nicht geladen werden', e); }
+      try { applyPresetFromLink(); } catch (e) { console.warn('Empfehlung konnte nicht geladen werden', e); }
       renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
     }
 
@@ -2390,6 +2391,22 @@ ${setColorBlockHtml(true)}</section>` : ''}
       }
       openBuilder(); bIdx = builderSteps().length - 1; builderShow();
       if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    }
+    // Empfohlenes Design von der Startseite (?motiv=T2,T13&schrift=1&garn=Schwarz):
+    // Motiv, Schrift und Garn sind schon gewählt – es fehlt nur noch der Name.
+    function applyPresetFromLink() {
+      const q = new URLSearchParams(location.search);
+      if (q.get('edit') || !POSITIONS.length || isMulti()) return;
+      const codes = (q.get('motiv') || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
+      const fontNr = parseInt(q.get('schrift')), garn = q.get('garn');
+      if (!codes.length && !fontNr && !garn) return;
+      const fi = FONTS.findIndex(f => f.nr === fontNr); if (fi >= 0) selectFont(fi);
+      if (garn && THREAD_COLORS.some(t => t.name === garn)) selectThread(garn);
+      cfg.selectedMotifs = {};
+      codes.forEach(c => { const m = MOTIFS.find(k => k.code === c); if (m) cfg.selectedMotifs[m.id] = true; });
+      syncMotifInput(); renderMotifs(); updatePrice();
+      const st = builderSteps().find(x => x.dataset.step === 'text'); if (st) st.dataset.title = 'Nur noch der Name';
+      openBuilder(); builderToText();
     }
     function handleAddToCart() {
       const options = {};

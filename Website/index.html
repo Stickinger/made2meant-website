@@ -335,14 +335,33 @@
     .reveal.is-visible { opacity: 1; transform: none; }
     @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
     /* ── So funktioniert's (3 Schritte) ── */
-    .howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; align-items: center; margin-top: 12px; padding: 26px 32px; border-radius: var(--radius-lg); background: var(--color-surface); border: 1px solid var(--color-border); }
-    .howto__step { display: flex; align-items: center; gap: 16px; }
-    .howto__icon { flex: 0 0 64px; width: 64px; height: 64px; border-radius: 50%; background: #F6DED8; color: #D9502F; display: flex; align-items: center; justify-content: center; }
-    .howto__icon svg { width: 36px; height: 36px; }
-    .howto__step strong { display: block; font-size: 0.95rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text); }
-    .howto__step strong b { color: #D9502F; font-weight: 700; margin-right: 2px; }
-    .howto__step span:not(.howto__icon) { display: block; color: var(--color-muted); font-size: 0.9rem; margin-top: 3px; }
-    @media (max-width: 800px) { .howto { grid-template-columns: 1fr; gap: 14px; } .howto__icon { flex-basis: 52px; width: 52px; height: 52px; } .howto__icon svg { width: 30px; height: 30px; } }
+    .howto { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; align-items: center; margin-top: 12px; padding: 38px 44px; border-radius: var(--radius-lg); background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: 0 18px 44px rgba(40,30,22,0.10); }
+    .howto__step { display: flex; align-items: center; gap: 22px; position: relative; }
+    .howto__step + .howto__step::before { content: '›'; position: absolute; left: -22px; top: 50%; transform: translate(-50%, -54%); font-size: 2.4rem; line-height: 1; color: #E3B9AE; }
+    .howto__icon { flex: 0 0 92px; width: 92px; height: 92px; border-radius: 50%; background: #F6DED8; color: #D9502F; display: flex; align-items: center; justify-content: center; }
+    .howto__icon svg { width: 52px; height: 52px; }
+    .howto__step strong { display: block; font-size: 1.3rem; line-height: 1.25; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-text); }
+    .howto__step strong b { display: block; color: #D9502F; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.14em; margin-bottom: 4px; }
+    .howto__step span:not(.howto__icon) { display: block; color: var(--color-muted); font-size: 0.98rem; margin-top: 5px; text-transform: none; }
+    @media (max-width: 1100px) { .howto { padding: 30px 28px; gap: 22px; } .howto__icon { flex-basis: 72px; width: 72px; height: 72px; } .howto__icon svg { width: 40px; height: 40px; } .howto__step strong { font-size: 1.08rem; } .howto__step { gap: 16px; } .howto__step + .howto__step::before { left: -11px; } }
+    @media (max-width: 800px) { .howto { grid-template-columns: 1fr; gap: 20px; padding: 26px 22px; } .howto__step + .howto__step::before { display: none; } .howto__icon { flex-basis: 68px; width: 68px; height: 68px; } .howto__icon svg { width: 38px; height: 38px; } .howto__step strong { font-size: 1.12rem; } }
+    /* Empfehlungen: fertige Designs, nur noch der Name fehlt */
+    .recs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .rec { display: flex; flex-direction: column; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 8px 8px 18px; color: inherit; transition: border-color var(--transition), box-shadow var(--transition); }
+    .rec:hover { text-decoration: none; border-color: #C9C1B4; box-shadow: 0 14px 34px rgba(40,30,22,0.10); }
+    .rec__img { aspect-ratio: 1; border-radius: 18px; overflow: hidden; background: #fff; }
+    .rec__img img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.5s ease; }
+    .rec:hover .rec__img img { transform: scale(1.04); }
+    .rec__body { padding: 14px 10px 0; display: flex; flex-direction: column; flex: 1; }
+    .rec__name { font-weight: 700; color: var(--color-text); font-size: 1.05rem; line-height: 1.3; }
+    .rec__meta { color: var(--color-muted); font-size: 0.9rem; margin-top: 3px; }
+    .rec__foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 14px; flex-wrap: wrap; }
+    .rec__price { font-weight: 700; color: var(--color-text); }
+    .rec__price small { display: block; font-weight: 400; font-size: 0.74rem; color: var(--color-muted); }
+    .rec__cta { display: inline-block; background: #D9502F; color: #fff; font-weight: 600; font-size: 0.9rem; padding: 10px 16px; border-radius: 999px; white-space: nowrap; }
+    .recs-sub { color: var(--color-muted); margin: 10px 0 0; }
+    @media (max-width: 900px) { .recs { grid-template-columns: 1fr 1fr; gap: 12px; } }
+    @media (max-width: 560px) { .rec__name { font-size: 0.95rem; } .rec__meta { font-size: 0.8rem; } .rec__cta { width: 100%; text-align: center; padding: 10px 8px; } .rec__body { padding: 12px 6px 0; } }
   </style>
 
   <link rel="stylesheet" href="/css/design-v2.css">
@@ -413,28 +432,29 @@
       <div class="howto trust-wrap reveal is-visible" aria-label="So funktioniert's">
         <div class="howto__step">
           <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="24" cy="7" r="3"/><path d="M22.5 9.8 12 36l8 8 4-4 4 4 8-8L25.5 9.8"/><path d="M20 17l-2.5 19M26.5 17v19"/><path d="M12 36h24"/></svg></span>
-          <div><strong><b>1.</b> Textil auswählen</strong></div>
+          <div><strong><b>Schritt 1</b> Textil auswählen</strong><span>Decke, Handtuch &amp; mehr</span></div>
         </div>
         <div class="howto__step">
           <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M33 7l8 8-22 22-10 3 3-10z"/><path d="M28.5 11.5l8 8"/><path d="M12 30l6 6"/></svg></span>
-          <div><strong><b>2.</b> Name &amp; Motiv wählen</strong></div>
+          <div><strong><b>Schritt 2</b> Name &amp; Motiv wählen</strong><span>Schrift, Garnfarbe und Motiv</span></div>
         </div>
         <div class="howto__step">
           <span class="howto__icon"><svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M37 7L11 41"/><ellipse cx="34.5" cy="10.5" rx="1.4" ry="3" transform="rotate(37 34.5 10.5)"/><path d="M34 12c-9-6-17 1-12 7 4 5 14 3 16 9 1.5 4.5-2 8-6 7"/></svg></span>
-          <div><strong><b>3.</b> Besticken lassen</strong></div>
+          <div><strong><b>Schritt 3</b> Besticken lassen</strong><span>Wir sticken es in Österreich</span></div>
         </div>
       </div>
     </div>
 
     <!-- Kategorien-Sektion („Wonach suchst du?") vorerst entfernt – Kategorien noch nicht sinnvoll. -->
 
-    <!-- ===== ALLE PRODUKTE ===== -->
-    <section class="section reveal" style="padding-top:24px">
+    <!-- ===== UNSERE EMPFEHLUNGEN (fertige Designs – nur der Name fehlt) ===== -->
+    <section class="section reveal" style="padding-top:36px" id="empfehlungen">
       <div class="container">
         <div class="sec-head">
-          <h2>Unsere Produkte.</h2>
+          <h2>Unsere Empfehlungen.</h2>
+          <p class="recs-sub">Fertige Designs, die wir besonders mögen. Du trägst nur noch den Namen ein.</p>
         </div>
-        <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
+        <div class="recs" id="recs-grid"></div>
       </div>
     </section>
 
@@ -461,6 +481,16 @@
       </div>
     </section>
 
+
+    <!-- ===== ALLE PRODUKTE ===== -->
+    <section class="section reveal" id="alle-produkte">
+      <div class="container">
+        <div class="sec-head">
+          <h2>Unsere Produkte.</h2>
+        </div>
+        <div class="pgrid" id="bestseller-grid"><p class="loading">Wird geladen…</p></div>
+      </div>
+    </section>
 
     <!-- ===== FAQ (Kurzfassung) ===== -->
     <style>
@@ -793,6 +823,42 @@
 
       // Alle Produkte direkt auf der Startseite (gleiche Reihenfolge wie im Shop)
       fill('bestseller-grid', products, 'Bald verfügbar.');
+      renderRecs(products);
+    }
+
+    // ── Unsere Empfehlungen ─────────────────────────────────────────
+    // Fertige Designs: Der Link öffnet das Produkt mit Farbe, Motiv, Schrift und Garn schon gewählt
+    // (product.html → applyPresetFromLink). Motiv-Codes aus js/motif-catalog.js; Preise wie dort (klein 5,90 / groß 9,90).
+    const RECS = [
+      { slug: 'strickdecke',         farbe: 'Altrosa',     motiv: ['T2', 'T13'], schrift: 1, garn: 'Schwarz',     add: 11.80, img: 'strickdecke-beispiel-elina',       titel: 'Rehkitz & Hase',  alt: 'Strickdecke in Altrosa mit Rehkitz, Hase und Namen' },
+      { slug: 'kapuzenhandtuch',     farbe: 'Blaugrau',    motiv: ['T7'],        schrift: 1, garn: 'Creme',       add: 9.90,  img: 'kapuzenhandtuch-beispiel-fabian',  titel: 'Kleiner Wolf',    alt: 'Kapuzenhandtuch in Blaugrau mit Wolf und Namen' },
+      { slug: 'musselindecke',       farbe: 'Blättermotiv', motiv: ['M6'],       schrift: 1, garn: 'Dunkelblau',  add: 5.90,  img: 'musselindecke-beispiel-florian',   titel: 'Ritterburg',      alt: 'Musselindecke mit Burg und Namen' },
+      { slug: 'rucksack',            farbe: 'Bär (Grau)',  motiv: ['C7'],        schrift: 1, garn: 'Dunkelblau',  add: 5.90,  img: 'rucksack-beispiel-noel',           titel: 'Lokomotive',      alt: 'Bären-Rucksack mit Lokomotive und Namen' },
+      { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 5.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
+      { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 5.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
+    ];
+    function renderRecs(products) {
+      const el = document.getElementById('recs-grid'); if (!el) return;
+      const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+      const html = RECS.map(r => {
+        const p = products.find(x => x.slug && x.slug.includes(r.slug) && !Array.isArray(x.bundle_items)) || products.find(x => x.slug && x.slug.includes(r.slug));
+        if (!p) return '';
+        const href = '/product.html?slug=' + encodeURIComponent(p.slug) + '&farbe=' + encodeURIComponent(r.farbe) +
+          '&motiv=' + r.motiv.join(',') + '&schrift=' + r.schrift + '&garn=' + encodeURIComponent(r.garn);
+        const price = (Number(p.price) || 0) + 9.90 + r.add;   // Grundpreis + Bestickung + Motiv(e)
+        return `<a class="rec" href="${href}">
+          <div class="rec__img"><img src="/assets/textil/${r.img}.webp" alt="${esc(r.alt)}" loading="lazy"></div>
+          <div class="rec__body">
+            <div class="rec__name">${esc(r.titel)}</div>
+            <div class="rec__meta">${esc(p.name)}</div>
+            <div class="rec__foot">
+              <div class="rec__price">€ ${price.toFixed(2).replace('.', ',')}<small>inkl. Name &amp; Motiv</small></div>
+              <span class="rec__cta">Mit deinem Namen →</span>
+            </div>
+          </div>
+        </a>`;
+      }).join('');
+      if (html) el.innerHTML = html; else { const sec = document.getElementById('empfehlungen'); if (sec) sec.hidden = true; }
     }
 
     init();
