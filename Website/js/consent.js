@@ -19,7 +19,7 @@
   const TRACKING = {
     ga4:          '',   // Google Analytics 4, z. B. 'G-XXXXXXXXXX'    → Statistik
     googleAds:    '',   // Google Ads,         z. B. 'AW-XXXXXXXXXX'   → Marketing
-    gtm:          'GTM-NWSP4XH9',   // Google Tag Manager → lädt bei jeder Einwilligung (Statistik ODER Marketing)
+    gtm:          ['GTM-NWSP4XH9', 'GTM-KS69SKHX'],   // Google Tag Manager (ein oder mehrere Container) → lädt bei jeder Einwilligung (Statistik ODER Marketing)
     metaPixel:    '',   // Meta Pixel,         z. B. '123456789012345' → Marketing
     tiktokPixel:  '',   // TikTok Pixel,       z. B. 'CXXXXXXXXXXXXXXXXXXX' → Marketing
   };
@@ -27,7 +27,8 @@
   const STORE_KEY = 'm2m_consent';
   const VERSION = 1;
   const MAX_AGE_MS = 365 * 24 * 60 * 60 * 1000;
-  const anyTracker = Object.values(TRACKING).some(Boolean);
+  const GTM_IDS = [].concat(TRACKING.gtm || []).filter(Boolean);
+  const anyTracker = GTM_IDS.length > 0 || Object.keys(TRACKING).some(k => k !== 'gtm' && TRACKING[k]);
 
   // ── Gespeicherte Auswahl ──
   function readChoice() {
@@ -70,10 +71,10 @@
   function loadGoogle(c) {
     const wantGa = c.statistik && TRACKING.ga4;
     const wantAds = c.marketing && TRACKING.googleAds;
-    if (TRACKING.gtm && (c.statistik || c.marketing) && !loaded.gtm) {
+    if (GTM_IDS.length && (c.statistik || c.marketing) && !loaded.gtm) {
       loaded.gtm = true;
       window.dataLayer.push({ 'gtm.start': Date.now(), event: 'gtm.js' });
-      addScript('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(TRACKING.gtm));
+      GTM_IDS.forEach(id => addScript('https://www.googletagmanager.com/gtm.js?id=' + encodeURIComponent(id)));
     }
     if ((wantGa || wantAds) && !loaded.gtag) {
       loaded.gtag = true;
