@@ -536,6 +536,11 @@
         <span class="icon">📧</span> Newsletter
       </a>
 
+      <div class="admin-nav-section">Website</div>
+      <a href="#" onclick="showTab('images',this)">
+        <span class="icon">🖼️</span> Bilder
+      </a>
+
       <div class="admin-nav-section">Analyse</div>
       <a href="#" onclick="showTab('revenue',this)">
         <span class="icon">💶</span> Umsatz
@@ -892,7 +897,13 @@
           </div>
         </div>
 
-        <div class="admin-card" style="max-width:760px;">
+      </div>
+
+      <!-- ══════════ BILDER ══════════ -->
+      <div id="tab-images" class="tab-panel">
+        <div class="page-header"><h2>Bilder</h2></div>
+
+        <div class="admin-card" style="max-width:860px;">
           <div class="admin-card__header">
             <h3>Website-Bilder</h3>
             <span style="font-size:0.75rem;color:var(--color-muted)">Hero, Über uns, Qualität</span>
@@ -1350,7 +1361,7 @@ function showTab(name, link) {
   const titles = {
     dashboard:'Dashboard', products:'Produkte', sets:'Geschenk-Sets', categories:'Kategorien',
     orders:'Bestellungen', customers:'Kunden', revenue:'Umsatz', discounts:'Rabattcodes',
-    newsletter:'Newsletter', analytics:'Analytics', settings:'Einstellungen'
+    newsletter:'Newsletter', analytics:'Analytics', images:'Bilder', settings:'Einstellungen'
   };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   if (link) link.classList.add('active');
@@ -1365,6 +1376,7 @@ function showTab(name, link) {
   if (name === 'newsletter') loadNewsletter();
   if (name === 'revenue')    loadRevenue();
   if (name === 'analytics')  loadAnalytics();
+  if (name === 'images')     loadSiteImages();
   if (name === 'settings')   loadSettings();
 }
 
@@ -3400,7 +3412,6 @@ async function loadSettings() {
   const emails = Array.isArray(data?.value) ? data.value : [];
   document.getElementById('settings-emails').value = emails.join('\n');
   document.getElementById('settings-msg').textContent = '';
-  loadSiteImages();
   loadBankDetails();
 }
 
