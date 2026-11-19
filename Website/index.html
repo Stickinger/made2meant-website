@@ -240,7 +240,7 @@
     /* Qualitäts-Galerie zum Durchklicken */
     .qslider__slide { position:absolute; inset:0; opacity:0; transition:opacity .45s ease; }
     .qslider__slide.active { opacity:1; }
-    .qslider__slide img { width:100%; height:100%; object-fit:cover; display:block; }
+    .qslider__slide img, .qslider__slide video { width:100%; height:100%; object-fit:cover; display:block; }
     .qslider__cap {
       position:absolute; left:16px; bottom:16px; max-width:calc(100% - 32px);
       background:rgba(255,253,248,.92); color:var(--color-text); border-radius:99px;
@@ -666,7 +666,8 @@
       const picked = (Array.isArray(custom) ? custom : []).filter(x => x && x.img).map(x => ({ img: x.img, cap: x.cap || '' }));
       const slides = picked.length ? picked : (workshopImg ? [{ img: workshopImg, cap: 'Unsere Werkstatt', alt: box.dataset.alt }] : []).concat(QUALITY_SLIDES);
       const esc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      track.innerHTML = slides.map((s, i) => `<div class="qslider__slide ${i === 0 ? 'active' : ''}"><img src="${esc(s.img)}" alt="${esc(s.alt || s.cap || 'Bestickte Babytextilien von made2meant')}" ${i ? 'loading="lazy"' : ''} decoding="async">${s.cap ? `<span class="qslider__cap">${esc(s.cap)}</span>` : ''}</div>`).join('');
+      const isVid = u => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(String(u || ''));   // im Admin hochgeladene Videos
+      track.innerHTML = slides.map((s, i) => `<div class="qslider__slide ${i === 0 ? 'active' : ''}">${isVid(s.img) ? `<video src="${esc(s.img)}" muted loop playsinline ${i ? 'preload="none"' : 'autoplay preload="metadata"'} aria-label="${esc(s.alt || s.cap || 'Video aus unserer Werkstatt')}"></video>` : `<img src="${esc(s.img)}" alt="${esc(s.alt || s.cap || 'Bestickte Babytextilien von made2meant')}" ${i ? 'loading="lazy"' : ''} decoding="async">`}${s.cap ? `<span class="qslider__cap">${esc(s.cap)}</span>` : ''}</div>`).join('');
       dots.innerHTML = slides.map((_, i) => `<button type="button" class="qslider__dot ${i === 0 ? 'active' : ''}" aria-label="Bild ${i + 1}" onclick="qSlide(0, ${i})"></button>`).join('');
       qIndex = 0;
       // Wischen am Handy
@@ -678,7 +679,11 @@
       const slides = document.querySelectorAll('#qslider-track .qslider__slide'), dots = document.querySelectorAll('#qslider-dots .qslider__dot');
       if (!slides.length) return;
       qIndex = typeof to === 'number' ? to : (qIndex + step + slides.length) % slides.length;
-      slides.forEach((s, i) => s.classList.toggle('active', i === qIndex));
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === qIndex);
+        const v = s.querySelector('video');   // Videos laufen nur im sichtbaren Bild
+        if (v) { if (i === qIndex) { const p = v.play(); if (p && p.catch) p.catch(() => {}); } else v.pause(); }
+      });
       dots.forEach((d, i) => d.classList.toggle('active', i === qIndex));
     }
 

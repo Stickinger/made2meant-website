@@ -49,7 +49,7 @@
       background: linear-gradient(140deg, #EDE4D6, #DFCDB4); box-shadow: var(--shadow);
       display: flex; align-items: center; justify-content: center;
     }
-    .qrow__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .qrow__media img, .qrow__media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
     .qrow__media svg { width: 54px; height: 54px; color: #b58f6a; opacity: 0.5; }
     .qrow__num { font-family: var(--font-head); font-size: 3.2rem; font-weight: 600; color: var(--color-border); line-height: 1; margin-bottom: 6px; }
     .qrow__eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-primary); margin-bottom: 10px; }
@@ -277,12 +277,16 @@
       document.querySelectorAll('.qrow__media[data-si]').forEach(box => {
         const url = qp[box.dataset.si];
         if (!url) return;
-        let img = box.querySelector('img');
+        // Im Admin kann statt eines Fotos auch ein Video hinterlegt sein (läuft stumm in Dauerschleife)
+        const isVid = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+        box.querySelectorAll('img, video').forEach(el => { if ((el.tagName === 'VIDEO') !== isVid) el.remove(); });
+        let img = box.querySelector(isVid ? 'video' : 'img');
         if (!img) {
-          img = document.createElement('img');
+          img = document.createElement(isVid ? 'video' : 'img');
           box.insertBefore(img, box.firstChild);
         }
-        img.alt = box.dataset.alt || '';
+        if (isVid) { img.muted = true; img.loop = true; img.playsInline = true; img.autoplay = true; img.setAttribute('aria-label', box.dataset.alt || ''); }
+        else img.alt = box.dataset.alt || '';
         img.src = url;
       });
     })();

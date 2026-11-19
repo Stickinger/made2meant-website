@@ -66,6 +66,45 @@
     .thumb { width: 74px; height: 74px; border-radius: var(--radius); overflow: hidden; border: 2px solid transparent; background: var(--color-surface-2); cursor: pointer; padding: 0; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; }
     .thumb.active { border-color: var(--color-primary); }
+    .thumb--more { border: 1.5px solid var(--color-border); background: #fff; color: var(--color-text); font: 600 1rem/1 inherit; display: flex; align-items: center; justify-content: center; }
+    .thumb--more:hover { border-color: var(--color-primary); }
+    .thumb--dims { background: #fff; color: var(--color-text); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font: 700 0.68rem/1 var(--font-main); }
+    .thumb--dims svg { width: 46%; height: auto; }
+    /* Maßbild: Foto bzw. ausgebreitetes Tuch mit Maßlinien */
+    .dims { position: absolute; inset: 0; background: #fff; display: flex; align-items: center; justify-content: center; z-index: 1; }
+    .dims[hidden] { display: none; }
+    .dims__box { position: relative; }
+    .dims__box--photo { height: 74%; aspect-ratio: 3 / 4; }
+    .dims__box--photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+    .dims__box--flat { width: 54%; margin: -4% 0 0 6%; }
+    .dims__cloth { position: relative; width: 100%; border-radius: 6px; overflow: hidden; background-color: #E9E1D3; background-size: 420%; background-position: 50% 62%; box-shadow: 0 10px 30px rgba(60,40,30,.16), inset 0 0 0 1px rgba(60,40,30,.08); }
+    .dims__hood { position: absolute; top: 0; right: 0; width: 46%; height: 46%; clip-path: polygon(0 0, 100% 0, 100% 100%); background: linear-gradient(225deg, rgba(60,40,30,.05), rgba(60,40,30,.22)); }
+    .dims__hoodlbl { position: absolute; top: 9%; right: 6%; font: 600 0.68rem var(--font-main); color: rgba(40,25,20,.75); }
+    .dims__line { position: absolute; background: var(--color-text); }
+    .dims__line--v { width: 1.5px; }
+    .dims__line--h { height: 1.5px; }
+    .dims__line--v::before, .dims__line--v::after { content: ''; position: absolute; left: -5px; width: 11.5px; height: 1.5px; background: inherit; }
+    .dims__line--v::before { top: 0; } .dims__line--v::after { bottom: 0; }
+    .dims__line--h::before, .dims__line--h::after { content: ''; position: absolute; top: -5px; height: 11.5px; width: 1.5px; background: inherit; }
+    .dims__line--h::before { left: 0; } .dims__line--h::after { right: 0; }
+    .dims__lbl { position: absolute; font: 800 clamp(0.95rem, 2.1vw, 1.3rem) var(--font-main); color: var(--color-text); white-space: nowrap; }
+    .dims__lbl--v { transform: translate(-100%, -50%); padding-right: 12px; }
+    .dims__lbl--h { transform: translate(-50%, 0); padding-top: 10px; }
+    .dims__note { position: absolute; left: 110px; right: 16px; bottom: 16px; text-align: right; font-size: 0.74rem; color: var(--color-muted); }
+    @media (max-width: 600px) { .dims__box--flat { width: 50%; margin-top: -10%; } .dims__box--photo { height: 68%; margin-top: -8%; } }
+    /* Pfeile zum Durchblättern der Fotos */
+    .gallery__nav { position: absolute; left: 12px; bottom: 12px; display: flex; gap: 8px; z-index: 2; }
+    .gallery__nav button { width: 38px; height: 38px; border-radius: 50%; border: 1px solid var(--color-border); background: var(--color-surface); box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-text); padding: 0; }
+    .gallery__nav button:hover { border-color: var(--color-primary); }
+    /* Auf einen Blick: Eigenschaften mit Symbolen */
+    .feat { margin-top: 22px; background: var(--color-surface-2); border-radius: var(--radius-lg); padding: 22px 18px 20px; }
+    .feat__title { text-align: center; font: 700 1rem var(--font-main); margin: 0 0 16px; }
+    .feat__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 12px; }
+    .feat__item { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 7px; font-size: 0.84rem; line-height: 1.3; color: var(--color-text); }
+    .feat__item svg { width: 28px; height: 28px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    /* Eingeklappt: 5 Fotos + „+N" bleiben in einer Reihe (Kacheln schrumpfen bei wenig Platz) */
+    .thumbs--short { flex-wrap: nowrap; }
+    .thumbs--short .thumb { flex: 0 1 74px; min-width: 0; height: auto; aspect-ratio: 1; }
 
     /* INFO */
     .pinfo__eyebrow { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--color-primary); margin-bottom: 8px; }
@@ -1069,6 +1108,11 @@ ${hasMotifs || POSITIONS.length > 1 ? `<div class="fld__hint">${POSITIONS.length
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
             </button>
             <canvas id="cfg-canvas" width="600" height="600" role="img" aria-label="Produktfoto"></canvas>
+            <div class="dims" id="dims" hidden></div>
+            <div class="gallery__nav" id="gallery-nav" hidden>
+              <button type="button" onclick="stepPreview(-1)" aria-label="Vorheriges Foto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+              <button type="button" onclick="stepPreview(1)" aria-label="Nächstes Foto"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+            </div>
           </div>
           <div class="thumbs" id="thumbs"></div>
         </div>
@@ -1138,6 +1182,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
             <button type="button" class="buy-plain" onclick="buyPlain()">Ohne Bestickung in den Warenkorb</button>
             <button type="button" id="edit-btn" hidden onclick="openBuilder()">✎ Gestaltung bearbeiten</button>
           </div>` : ''}
+          ${featuresHtml(p, personalizable)}
         </div>
       `;
 
@@ -1183,9 +1228,31 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const display = (!mainUrl || colorUrl !== mainUrl) ? `<button class="thumb ${cfg.previewPos === null ? 'active' : ''}" onclick="setPreview(null)" aria-label="Gewählte Farbe"><img src="${colorUrl}" alt="Produktansicht in der gewählten Farbe"></button>` : '';
       const galleryThumbs = currentGallery().map((url, i) =>
         `<button class="thumb ${cfg.previewPos === 'g' + i ? 'active' : ''}" onclick="setPreview('g${i}')" aria-label="Weiteres Foto ${i + 1}"><img src="${url}" alt="${currentProduct.name} Foto ${i + 1}"></button>`
-      ).join('');
+      );
       const setThumb = cfg.setPreview ? `<button class="thumb ${cfg.previewPos === 'set' ? 'active' : ''}" onclick="setPreview('set')" aria-label="Gewählte Farbe"><img src="${cfg.setPreview}" alt="Set-Teil in der gewählten Farbe"></button>` : '';
-      el.innerHTML = mainThumb + setThumb + display + galleryThumbs;
+      // Nur die ersten 5 Fotos zeigen; der Rest klappt über die kleine „+N"-Kachel auf.
+      const dimsThumb = productDims() ? `<button class="thumb ${cfg.previewPos === 'dims' ? 'active' : ''} thumb--dims" onclick="setPreview('dims')" aria-label="Maße"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg>Maße</button>` : '';
+      const first = [mainThumb, setThumb, display].filter(Boolean);
+      const all = [...first, dimsThumb, ...galleryThumbs].filter(Boolean);
+      // Reihenfolge aller Ansichten (für die Pfeile im großen Bild)
+      cfg.views = all.map(t => { const m = t.match(/setPreview\((null|'([^']*)')\)/); return m ? (m[1] === 'null' ? null : m[2]) : null; });
+      const nav = document.getElementById('gallery-nav'); if (nav) nav.hidden = all.length < 2;
+      const MAX = 5;
+      el.classList.remove('thumbs--short');
+      if (all.length <= MAX) { el.innerHTML = all.join(''); return; }
+      const hiddenActive = all.findIndex(t => t.includes('thumb active')) >= MAX;
+      if (cfg.thumbsOpen || hiddenActive) {
+        el.innerHTML = all.join('') + `<button type="button" class="thumb thumb--more" onclick="toggleThumbs(false)" aria-label="Weniger Fotos zeigen">–</button>`;
+      } else {
+        el.classList.add('thumbs--short');
+        el.innerHTML = all.slice(0, MAX).join('') + `<button type="button" class="thumb thumb--more" onclick="toggleThumbs(true)" aria-label="${all.length - MAX} weitere Fotos zeigen">+${all.length - MAX}</button>`;
+      }
+    }
+    function toggleThumbs(open) {
+      cfg.thumbsOpen = open;
+      // Beim Zuklappen: liegt das gezeigte Foto im versteckten Teil, zurück zum ersten Foto
+      if (!open && document.querySelector('#thumbs .thumb.active:nth-child(n+6)')) { document.querySelector('#thumbs .thumb').click(); return; }
+      renderThumbs();
     }
 
     function renderCanvas() {
@@ -1194,7 +1261,9 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const W = canvas.width, H = canvas.height, ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, W, H);
 
-      const view = cfg.previewPos;                       // null = unser Foto (farbabhängig), 'g<i>' = Galeriefoto
+      const view = cfg.previewPos;                       // null = unser Foto (farbabhängig), 'g<i>' = Galeriefoto, 'dims' = Maßbild
+      const dimsEl = document.getElementById('dims');
+      if (dimsEl) { dimsEl.hidden = view !== 'dims'; if (view === 'dims') renderDims(); }
       const isGallery = typeof view === 'string' && view[0] === 'g';
       const url = isGallery ? currentGallery()[+view.slice(1)] : ((view === 'set' && cfg.setPreview) || (view === 'main' && mainImage()) || displayImage());
       const img = getImg(url);
@@ -1211,6 +1280,108 @@ ${setColorBlockHtml(true)}</section>` : ''}
 
       // Kein Live-Text mehr: Es wird ausschließlich unser vorgegebenes Foto gezeigt.
       // Der Wunschtext des Kunden wird nur im Textfeld erfasst, nicht auf dem Bild dargestellt.
+    }
+
+    // ── Maßbild ──
+    // mode 'photo': Maßlinien am Umriss des flach fotografierten Stücks; mode 'flat': ausgebreitetes Tuch als Fläche in der Stoff-Optik
+    // (für Stücke, deren Foto gefaltet/angeschnitten ist). w/h in cm laut Hersteller.
+    const PRODUCT_DIMS = [
+      { match: /kapuzenhandtuch/, w: 75, h: 75, mode: 'flat', hood: true },
+      { match: /musselindecke/, w: 120, h: 120, mode: 'flat' },
+      { match: /musselintuch/, w: 70, h: 70, mode: 'flat' },
+      { match: /laetzchen|lätzchen/, w: 19, h: 25, mode: 'photo' },
+      { match: /kuscheltuch|schmusetuch/, w: 44, h: 46, mode: 'photo' },
+    ];
+    function productDims() {
+      if (!currentProduct || isMulti()) return null;
+      const slug = String(currentProduct.slug || '').toLowerCase();
+      return PRODUCT_DIMS.find(d => d.match.test(slug)) || null;
+    }
+    // Flaches Foto in der gewählten Farbe (aus dem Gestaltungs-Editor), sonst das Produktfoto
+    function flatPhoto() {
+      const T = textileStageCfg();
+      const c = T && T.colors && T.colors[String(cfg.capColor || '').toLowerCase()];
+      return (c && c.img) || (T && T.colors && (Object.values(T.colors)[0] || {}).img) || '';
+    }
+    // Umriss des Stücks im Foto (Anteile 0..1) – alles, was nicht weißer Hintergrund ist
+    const _bboxCache = {};
+    function photoBBox(url, cb) {
+      if (_bboxCache[url]) return cb(_bboxCache[url]);
+      const im = new Image();
+      im.onload = () => {
+        let box = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 };
+        try {
+          const W = 120, H = Math.round(120 * im.naturalHeight / im.naturalWidth), c = document.createElement('canvas');
+          c.width = W; c.height = H; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, W, H); x.drawImage(im, 0, 0, W, H);
+          const d = x.getImageData(0, 0, W, H).data; let x0 = W, y0 = H, x1 = -1, y1 = -1;
+          for (let j = 0; j < H; j++) for (let i = 0; i < W; i++) { const k = (j * W + i) * 4; if (Math.min(d[k], d[k + 1], d[k + 2]) < 228) { if (i < x0) x0 = i; if (i > x1) x1 = i; if (j < y0) y0 = j; if (j > y1) y1 = j; } }
+          if (x1 > x0 && y1 > y0) box = { x: x0 / W, y: y0 / H, w: (x1 - x0 + 1) / W, h: (y1 - y0 + 1) / H };
+        } catch (_) {}
+        _bboxCache[url] = box; cb(box);
+      };
+      im.src = url;
+    }
+    function renderDims() {
+      const el = document.getElementById('dims'), D = productDims();
+      if (!el || !D) return;
+      const cm = n => n + ' cm';
+      const lines = (b, off) => `
+        <span class="dims__line dims__line--v" style="left:${(b.x * 100 - off).toFixed(1)}%;top:${(b.y * 100).toFixed(1)}%;height:${(b.h * 100).toFixed(1)}%"></span>
+        <span class="dims__lbl dims__lbl--v" style="left:${(b.x * 100 - off).toFixed(1)}%;top:${((b.y + b.h / 2) * 100).toFixed(1)}%">${cm(D.h)}</span>
+        <span class="dims__line dims__line--h" style="left:${(b.x * 100).toFixed(1)}%;top:${((b.y + b.h) * 100 + off).toFixed(1)}%;width:${(b.w * 100).toFixed(1)}%"></span>
+        <span class="dims__lbl dims__lbl--h" style="left:${((b.x + b.w / 2) * 100).toFixed(1)}%;top:${((b.y + b.h) * 100 + off).toFixed(1)}%">${cm(D.w)}</span>`;
+      const url = flatPhoto();
+      if (D.mode === 'photo' && url) {
+        const key = 'p|' + url; if (el.dataset.key === key) return; el.dataset.key = key;
+        el.innerHTML = `<div class="dims__box dims__box--photo"><img src="${escH(url)}" alt="${escH(currentProduct.name)} – Maße ${D.w} × ${D.h} cm"></div><div class="dims__note">Maße ca., flach gemessen</div>`;
+        photoBBox(url, b => { if (el.dataset.key !== key) return; el.querySelector('.dims__box').insertAdjacentHTML('beforeend', lines(b, 7)); });
+      } else {
+        const key = 'f|' + url; if (el.dataset.key === key) return; el.dataset.key = key;
+        el.innerHTML = `<div class="dims__box dims__box--flat" role="img" aria-label="${escH(currentProduct.name)} ausgebreitet, ${D.w} × ${D.h} cm">
+          <div class="dims__cloth" style="aspect-ratio:${D.w} / ${D.h};${url ? `background-image:url('${escH(url)}')` : ''}">${D.hood ? '<span class="dims__hood"></span><span class="dims__hoodlbl">Kapuze</span>' : ''}</div>
+          ${lines({ x: 0, y: 0, w: 1, h: 1 }, 9)}</div><div class="dims__note">Ausgebreitet gemessen</div>`;
+      }
+    }
+    function stepPreview(d) {
+      const v = cfg.views || []; if (v.length < 2) return;
+      const i = Math.max(0, v.indexOf(cfg.previewPos));
+      setPreview(v[(i + d + v.length) % v.length]);
+    }
+
+    // ── Auf einen Blick (Kasten unter dem Kaufen-Knopf) ──
+    const FEAT_ICONS = {
+      leaf: '<path d="M5 19c0-9 5-14 15-14 0 10-5 15-14 15"/><path d="M5 19c3-5 6-8 10-10"/>',
+      ruler: '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
+      wash: '<path d="M3 7l2 12h14l2-12"/><path d="M3 7c2 2 4 2 6 0s4-2 6 0 4 2 6 0"/>',
+      needle: '<path d="M20 4L9 15"/><circle cx="18.5" cy="5.5" r="1.2"/><path d="M9 15c-3 1-5 3-5 5 3 0 4-2 5-5z"/><path d="M14 4c-4 0-7 2-8 5"/>',
+      truck: '<path d="M2 6h11v10H2z"/><path d="M13 9h5l4 4v3h-9z"/><circle cx="6.5" cy="17.5" r="1.8"/><circle cx="17.5" cy="17.5" r="1.8"/>',
+      hood: '<path d="M4 20c0-8 3-14 8-14s8 6 8 14"/><path d="M8 7L6 2l4 3M16 7l2-5-4 3"/>',
+      loop: '<path d="M12 3a3 3 0 0 1 3 3c0 2-3 3-3 6"/><path d="M3 19l9-7 9 7z"/>',
+      snap: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>',
+      soft: '<path d="M12 20s-7-4.3-7-9.5A4.5 4.5 0 0 1 12 8a4.5 4.5 0 0 1 7 2.5C19 15.700 12 20 12 20z"/>',
+      noiron: '<path d="M3 16h15l2-6H9c-3 0-5 2-6 6z"/><path d="M4 4l16 16"/>',
+      pacifier: '<circle cx="12" cy="9" r="4"/><path d="M6 15c2-1.500 10-1.500 12 0"/><circle cx="12" cy="19" r="2"/>',
+      pen: '<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>',
+      box: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+      sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',
+    };
+    const PRODUCT_FEATURES = [
+      { match: /kapuzenhandtuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '75 × 75 cm'], ['hood', 'Kapuze mit Hasenohren'], ['loop', 'Schlaufe zum Aufhängen'], ['wash', 'Waschbar bei 40 / 60 °C']] },
+      { match: /musselindecke/, items: [['leaf', '100 % Bio-Musselin'], ['ruler', '120 × 120 cm'], ['soft', 'Mehrlagig & weich'], ['noiron', 'Muss nicht gebügelt werden'], ['wash', 'Waschbar bei 40 °C']] },
+      { match: /musselintuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '70 × 70 cm'], ['sun', 'Leicht & luftig'], ['loop', 'Schlaufe an der Ecke'], ['wash', 'Waschbar bei 40 / 60 °C']] },
+      { match: /laetzchen|lätzchen/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '19 × 25 cm'], ['soft', 'Weich gestrickt'], ['snap', 'Druckknopf – wächst mit'], ['wash', 'Waschbar bei 40 °C']] },
+      { match: /kuscheltuch|schmusetuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '44 × 46 cm'], ['soft', 'Sehr weich'], ['pacifier', 'Riemen für den Schnuller'], ['wash', 'Waschbar bei 30 °C']] },
+    ];
+    function featuresHtml(p, personalizable) {
+      const slug = String(p.slug || '').toLowerCase();
+      const own = (POSITIONS.length > 1 ? null : PRODUCT_FEATURES.find(f => f.match.test(slug)));
+      const items = [...(own ? own.items : [])];
+      if (personalizable) { if (!own) items.push(['pen', 'Schrift, Garn & Motiv wählbar']); items.push(['needle', 'Bestickt in Österreich']); }
+      items.push(['truck', 'In 5–7 Werktagen bei dir']);
+      if (items.length % 2) items.push(['box', 'Versandfrei ab 119 €']);
+      const seen = new Set(), list = items.filter(i => !seen.has(i[1]) && seen.add(i[1]));
+      return `<div class="feat"><h2 class="feat__title">Auf einen Blick</h2><div class="feat__grid">${list.map(([ic, t]) =>
+        `<div class="feat__item"><svg viewBox="0 0 24 24" aria-hidden="true">${FEAT_ICONS[ic]}</svg><span>${escH(t)}</span></div>`).join('')}</div></div>`;
     }
 
     function selectFont(i) {
@@ -1559,14 +1730,14 @@ ${setColorBlockHtml(true)}</section>` : ''}
     const EMB_CARE = 'Stickerei: am besten auf links waschen, nicht direkt über die Stickerei bügeln.';
     const PRODUCT_INFO_DEFAULTS = [
       { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen. ' + EMB_CARE },
-      { match: /musselintuch/, material: 'Bio-Baumwolle (Musselin), mehrlagig – luftig, saugfähig und wird mit jeder Wäsche noch weicher.', care: 'Waschbar bei 40 °C im Schonwaschgang, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
-      { match: /musselindecke/, material: 'Bio-Baumwolle (Musselin), mehrlagig – atmungsaktiv, leicht und kuschelweich. Ideal zum Pucken, Kuscheln und Zudecken.', care: 'Waschbar bei 40 °C im Schonwaschgang, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
+      { match: /musselintuch/, material: '100 % Bio-Baumwolle (Musselin) – luftig, weich und besonders angenehm auf empfindlicher Babyhaut. An einer Ecke ist eine Schlaufe zum Aufhängen; daran lässt sich auch ein Schnuller befestigen. Das unbestickte Tuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '70 × 70 cm – groß genug als leichte Sommerdecke oder als Stoffwindel.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
+      { match: /musselindecke/, material: '100 % gekreppter Bio-Baumwoll-Musselin von Summerville Organic, mehrlagig – angenehm weich, atmungsaktiv und mit schöner Struktur. Die unbestickte Decke beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '120 × 120 cm – passt in Kinderwagen, Wiege und Babybett.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. Pflegeleicht – muss nicht gebügelt werden; die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
       { match: /strickdecke/, material: 'Weicher Baumwoll-Strick – warm, atmungsaktiv und angenehm auf der Haut.', care: 'Schonend bei 30 °C (Woll-/Feinwaschgang) waschen, liegend trocknen, nicht in den Trockner. ' + EMB_CARE },
-      { match: /kapuzenhandtuch|handtuch/, material: 'Bio-Baumwolle – flauschig und saugfähig, mit Kapuze und Hasenohren.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. Ohne Weichspüler bleibt es besonders saugfähig. ' + EMB_CARE },
+      { match: /kapuzenhandtuch|handtuch/, material: '100 % Bio-Baumwolle – flauschig und saugfähig, mit Kapuze und Hasenohren. Auf der Rückseite ist eine praktische Schlaufe zum Aufhängen. Das unbestickte Handtuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '75 × 75 cm – für Babys und auch für Kleinkinder geeignet.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Ohne Weichspüler bleibt es besonders saugfähig. ' + EMB_CARE },
       { match: /waschlappen/, material: 'Bio-Baumwolle – weich und saugfähig, mit liebevollem Tiermotiv.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben.' },
-      { match: /laetzchen|lätzchen/, material: 'Weich gestrickte Baumwolle – angenehm am Hals und saugfähig.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. ' + EMB_CARE },
+      { match: /laetzchen|lätzchen/, material: '100 % Bio-Baumwolle, sehr weich gestrickt – angenehm am Hals und besonders saugfähig, ideal beim Zahnen. Mit kleinem Druckknopf im Nacken verstellbar, damit das Lätzchen mitwächst.', size: '19 × 25 cm', care: 'Waschbar bei 40 °C in der Waschmaschine, mit ähnlichen Farben. ' + EMB_CARE },
       { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord mit Plüschohren und verstellbaren Trägern – genau richtig für kleine Rücken.', care: 'Schonend von Hand waschen (max. 30 °C) oder feucht abwischen, nicht in den Trockner.' },
-      { match: /kuscheltuch|gans/, material: 'Weiche Bio-Baumwolle – zum Kuscheln, Knautschen und Liebhaben.', care: 'Schonend bei 30 °C waschen, an der Luft trocknen. ' + EMB_CARE },
+      { match: /kuscheltuch|gans/, material: '100 % Bio-Baumwolle, sehr weich – zum Kuscheln und Spielen. Füllung im Kopf: 100 % recyceltes Polyester. Mit Riemen, an dem sich der Schnuller befestigen lässt.', size: '44 × 46 cm', care: 'Maschinenwäsche bei 30 °C, an der Luft trocknen. ' + EMB_CARE },
     ];
     async function loadProductInfo(p) {
       const slug = String(p.slug || '').toLowerCase();

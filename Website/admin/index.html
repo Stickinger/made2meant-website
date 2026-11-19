@@ -911,7 +911,9 @@
           <div class="admin-card__body">
             <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:18px;">
               Hier änderst du die Bilder der Startseite, der Über-uns- und der Qualitätsseite — ganz ohne Code.
-              Bilder werden automatisch verkleinert (WebP). Nach dem Speichern sind sie sofort live.
+              Bilder werden automatisch verkleinert (WebP). Nach dem Speichern sind sie sofort live.<br>
+              <strong>Videos:</strong> In allen Feldern außer der Hero-Slideshow kannst du auch ein Video wählen (MP4, MOV oder WebM, bis 90 Sekunden). Es wird automatisch verkleinert und läuft auf der Website stumm in Dauerschleife.<br>
+              <strong>Zuschneiden:</strong> Unter jedem Bild gibt es den Knopf „✂ Zuschneiden“.
             </p>
 
             <label style="display:block;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-muted);margin-bottom:8px;">Hero-Slideshow (Startseite)</label>
@@ -2406,7 +2408,7 @@ const PI_DEFAULTS = [
   { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen.' },
   { match: /musselintuch|musselindecke/, material: 'Bio-Baumwolle (Musselin), mehrlagig …', care: 'Waschbar bei 40 °C im Schonwaschgang …' },
   { match: /strickdecke/, material: 'Weicher Baumwoll-Strick …', care: 'Schonend bei 30 °C, liegend trocknen …' },
-  { match: /kapuzenhandtuch|handtuch/, material: 'Bio-Baumwolle – flauschig und saugfähig …', care: 'Waschbar bei 40 °C …' },
+  { match: /kapuzenhandtuch|handtuch/, material: '100 % Bio-Baumwolle – flauschig und saugfähig … (unbestickt GOTS-zertifiziert vom Hersteller)', size: '75 × 75 cm …', care: 'Waschbar bei 40 °C oder 60 °C …' },
   { match: /waschlappen/, material: 'Bio-Baumwolle …', care: 'Waschbar bei 40 °C …' },
   { match: /laetzchen|lätzchen/, material: 'Weich gestrickte Baumwolle.', care: 'Waschbar bei 40 °C …' },
   { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord …', care: 'Von Hand waschen (max. 30 °C) …' },
@@ -3513,7 +3515,7 @@ function toggleGalleryLib(k) {
   if (at >= 0) L.splice(at, 1); else L.push({ img, cap });
   renderSiteImages();
 }
-async function uploadGallery(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && siteImages.qualitySlides[i]) { siteImages.qualitySlides[i].img = url; renderSiteImages(); } }
+async function uploadGallery(i, file) { if (!file) return; const url = await uploadSiteMedia(file); if (url && siteImages.qualitySlides[i]) { siteImages.qualitySlides[i].img = url; renderSiteImages(); } }
 // Fotos der Qualitätsseite: Schlüssel = data-si auf qualitaet.html
 const QUALITY_PAGE_SLOTS = [
   ['stickerei',  '01 Gestickt, nicht gedruckt'],
@@ -3543,21 +3545,243 @@ async function loadSiteImages() {
   renderSiteImages();
 }
 
+// ── MEDIA-TOOLS START ── (Zuschneiden + Videos für die Website-Bilder)
+const isVideoUrl = u => /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(String(u || ''));
+
+function busyOverlay(text) {
+  let el = document.getElementById('busy-overlay');
+  if (text === null) { if (el) el.remove(); return; }
+  if (!el) {
+    el = document.createElement('div'); el.id = 'busy-overlay';
+    el.style.cssText = 'position:fixed;inset:0;z-index:3000;background:rgba(30,20,15,.62);display:flex;align-items:center;justify-content:center;padding:24px;';
+    el.innerHTML = '<div style="background:#fff;border-radius:14px;padding:22px 26px;max-width:380px;text-align:center;font-size:.95rem;line-height:1.45;"><div id="busy-text"></div><div style="height:8px;border-radius:99px;background:#eee;margin-top:14px;overflow:hidden;"><div id="busy-bar" style="height:100%;width:0;background:#D9502F;transition:width .3s"></div></div></div>';
+    document.body.appendChild(el);
+  }
+  el.querySelector('#busy-text').textContent = text;
+}
+function busyProgress(p) { const b = document.getElementById('busy-bar'); if (b) b.style.width = Math.round(Math.max(0, Math.min(1, p)) * 100) + '%'; }
+
+// Video im Browser verkleinern: max. 1280 px, ca. 2,5 Mbit/s, ohne Ton (Videos laufen auf der Website stumm).
+// Läuft in Echtzeit (ein 20-Sekunden-Video braucht ca. 20 Sekunden). crop = {x,y,w,h} als Anteile 0..1 (optional).
+function pickVideoMime() {
+  if (typeof MediaRecorder === 'undefined') return '';
+  return ['video/mp4;codecs=avc1.42E01E', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'].find(t => MediaRecorder.isTypeSupported(t)) || '';
+}
+function compressVideo(file, crop, onProgress) {
+  return new Promise((resolve, reject) => {
+    const mime = pickVideoMime();
+    if (!mime) return reject(new Error('Dieser Browser kann Videos nicht verkleinern.'));
+    const v = document.createElement('video');
+    v.muted = true; v.playsInline = true; v.preload = 'auto';
+    const src = URL.createObjectURL(file);
+    const done = (err, blob) => { URL.revokeObjectURL(src); err ? reject(err) : resolve(blob); };
+    v.onerror = () => done(new Error('Das Video kann in diesem Browser nicht gelesen werden (z. B. iPhone-Format HEVC). Bitte als MP4 (H.264) exportieren.'));
+    v.onloadedmetadata = () => {
+      if (!v.videoWidth) return done(new Error('Das Video hat kein lesbares Bild.'));
+      if (isFinite(v.duration) && v.duration > 90) return done(new Error('Das Video ist länger als 90 Sekunden. Bitte vorher kürzen.'));
+      const c = crop || { x: 0, y: 0, w: 1, h: 1 };
+      const sx = c.x * v.videoWidth, sy = c.y * v.videoHeight, sw = c.w * v.videoWidth, sh = c.h * v.videoHeight;
+      const k = Math.min(1, 1280 / Math.max(sw, sh));
+      const cv = document.createElement('canvas');
+      cv.width = Math.max(2, Math.round(sw * k / 2) * 2); cv.height = Math.max(2, Math.round(sh * k / 2) * 2);
+      const ctx = cv.getContext('2d');
+      const rec = new MediaRecorder(cv.captureStream(30), { mimeType: mime, videoBitsPerSecond: 2500000 });
+      const chunks = [];
+      rec.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      rec.onstop = () => done(null, new Blob(chunks, { type: mime.split(';')[0] }));
+      let stopped = false;
+      const stop = () => { if (stopped) return; stopped = true; try { rec.stop(); } catch (_) {} };
+      const draw = () => {
+        if (stopped) return;
+        ctx.drawImage(v, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+        if (onProgress && v.duration) onProgress(v.currentTime / v.duration);
+        if (v.ended) return stop();
+        if (v.requestVideoFrameCallback) v.requestVideoFrameCallback(draw); else requestAnimationFrame(draw);
+      };
+      v.onended = () => setTimeout(stop, 120);
+      rec.start(500);
+      v.play().then(draw, () => done(new Error('Das Video konnte nicht abgespielt werden.')));
+    };
+    v.src = src;
+  });
+}
+
+// Video hochladen (verkleinert, wenn nötig). Gibt die öffentliche URL zurück oder null.
+async function uploadVideo(file, crop) {
+  const okType = /^video\/(mp4|webm|quicktime|x-m4v)$/.test(file.type) || /\.(mp4|webm|mov|m4v)$/i.test(file.name);
+  if (!okType) { alert('Bitte ein Video als MP4, MOV oder WebM hochladen.'); return null; }
+  if (file.size > 300 * 1024 * 1024) { alert('Das Video ist zu groß (über 300 MB). Bitte vorher kürzen.'); return null; }
+  let blob = file;
+  const small = file.size <= 6 * 1024 * 1024 && /^video\/(mp4|webm)$/.test(file.type);
+  if (!small || crop) {
+    try {
+      busyOverlay('Video wird verkleinert … Bitte dieses Fenster offen und im Vordergrund lassen.');
+      blob = await compressVideo(file, crop, busyProgress);
+    } catch (e) {
+      busyOverlay(null);
+      if (crop || file.size > 45 * 1024 * 1024) { alert('Video konnte nicht verkleinert werden: ' + e.message); return null; }
+      if (!confirm('Video konnte nicht verkleinert werden (' + e.message + ').\n\nUnverändert hochladen (' + (file.size / 1048576).toFixed(1) + ' MB)?')) return null;
+      blob = file;
+    }
+  }
+  if (blob.size > 45 * 1024 * 1024) { busyOverlay(null); alert('Das Video ist auch verkleinert noch zu groß (' + (blob.size / 1048576).toFixed(0) + ' MB). Bitte kürzen.'); return null; }
+  busyOverlay('Video wird hochgeladen (' + (blob.size / 1048576).toFixed(1) + ' MB) …'); busyProgress(1);
+  const type = (blob.type || 'video/mp4').split(';')[0];
+  const ext = type === 'video/webm' ? 'webm' : type === 'video/quicktime' ? 'mov' : 'mp4';
+  const name = 'video/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+  const { error } = await db.storage.from('product-images').upload(name, blob, { contentType: type, upsert: false, cacheControl: '31536000' });
+  busyOverlay(null);
+  if (error) { alert('Upload fehlgeschlagen: ' + error.message); return null; }
+  return db.storage.from('product-images').getPublicUrl(name).data.publicUrl;
+}
+
+// Bild ODER Video für die Website-Bilder hochladen
+async function uploadSiteMedia(file) {
+  if (!file) return null;
+  if ((file.type || '').startsWith('video/') || /\.(mp4|webm|mov|m4v)$/i.test(file.name)) return uploadVideo(file);
+  return uploadToStorage(file);
+}
+
+// ── Zuschneiden ──
+// openCropper(quelle, istVideo) → Promise<{x,y,w,h} in Anteilen 0..1> oder null (abgebrochen)
+function openCropper(srcUrl, isVideo) {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:2900;background:rgba(30,20,15,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px;';
+    ov.innerHTML = `
+      <div style="color:#fff;font-size:.9rem;text-align:center;">Rahmen verschieben oder an den Ecken ziehen. Nur der helle Bereich bleibt.</div>
+      <div id="crop-wrap" style="position:relative;line-height:0;touch-action:none;user-select:none;max-width:92vw;">
+        ${isVideo ? '<video id="crop-media" muted playsinline loop autoplay style="max-width:92vw;max-height:66vh;display:block;"></video>'
+                  : '<img id="crop-media" alt="" style="max-width:92vw;max-height:66vh;display:block;">'}
+        <div id="crop-rect" style="position:absolute;box-shadow:0 0 0 9999px rgba(0,0,0,.55);outline:2px solid #fff;cursor:move;">
+          ${['nw', 'ne', 'sw', 'se'].map(h => `<span data-h="${h}" style="position:absolute;width:22px;height:22px;background:#fff;border:2px solid #D9502F;border-radius:50%;${h[0] === 'n' ? 'top:-11px' : 'bottom:-11px'};${h[1] === 'w' ? 'left:-11px' : 'right:-11px'};cursor:${h}-resize;"></span>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;" id="crop-ratios">
+        ${[['Frei', 0], ['1:1', 1], ['4:3', 4 / 3], ['3:4', 3 / 4], ['16:9', 16 / 9]].map(([t, r], i) => `<button type="button" data-r="${r}" style="padding:7px 14px;border-radius:99px;border:1px solid #fff;background:${i ? 'transparent' : '#fff'};color:${i ? '#fff' : '#222'};font:600 .82rem inherit;cursor:pointer;">${t}</button>`).join('')}
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="button" id="crop-cancel" style="padding:10px 20px;border-radius:99px;border:1px solid #fff;background:transparent;color:#fff;font:600 .9rem inherit;cursor:pointer;">Abbrechen</button>
+        <button type="button" id="crop-ok" style="padding:10px 22px;border-radius:99px;border:0;background:#D9502F;color:#fff;font:700 .9rem inherit;cursor:pointer;">Zuschneiden</button>
+      </div>`;
+    document.body.appendChild(ov);
+    const wrap = ov.querySelector('#crop-wrap'), media = ov.querySelector('#crop-media'), rect = ov.querySelector('#crop-rect');
+    let R = { x: 0.1, y: 0.1, w: 0.8, h: 0.8 }, ratio = 0;   // Anteile der Bildfläche; ratio = Breite/Höhe (0 = frei)
+    const MIN = 0.06;
+    const paint = () => { rect.style.left = R.x * 100 + '%'; rect.style.top = R.y * 100 + '%'; rect.style.width = R.w * 100 + '%'; rect.style.height = R.h * 100 + '%'; };
+    const mediaRatio = () => { const b = wrap.getBoundingClientRect(); return b.width / Math.max(1, b.height); };
+    const applyRatio = () => {
+      if (!ratio) return;
+      const rr = ratio / mediaRatio();          // gewünschtes w/h in Anteilen
+      let w = R.w, h = w / rr;
+      if (h > 1) { h = 1; w = h * rr; }
+      if (w > 1) { w = 1; h = w / rr; }
+      const cx = R.x + R.w / 2, cy = R.y + R.h / 2;
+      R = { w, h, x: Math.min(1 - w, Math.max(0, cx - w / 2)), y: Math.min(1 - h, Math.max(0, cy - h / 2)) };
+    };
+    paint();
+    let drag = null;
+    rect.addEventListener('pointerdown', e => {
+      e.preventDefault(); rect.setPointerCapture(e.pointerId);
+      drag = { h: e.target.dataset.h || 'move', px: e.clientX, py: e.clientY, R: { ...R } };
+    });
+    rect.addEventListener('pointermove', e => {
+      if (!drag) return;
+      const b = wrap.getBoundingClientRect(), dx = (e.clientX - drag.px) / b.width, dy = (e.clientY - drag.py) / b.height, o = drag.R;
+      if (drag.h === 'move') { R = { ...o, x: Math.min(1 - o.w, Math.max(0, o.x + dx)), y: Math.min(1 - o.h, Math.max(0, o.y + dy)) }; return paint(); }
+      let l = o.x, t = o.y, r = o.x + o.w, bt = o.y + o.h;
+      if (drag.h[1] === 'w') l = Math.max(0, Math.min(r - MIN, o.x + dx)); else r = Math.min(1, Math.max(l + MIN, o.x + o.w + dx));
+      if (drag.h[0] === 'n') t = Math.max(0, Math.min(bt - MIN, o.y + dy)); else bt = Math.min(1, Math.max(t + MIN, o.y + o.h + dy));
+      if (ratio) {
+        const rr = ratio / mediaRatio(); let w = r - l, h = w / rr;
+        const maxH = drag.h[0] === 'n' ? bt : 1 - t;
+        if (h > maxH) { h = maxH; w = h * rr; }
+        if (drag.h[1] === 'w') l = r - w; else r = l + w;
+        if (drag.h[0] === 'n') t = bt - h; else bt = t + h;
+      }
+      R = { x: l, y: t, w: r - l, h: bt - t }; paint();
+    });
+    const end = () => { drag = null; };
+    rect.addEventListener('pointerup', end); rect.addEventListener('pointercancel', end);
+    ov.querySelector('#crop-ratios').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b) return;
+      ratio = parseFloat(b.dataset.r) || 0;
+      ov.querySelectorAll('#crop-ratios button').forEach(x => { const on = x === b; x.style.background = on ? '#fff' : 'transparent'; x.style.color = on ? '#222' : '#fff'; });
+      applyRatio(); paint();
+    });
+    const close = v => { ov.remove(); resolve(v); };
+    ov.querySelector('#crop-cancel').onclick = () => close(null);
+    ov.querySelector('#crop-ok').onclick = () => close({ ...R });
+    media.onerror = () => { alert('Das Bild konnte nicht geladen werden.'); close(null); };
+    if (!isVideo) media.crossOrigin = 'anonymous';
+    media.src = srcUrl;
+  });
+}
+
+// Ausschnitt eines Bildes als WebP-Datei (max. 1600 px)
+async function cropImageBlob(blob, c) {
+  const bmp = await createImageBitmap(blob);
+  const sx = Math.round(c.x * bmp.width), sy = Math.round(c.y * bmp.height), sw = Math.max(1, Math.round(c.w * bmp.width)), sh = Math.max(1, Math.round(c.h * bmp.height));
+  const k = Math.min(1, 1600 / Math.max(sw, sh));
+  const cv = document.createElement('canvas'); cv.width = Math.max(1, Math.round(sw * k)); cv.height = Math.max(1, Math.round(sh * k));
+  cv.getContext('2d').drawImage(bmp, sx, sy, sw, sh, 0, 0, cv.width, cv.height);
+  bmp.close && bmp.close();
+  let out = await new Promise(res => cv.toBlob(res, 'image/webp', 0.88));
+  if (!out) out = await new Promise(res => cv.toBlob(res, 'image/jpeg', 0.88));
+  return out;
+}
+
+// Vorhandenes Bild/Video eines Feldes zuschneiden und neu hochladen; setUrl(neueUrl) trägt es ein.
+async function cropSlot(url, setUrl) {
+  if (!url) return;
+  const video = isVideoUrl(url);
+  let blob;
+  try {
+    busyOverlay('Wird geladen …');
+    const r = await fetch(url, { cache: 'reload' }); if (!r.ok) throw new Error('HTTP ' + r.status);
+    blob = await r.blob();
+  } catch (e) { busyOverlay(null); alert('Die Datei konnte nicht geladen werden: ' + e.message); return; }
+  busyOverlay(null);
+  const local = URL.createObjectURL(blob);
+  const c = await openCropper(local, video);
+  URL.revokeObjectURL(local);
+  if (!c) return;
+  let newUrl = null;
+  if (video) {
+    newUrl = await uploadVideo(new File([blob], 'video.' + (blob.type.includes('webm') ? 'webm' : 'mp4'), { type: blob.type || 'video/mp4' }), c);
+  } else {
+    try {
+      busyOverlay('Bild wird zugeschnitten …');
+      const out = await cropImageBlob(blob, c);
+      newUrl = await uploadToStorage(new File([out], 'zuschnitt.webp', { type: out.type }));
+    } catch (e) { alert('Zuschneiden fehlgeschlagen: ' + e.message); }
+    busyOverlay(null);
+  }
+  if (newUrl) setUrl(newUrl);
+}
+// ── MEDIA-TOOLS END ──
+
 // Ein Bild-Auswahlfeld (Dropzone) – onFileExpr ist ein Funktionsaufruf ohne letztes Argument,
 // z. B. "uploadHero(2," → wird zu "uploadHero(2, <file>)"
-function siSlot(imgUrl, onFileExpr, w = 130) {
+// setExpr (optional) = Ausdruck, der eine neue URL einträgt, z. B. "u => setGalleryImg(2, u)" → zeigt „Zuschneiden".
+// allowVideo: Feld nimmt auch Videos an.
+function siSlot(imgUrl, onFileExpr, w = 130, setExpr = '', allowVideo = false) {
+  const h = Math.round(w * 0.7), vid = isVideoUrl(imgUrl);
+  const types = 'image/png,image/jpeg,image/webp,application/pdf' + (allowVideo ? ',video/mp4,video/webm,video/quicktime,.mov,.m4v' : '');
   return `
-    ${imgUrl ? `<img src="${imgUrl}" alt="" style="width:${w}px;height:${Math.round(w*0.7)}px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px;">`
-             : `<div style="width:${w}px;height:${Math.round(w*0.7)}px;border-radius:6px;background:#f0efe9;display:flex;align-items:center;justify-content:center;color:#b8b2a6;font-size:0.72rem;margin-bottom:6px;">kein Bild</div>`}
+    ${imgUrl ? (vid ? `<video src="${imgUrl}" muted loop playsinline autoplay style="width:${w}px;height:${h}px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px;background:#000;"></video>`
+                    : `<img src="${imgUrl}" alt="" style="width:${w}px;height:${h}px;object-fit:cover;border-radius:6px;display:block;margin-bottom:6px;">`)
+             : `<div style="width:${w}px;height:${h}px;border-radius:6px;background:#f0efe9;display:flex;align-items:center;justify-content:center;color:#b8b2a6;font-size:0.72rem;margin-bottom:6px;">kein Bild</div>`}
     <div class="dropzone dropzone--row" style="width:${w}px" tabindex="0" role="button"
          onclick="this.querySelector('input[type=file]').click()"
          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.querySelector('input[type=file]').click()}"
          ondragover="event.preventDefault();this.classList.add('dropzone--over')"
          ondragleave="this.classList.remove('dropzone--over')"
          ondrop="event.preventDefault();this.classList.remove('dropzone--over');${onFileExpr} event.dataTransfer.files[0])">
-      ${imgUrl ? 'Ersetzen' : 'Bild wählen'}
-      <input type="file" accept="image/png,image/jpeg,image/webp,application/pdf" hidden onchange="${onFileExpr} this.files[0]); this.value=''">
-    </div>`;
+      ${imgUrl ? 'Ersetzen' : (allowVideo ? 'Bild / Video wählen' : 'Bild wählen')}
+      <input type="file" accept="${types}" hidden onchange="${onFileExpr} this.files[0]); this.value=''">
+    </div>
+    ${imgUrl && setExpr ? `<button type="button" class="btn-sm btn-sm--outline" style="margin-top:6px;width:${w}px" onclick="cropSlot('${String(imgUrl).replace(/'/g, '%27')}', ${setExpr})">✂ Zuschneiden</button>` : ''}`;
 }
 
 function renderSiteImages() {
@@ -3565,7 +3789,7 @@ function renderSiteImages() {
   if (!hero) return;
   hero.innerHTML = siteImages.hero.map((s, i) => `
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
-      <div style="text-align:center;">${siSlot(s.img, `uploadHero(${i},`, 120)}</div>
+      <div style="text-align:center;">${siSlot(s.img, `uploadHero(${i},`, 120, `u => setSiUrl('hero', ${i}, u)`)}</div>
       <input type="text" placeholder="Name, z. B. Leni" value="${(s.name || '').replace(/"/g, '&quot;')}"
              style="flex:1;min-width:110px;align-self:flex-start;" onchange="setHeroName(${i}, this.value)">
       <button type="button" class="btn-sm btn-sm--outline" onclick="removeHeroSlide(${i})">✕</button>
@@ -3574,16 +3798,16 @@ function renderSiteImages() {
   const about = document.getElementById('si-about');
   if (about) about.innerHTML =
     // (interne Schlüssel aboutVeronika/aboutLeo bleiben aus Kompatibilität – nur die Beschriftung ist neu)
-    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Leo &amp; Lukas (Gründer)</div>${siSlot(siteImages.aboutVeronika, "uploadAbout('aboutVeronika',", 150)}</div>` +
-    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Werkstatt</div>${siSlot(siteImages.aboutLeo, "uploadAbout('aboutLeo',", 150)}</div>`;
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Leo &amp; Lukas (Gründer)</div>${siSlot(siteImages.aboutVeronika, "uploadAbout('aboutVeronika',", 150, "u => setSiUrl('aboutVeronika', null, u)", true)}</div>` +
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">Werkstatt</div>${siSlot(siteImages.aboutLeo, "uploadAbout('aboutLeo',", 150, "u => setSiUrl('aboutLeo', null, u)", true)}</div>`;
 
   const quality = document.getElementById('si-quality');
-  if (quality) quality.innerHTML = `<div style="text-align:center;">${siSlot(siteImages.quality, 'uploadQuality(', 170)}</div>`;
+  if (quality) quality.innerHTML = `<div style="text-align:center;">${siSlot(siteImages.quality, 'uploadQuality(', 170, "u => setSiUrl('quality', null, u)", true)}</div>`;
 
   const gal = document.getElementById('si-gallery');
   if (gal) gal.innerHTML = siteImages.qualitySlides.map((s, i) => `
     <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;border:1px solid var(--color-border);border-radius:var(--radius);padding:10px;">
-      <div style="text-align:center;">${siSlot(s.img, `uploadGallery(${i},`, 110)}</div>
+      <div style="text-align:center;">${siSlot(s.img, `uploadGallery(${i},`, 110, `u => setSiUrl('qualitySlides', ${i}, u)`, true)}</div>
       <input type="text" placeholder="Text auf dem Foto (kann leer bleiben)" value="${(s.cap || '').replace(/"/g, '&quot;')}"
              style="flex:1;min-width:110px;align-self:flex-start;" onchange="setGalleryCap(${i}, this.value)">
       <button type="button" class="btn-sm btn-sm--outline" title="Nach vorne" onclick="moveGallerySlide(${i}, -1)">↑</button>
@@ -3600,12 +3824,19 @@ function renderSiteImages() {
 
   const qp = document.getElementById('si-qualitypage');
   if (qp) qp.innerHTML = QUALITY_PAGE_SLOTS.map(([key, label]) =>
-    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">${label}</div>${siSlot(siteImages.qualityPage[key] || '', `uploadQualityPage('${key}',`, 130)}${siteImages.qualityPage[key] ? `<button type="button" class="btn-sm btn-sm--outline" style="margin-top:6px;font-size:0.72rem" onclick="removeQualityPage('${key}')">Entfernen</button>` : ''}</div>`
+    `<div style="text-align:center;"><div style="font-size:0.72rem;font-weight:700;color:var(--color-muted);margin-bottom:6px;">${label}</div>${siSlot(siteImages.qualityPage[key] || '', `uploadQualityPage('${key}',`, 130, `u => setSiUrl('qualityPage', '${key}', u)`, true)}${siteImages.qualityPage[key] ? `<button type="button" class="btn-sm btn-sm--outline" style="margin-top:6px;font-size:0.72rem" onclick="removeQualityPage('${key}')">Entfernen</button>` : ''}</div>`
   ).join('');
+}
+// Neue URL (z. B. nach dem Zuschneiden) in das passende Feld eintragen
+function setSiUrl(field, key, url) {
+  if (field === 'hero' || field === 'qualitySlides') { if (siteImages[field][key]) siteImages[field][key].img = url; }
+  else if (field === 'qualityPage') siteImages.qualityPage[key] = url;
+  else siteImages[field] = url;
+  renderSiteImages();
 }
 async function uploadQualityPage(key, file) {
   if (!file) return;
-  const url = await uploadToStorage(file);
+  const url = await uploadSiteMedia(file);
   if (url) { siteImages.qualityPage[key] = url; renderSiteImages(); }
 }
 function removeQualityPage(key) { delete siteImages.qualityPage[key]; renderSiteImages(); }
@@ -3615,8 +3846,8 @@ function addHeroSlide() { siteImages.hero.push({ name: '', img: '' }); renderSit
 function removeHeroSlide(i) { siteImages.hero.splice(i, 1); renderSiteImages(); }
 
 async function uploadHero(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && siteImages.hero[i]) { siteImages.hero[i].img = url; renderSiteImages(); } }
-async function uploadAbout(which, file) { if (!file) return; const url = await uploadToStorage(file); if (url) { siteImages[which] = url; renderSiteImages(); } }
-async function uploadQuality(file) { if (!file) return; const url = await uploadToStorage(file); if (url) { siteImages.quality = url; renderSiteImages(); } }
+async function uploadAbout(which, file) { if (!file) return; const url = await uploadSiteMedia(file); if (url) { siteImages[which] = url; renderSiteImages(); } }
+async function uploadQuality(file) { if (!file) return; const url = await uploadSiteMedia(file); if (url) { siteImages.quality = url; renderSiteImages(); } }
 
 async function saveSiteImages() {
   const msg = document.getElementById('si-msg');

@@ -324,9 +324,13 @@
           return;
         }
         box.style.display = '';
-        let img = box.querySelector('img');
-        if (!img) { img = document.createElement('img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
-        img.alt = box.dataset.alt || '';
+        // Im Admin kann statt eines Fotos auch ein Video hinterlegt sein (läuft stumm in Dauerschleife)
+        const isVid = /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(url);
+        box.querySelectorAll('img, video').forEach(el => { if ((el.tagName === 'VIDEO') !== isVid) el.remove(); });
+        let img = box.querySelector(isVid ? 'video' : 'img');
+        if (!img) { img = document.createElement(isVid ? 'video' : 'img'); img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover'; box.insertBefore(img, box.firstChild); }
+        if (isVid) { img.muted = true; img.loop = true; img.playsInline = true; img.autoplay = true; img.setAttribute('aria-label', box.dataset.alt || ''); }
+        else img.alt = box.dataset.alt || '';
         img.src = url;
       };
       setImg('.about-image:not(.about-image--moss)', v.aboutVeronika);
