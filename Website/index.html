@@ -566,7 +566,7 @@
             <a href="https://www.instagram.com/made2meant/" target="_blank" rel="noopener" aria-label="made2meant auf Instagram"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
           </div>
         </div>
-        <div><h4>Shop</h4><ul><li><a href="/shop.html">Alle Produkte</a></li><li><a href="/shop.html?typ=set">Geschenk-Sets</a></li><li><a href="/babygeschenke-mit-namen">Geschenke nach Anlass</a></li></ul></div>
+        <div><h4>Shop</h4><ul><li><a href="/shop.html">Alle Produkte</a></li><li><a href="/babygeschenke-mit-namen">Geschenke nach Anlass</a></li></ul></div>
         <div><h4>Service</h4><ul><li><a href="/faq.html">FAQ</a></li><li><a href="/faq.html#lieferung">Versand &amp; Lieferung</a></li><li><a href="/faq.html#ruckgabe">Rückgabe</a></li><li><a href="mailto:support@made2meant.com">Kontakt</a></li></ul></div>
         <div><h4>Über uns</h4><ul><li><a href="/ueber-uns.html">Unsere Geschichte</a></li><li><a href="/qualitaet.html">Qualität &amp; Materialien</a></li></ul></div>
       </div>
@@ -700,6 +700,7 @@
           c1: HERO_GRAD[i % HERO_GRAD.length][0], c2: HERO_GRAD[i % HERO_GRAD.length][1],
         }));
       }
+      if (Array.isArray(v.recs)) SITE_RECS = v.recs;
       renderQualitySlider(v.quality, v.qualitySlides);
     }
 
@@ -845,17 +846,29 @@
       { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 4.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
       { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 4.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
     ];
+    // Im Admin gepflegte Empfehlungen (Reiter „Empfehlungen“ → settings.site_images.recs); ohne Eintrag gilt RECS oben.
+    var SITE_RECS = null;
+    function recTier(slug) {
+      const k = String(slug || '').toLowerCase();
+      if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 9.90;
+      if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 4.90;
+      return null;
+    }
     function renderRecs(products) {
       const el = document.getElementById('recs-grid'); if (!el) return;
       const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-      const html = RECS.map(r => {
-        const p = products.find(x => x.slug && x.slug.includes(r.slug) && !Array.isArray(x.bundle_items)) || products.find(x => x.slug && x.slug.includes(r.slug));
-        if (!p) return '';
+      const html = (SITE_RECS || RECS).map(r => {
+        const p = r.product ? products.find(x => x.slug === r.product)
+          : (products.find(x => x.slug && x.slug.includes(r.slug) && !Array.isArray(x.bundle_items)) || products.find(x => x.slug && x.slug.includes(r.slug)));
+        if (!p || !Array.isArray(r.motiv) || !r.img) return '';
+        const tier = recTier(p.slug), add = tier != null ? tier * r.motiv.length : (Number(r.add) || 0);
+        const img = /^(https?:|\/)/.test(r.img) ? r.img : '/assets/textil/' + r.img + '.webp';
+        const alt = r.alt || (r.titel + ' – ' + p.name + ' mit Namen');
         const href = '/product.html?slug=' + encodeURIComponent(p.slug) + '&farbe=' + encodeURIComponent(r.farbe) +
-          '&motiv=' + r.motiv.join(',') + '&schrift=' + r.schrift + '&garn=' + encodeURIComponent(r.garn);
-        const price = (Number(p.price) || 0) + 9.90 + r.add;   // Grundpreis + Bestickung + Motiv(e)
+          '&motiv=' + r.motiv.map(encodeURIComponent).join(',') + '&schrift=' + r.schrift + '&garn=' + encodeURIComponent(r.garn);
+        const price = (Number(p.price) || 0) + 9.90 + add;   // Grundpreis + Bestickung + Motiv(e)
         return `<a class="rec" href="${href}">
-          <div class="rec__img"><img src="/assets/textil/${r.img}.webp" alt="${esc(r.alt)}" loading="lazy"></div>
+          <div class="rec__img"><img src="${esc(img)}" alt="${esc(alt)}" loading="lazy"></div>
           <div class="rec__body">
             <div class="rec__name">${esc(r.titel)}</div>
             <div class="rec__meta">${esc(p.name)}</div>

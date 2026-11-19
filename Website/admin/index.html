@@ -515,9 +515,11 @@
       <a href="#" onclick="showTab('products',this)">
         <span class="icon">🧵</span> Produkte
       </a>
+      <!-- Geschenk-Sets vorerst ausgeblendet (Bereich bleibt im Code, zum Reaktivieren diesen Link wieder einkommentieren)
       <a href="#" onclick="showTab('sets',this)">
         <span class="icon">🎁</span> Geschenk-Sets
       </a>
+      -->
       <a href="#" onclick="showTab('categories',this)">
         <span class="icon">🗂️</span> Kategorien
       </a>
@@ -539,6 +541,9 @@
       <div class="admin-nav-section">Website</div>
       <a href="#" onclick="showTab('images',this)">
         <span class="icon">🖼️</span> Bilder
+      </a>
+      <a href="#" onclick="showTab('recs',this)">
+        <span class="icon">⭐</span> Empfehlungen
       </a>
 
       <div class="admin-nav-section">Analyse</div>
@@ -897,6 +902,31 @@
           </div>
         </div>
 
+      </div>
+
+      <!-- ══════════ EMPFEHLUNGEN (Startseite) ══════════ -->
+      <div id="tab-recs" class="tab-panel">
+        <div class="page-header"><h2>Empfehlungen</h2></div>
+        <div class="admin-card" style="max-width:860px;">
+          <div class="admin-card__header">
+            <h3>Unsere Empfehlungen</h3>
+            <span style="font-size:0.75rem;color:var(--color-muted)">Startseite</span>
+          </div>
+          <div class="admin-card__body">
+            <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:18px;">
+              Das sind die fertigen Designs im Bereich „Unsere Empfehlungen“ auf der Startseite, in dieser Reihenfolge.
+              Ein Klick auf der Website öffnet das Produkt, und Farbe, Motiv, Schrift und Garn sind schon gewählt.
+              Der Preis rechnet sich von selbst (Produkt + Bestickung + Motive). Am schönsten sind 3 oder 6 Empfehlungen.
+            </p>
+            <div id="hr-list"><p style="color:var(--color-muted);font-size:0.85rem;">Wird geladen …</p></div>
+            <button type="button" class="btn-sm btn-sm--outline" style="margin-top:4px" onclick="addHomeRec()">+ Empfehlung hinzufügen</button>
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
+              <button class="btn-sm btn-sm--primary" onclick="saveHomeRecs()">Empfehlungen speichern</button>
+              <button class="btn-sm btn-sm--outline" onclick="resetHomeRecs()">Unsere Standard-Auswahl laden</button>
+              <span id="hr-msg" style="font-size:0.85rem;"></span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- ══════════ BILDER ══════════ -->
@@ -1329,6 +1359,7 @@
 <script src="/js/supabase.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/catalog.js"></script>
+<script src="/js/motif-catalog.js"></script>
 <script>
 
 // ══════════════════════════════════════════
@@ -1363,7 +1394,7 @@ function showTab(name, link) {
   const titles = {
     dashboard:'Dashboard', products:'Produkte', sets:'Geschenk-Sets', categories:'Kategorien',
     orders:'Bestellungen', customers:'Kunden', revenue:'Umsatz', discounts:'Rabattcodes',
-    newsletter:'Newsletter', analytics:'Analytics', images:'Bilder', settings:'Einstellungen'
+    newsletter:'Newsletter', analytics:'Analytics', images:'Bilder', recs:'Empfehlungen', settings:'Einstellungen'
   };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   if (link) link.classList.add('active');
@@ -1379,6 +1410,7 @@ function showTab(name, link) {
   if (name === 'revenue')    loadRevenue();
   if (name === 'analytics')  loadAnalytics();
   if (name === 'images')     loadSiteImages();
+  if (name === 'recs')       loadHomeRecs();
   if (name === 'settings')   loadSettings();
 }
 
@@ -3883,6 +3915,7 @@ async function saveSiteImages() {
     const { data: cur } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
     if (cur && cur.value && cur.value.motif_recs) payload.motif_recs = cur.value.motif_recs;
     if (cur && cur.value && cur.value.product_info) payload.product_info = cur.value.product_info;
+    if (cur && cur.value && Array.isArray(cur.value.recs)) payload.recs = cur.value.recs;
   } catch (_) {}
   const { error } = await db.from('settings')
     .upsert({ key: 'site_images', value: payload, updated_at: new Date().toISOString() }, { onConflict: 'key' });
@@ -3893,6 +3926,133 @@ async function saveSiteImages() {
   }
   msg.style.color = 'var(--color-success)';
   msg.textContent = '✓ Gespeichert – die Bilder sind jetzt live.';
+}
+
+// ══════════════════════════════════════════
+// EMPFEHLUNGEN (Startseite) – settings.site_images.recs = [{ product, farbe, motiv[], schrift, garn, img, titel, add }]
+// Die Startseite (index.html → renderRecs) liest diese Liste; ohne Eintrag zeigt sie ihre eingebaute Auswahl.
+// ══════════════════════════════════════════
+const HR_FONTS = [[1, 'Lucida'], [2, 'Vladimir'], [3, 'Times Roman'], [4, 'Pyunji'], [5, 'Civic'], [6, 'Yet']];
+const HR_THREADS = ['Schwarz', 'Creme', 'Caramel', 'Braun', 'Orange', 'Bronze', 'Rosé', 'Dunkelgrün', 'Dunkelblau', 'Babyblau', 'Bordeauxrot', 'Hellrosa', 'Grau', 'Pastelllila', 'Waldgrün'];
+// Gleiche Auswahl wie in index.html (RECS) – slug = Teil des Produkt-Links
+const HR_DEFAULTS = [
+  { slug: 'kapuzenhandtuch', farbe: 'Altrosa',      motiv: ['T2', 'T13'], schrift: 1, garn: 'Braun',       img: '/assets/textil/kapuzenhandtuch-beispiel-laura.webp',  titel: 'Rehkitz & Hase' },
+  { slug: 'kapuzenhandtuch', farbe: 'Blaugrau',     motiv: ['T7'],        schrift: 1, garn: 'Creme',       img: '/assets/textil/kapuzenhandtuch-beispiel-fabian.webp', titel: 'Kleiner Wolf' },
+  { slug: 'musselindecke',   farbe: 'Blättermotiv', motiv: ['M6'],        schrift: 1, garn: 'Dunkelblau',  img: '/assets/textil/musselindecke-beispiel-florian.webp',  titel: 'Ritterburg' },
+  { slug: 'rucksack',        farbe: 'Bär (Grau)',   motiv: ['C7'],        schrift: 1, garn: 'Dunkelblau',  img: '/assets/textil/rucksack-beispiel-noel.webp',          titel: 'Lokomotive' },
+  { slug: 'musselintuch',    farbe: 'Creme',        motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     img: '/assets/textil/musselintuch-beispiel-liam.webp',      titel: 'Piratenschiff' },
+  { slug: 'laetzchen',       farbe: 'Creme',        motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', img: '/assets/textil/laetzchen-beispiel-tim.webp',          titel: 'Babydrache' },
+];
+let homeRecs = [], hrProducts = [];
+
+// Motivpreis je Textil – gleich wie product.html (motifTier) und die Bezahl-Funktion
+function hrTier(slug) {
+  const k = String(slug || '').toLowerCase();
+  if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 9.90;
+  if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 4.90;
+  return null;
+}
+function hrMotif(code) { return (typeof MOTIF_CATALOG !== 'undefined' ? MOTIF_CATALOG : []).find(m => m.code === code) || null; }
+function hrAdd(r) {
+  const t = hrTier(r.product);
+  return Math.round((r.motiv || []).reduce((sum, c) => {
+    const m = hrMotif(c);
+    return sum + (t != null ? t : (m && m.size === 'gross' ? MOTIF_PRICES.gross : MOTIF_PRICES.klein));
+  }, 0) * 100) / 100;
+}
+function hrProduct(slug) { return hrProducts.find(p => p.slug === slug) || null; }
+function hrColors(p) {
+  const o = ((p && p.options) || []).find(x => /kappe|farbe/i.test(x.name));
+  return (o && o.values) || [];
+}
+function hrFromDefaults() {
+  return HR_DEFAULTS.map(d => {
+    const p = hrProducts.find(x => x.slug.includes(d.slug));
+    return { product: p ? p.slug : '', farbe: d.farbe, motiv: d.motiv.slice(), schrift: d.schrift, garn: d.garn, img: d.img, titel: d.titel };
+  }).filter(r => r.product);
+}
+async function loadHomeRecs() {
+  const [pRes, sRes] = await Promise.all([
+    db.from('products').select('slug, name, price, options, product_type, active, bundle_items').order('name'),
+    db.from('settings').select('value').eq('key', 'site_images').maybeSingle(),
+  ]);
+  // Sets haben mehrere Teile – dort funktioniert ein fertiges Design per Link nicht
+  hrProducts = (pRes.data || []).filter(p => p.product_type !== 'set' && !(Array.isArray(p.bundle_items) && p.bundle_items.length));
+  const saved = sRes.data && sRes.data.value && sRes.data.value.recs;
+  homeRecs = Array.isArray(saved)
+    ? saved.map(r => ({ product: r.product || '', farbe: r.farbe || '', motiv: Array.isArray(r.motiv) ? r.motiv.slice() : [], schrift: parseInt(r.schrift) || 1, garn: r.garn || '', img: r.img || '', titel: r.titel || '' }))
+    : hrFromDefaults();
+  renderHomeRecs();
+}
+function renderHomeRecs() {
+  const box = document.getElementById('hr-list'); if (!box) return;
+  const lab = t => `<label style="display:block;font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:4px;">${t}</label>`;
+  const opt = (v, t, cur) => `<option value="${esc(v)}"${String(v) === String(cur) ? ' selected' : ''}>${esc(t)}</option>`;
+  const groups = typeof MOTIF_GROUPS !== 'undefined' ? MOTIF_GROUPS : [];
+  box.innerHTML = homeRecs.map((r, i) => {
+    const p = hrProduct(r.product);
+    let colors = hrColors(p).slice();
+    if (r.farbe && !colors.some(c => String(c).toLowerCase() === r.farbe.toLowerCase())) colors.push(r.farbe);
+    const curColor = colors.find(c => String(c).toLowerCase() === (r.farbe || '').toLowerCase()) || '';
+    const price = p ? (Number(p.price) || 0) + 9.90 + hrAdd(r) : null;
+    const chips = (r.motiv || []).map((c, k) => { const m = hrMotif(c);
+      return `<span style="display:inline-flex;align-items:center;gap:6px;background:#f0efe9;border-radius:999px;padding:4px 6px 4px 10px;font-size:0.8rem;">${esc(c)} ${esc(m ? m.name : '(unbekannt)')}<button type="button" title="Motiv entfernen" onclick="removeHomeRecMotif(${i},${k})" style="border:0;background:#fff;border-radius:50%;width:18px;height:18px;line-height:16px;padding:0;cursor:pointer;">✕</button></span>`; }).join(' ');
+    const motifSelect = `<select onchange="addHomeRecMotif(${i}, this.value)" style="max-width:220px;"><option value="">+ Motiv hinzufügen …</option>${groups.map(g =>
+      `<optgroup label="${esc(g.name)}">${MOTIF_CATALOG.filter(m => m.group === g.key).map(m => `<option value="${esc(m.code)}">${esc(m.code)} – ${esc(m.name)}</option>`).join('')}</optgroup>`).join('')}</select>`;
+    return `
+    <div style="display:flex;gap:14px;align-items:flex-start;margin-bottom:12px;border:1px solid var(--color-border);border-radius:var(--radius);padding:12px;flex-wrap:wrap;">
+      <div style="text-align:center;">${siSlot(r.img, `uploadHomeRec(${i},`, 130, `u => setHomeRec(${i}, 'img', u, true)`)}</div>
+      <div style="flex:1;min-width:260px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;">
+        <div style="grid-column:1/-1;">${lab('Titel')}<input type="text" placeholder="z. B. Rehkitz & Hase" value="${esc(r.titel)}" style="width:100%;" onchange="setHomeRec(${i}, 'titel', this.value)"></div>
+        <div>${lab('Produkt')}<select style="width:100%;" onchange="setHomeRec(${i}, 'product', this.value, true)">${opt('', '– bitte wählen –', r.product)}${hrProducts.map(x => opt(x.slug, x.name + (x.active === false ? ' (nicht aktiv)' : ''), r.product)).join('')}</select></div>
+        <div>${lab('Farbe')}<select style="width:100%;" onchange="setHomeRec(${i}, 'farbe', this.value)" ${colors.length ? '' : 'disabled'}>${colors.length ? colors.map(c => opt(c, c, curColor)).join('') : '<option>keine Farbauswahl</option>'}</select></div>
+        <div>${lab('Schrift')}<select style="width:100%;" onchange="setHomeRec(${i}, 'schrift', parseInt(this.value))">${HR_FONTS.map(f => opt(f[0], f[0] + ' – ' + f[1], r.schrift)).join('')}</select></div>
+        <div>${lab('Garnfarbe')}<select style="width:100%;" onchange="setHomeRec(${i}, 'garn', this.value)">${opt('', '– bitte wählen –', r.garn)}${HR_THREADS.map(t => opt(t, t, r.garn)).join('')}</select></div>
+        <div style="grid-column:1/-1;">${lab('Motive')}<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${chips} ${motifSelect}</div></div>
+        <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-muted);">${price != null ? 'Preis auf der Website: <strong style="color:var(--color-text)">€ ' + price.toFixed(2).replace('.', ',') + '</strong> (inkl. Name &amp; Motiv)' : 'Bitte ein Produkt wählen.'}${p && p.active === false ? ' – <span style="color:var(--color-danger)">Produkt ist nicht aktiv, die Empfehlung wird nicht angezeigt.</span>' : ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <button type="button" class="btn-sm btn-sm--outline" title="Nach vorne" onclick="moveHomeRec(${i}, -1)">↑</button>
+        <button type="button" class="btn-sm btn-sm--outline" title="Nach hinten" onclick="moveHomeRec(${i}, 1)">↓</button>
+        <button type="button" class="btn-sm btn-sm--outline" title="Löschen" onclick="removeHomeRec(${i})">✕</button>
+      </div>
+    </div>`; }).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Keine Empfehlungen. Wenn du so speicherst, verschwindet der Bereich von der Startseite.</p>';
+}
+function setHomeRec(i, k, v, rerender) {
+  const r = homeRecs[i]; if (!r) return;
+  r[k] = v;
+  if (k === 'product') { const cols = hrColors(hrProduct(v)); r.farbe = cols[0] || ''; }
+  if (rerender) renderHomeRecs();
+}
+function addHomeRec() { homeRecs.push({ product: '', farbe: '', motiv: [], schrift: 1, garn: '', img: '', titel: '' }); renderHomeRecs(); }
+function removeHomeRec(i) { homeRecs.splice(i, 1); renderHomeRecs(); }
+function moveHomeRec(i, d) { const j = i + d; if (j < 0 || j >= homeRecs.length) return; [homeRecs[i], homeRecs[j]] = [homeRecs[j], homeRecs[i]]; renderHomeRecs(); }
+function addHomeRecMotif(i, code) { const r = homeRecs[i]; if (!r || !code) return; if (!r.motiv.includes(code)) r.motiv.push(code); renderHomeRecs(); }
+function removeHomeRecMotif(i, k) { if (homeRecs[i]) { homeRecs[i].motiv.splice(k, 1); renderHomeRecs(); } }
+async function uploadHomeRec(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && homeRecs[i]) { homeRecs[i].img = url; renderHomeRecs(); } }
+function resetHomeRecs() {
+  if (!confirm('Die Liste durch unsere Standard-Auswahl ersetzen? Das gilt erst, wenn du danach speicherst.')) return;
+  homeRecs = hrFromDefaults(); renderHomeRecs();
+}
+async function saveHomeRecs() {
+  const msg = document.getElementById('hr-msg');
+  const say = (t, ok) => { msg.style.color = ok ? 'var(--color-success)' : 'var(--color-danger)'; msg.textContent = t; };
+  for (let i = 0; i < homeRecs.length; i++) {
+    const r = homeRecs[i], n = i + 1;
+    if (!r.product) return say('Empfehlung ' + n + ': Bitte ein Produkt wählen.');
+    if (!(r.titel || '').trim()) return say('Empfehlung ' + n + ': Bitte einen Titel eintragen.');
+    if (!r.img) return say('Empfehlung ' + n + ': Bitte ein Foto wählen.');
+    if (!r.motiv.length) return say('Empfehlung ' + n + ': Bitte mindestens ein Motiv wählen.');
+    if (!r.garn) return say('Empfehlung ' + n + ': Bitte eine Garnfarbe wählen.');
+  }
+  const recs = homeRecs.map(r => ({ product: r.product, farbe: r.farbe || '', motiv: r.motiv.slice(), schrift: r.schrift || 1, garn: r.garn, img: r.img, titel: r.titel.trim(), add: hrAdd(r) }));
+  // Im selben Eintrag liegen auch die Website-Bilder – alles andere unverändert lassen
+  const { data: cur, error: readErr } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+  if (readErr) return say('Fehler: ' + readErr.message);
+  const value = { ...((cur && cur.value) || {}), recs };
+  const { error } = await db.from('settings').upsert({ key: 'site_images', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+  if (error) return say('Fehler: ' + error.message);
+  say('✓ Gespeichert – die Empfehlungen sind jetzt live.', true);
 }
 
 // ══════════════════════════════════════════
