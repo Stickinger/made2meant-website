@@ -865,7 +865,7 @@
         const img = /^(https?:|\/)/.test(r.img) ? r.img : '/assets/textil/' + r.img + '.webp';
         const alt = r.alt || (r.titel + ' – ' + p.name + ' mit Namen');
         const href = '/product.html?slug=' + encodeURIComponent(p.slug) + '&farbe=' + encodeURIComponent(r.farbe) +
-          '&motiv=' + r.motiv.map(encodeURIComponent).join(',') + '&schrift=' + r.schrift + '&garn=' + encodeURIComponent(r.garn);
+          '&motiv=' + r.motiv.map(encodeURIComponent).join(',') + '&schrift=' + r.schrift + '&garn=' + encodeURIComponent(r.garn) + '&fix=1' + (r.id ? '&rec=' + encodeURIComponent(r.id) : '');
         const price = (Number(p.price) || 0) + 9.90 + add;   // Grundpreis + Bestickung + Motiv(e)
         return `<a class="rec" href="${href}">
           <div class="rec__img"><img src="${esc(img)}" alt="${esc(alt)}" loading="lazy"></div>

@@ -432,6 +432,14 @@
     .bld .dz__warn { text-align: center; }
     .bld__panel { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px 18px; }
     .bld__step[hidden] { display: none; }
+    /* Feste Empfehlung: nur der Name ist offen */
+    .bld--fixed .bld__step[data-step="farbe"], .bld--fixed .bld__step[data-step="motiv"] { display: none !important; }
+    .bld--fixed .bld__step[data-step="text"] > .fld ~ .fld { display: none; }
+    .bld--fixed .dz__tools, .bld--fixed .dz__h, .bld--fixed .dz__reset, .bld--fixed .dz__warn, .bld--fixed .bld__step[data-step="fertig"] > .bld__lead:first-child { display: none !important; }
+    .bld--fixed .bld__step[data-step="text"] > .fld:first-child > .fld__hint { display: none !important; }
+    .bld--fixed .dz__el { cursor: default; outline-color: transparent !important; }
+    .bld__fixednote { background: #F6EFE4; border: 1px solid var(--color-border); border-radius: 12px; padding: 10px 12px; font-size: 0.82rem; line-height: 1.45; color: var(--color-text); margin-bottom: 14px; }
+    .bld__fixednote a { color: var(--color-muted); text-decoration: underline; white-space: nowrap; }
     .bld .pos-list--single .pos-card__head input { display: none; }
     .bld__lead { font-size: 0.86rem; color: var(--color-muted); margin: 0 0 12px; }
     .bld__sum { list-style: none; margin: 0 0 12px; padding: 0; border: 1.5px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
@@ -685,6 +693,8 @@
       off: {},                            // Sets: Textilien, die bewusst ohne Bestickung bleiben
       setColors: {},                      // Sets: gewählte Farbe je Teil { produkt-slug: 'Braun' }
       setPreview: '',                     // Sets: Foto des zuletzt angeklickten Teils in seiner Farbe
+      fixed: null,                        // Feste Empfehlung von der Startseite: { titel, sample, baseS } – Kunde trägt nur den Namen ein
+      recDesign: false,                   // Admin gestaltet gerade eine Empfehlung (Reiter „Empfehlungen“)
     };
 
     const imgCache = {};
@@ -788,7 +798,7 @@
       if (MOTIFS.length) loadMotifRecs(currentProduct.slug);
       loadProductInfo(currentProduct);
       try { restoreDesignFromCart(); } catch (e) { console.warn('Gestaltung konnte nicht geladen werden', e); }
-      try { applyPresetFromLink(); } catch (e) { console.warn('Empfehlung konnte nicht geladen werden', e); }
+      applyPresetFromLink().catch(e => console.warn('Empfehlung konnte nicht geladen werden', e));
       renderRelated();   // „Das könnte dir auch gefallen" (lädt separat, blockiert die Seite nicht)
     }
 
@@ -1438,7 +1448,10 @@ ${setColorBlockHtml(true)}</section>` : ''}
 
     // ── Geführtes Gestaltungs-Fenster (Farbe → Text → Motiv → Anordnen) ──
     let bIdx = 0, builderOpen = false;
-    function builderSteps() { return [...document.querySelectorAll('#builder .bld__step')]; }
+    function builderSteps() {
+      const all = [...document.querySelectorAll('#builder .bld__step')];
+      return cfg.fixed ? all.filter(st => st.dataset.step !== 'farbe' && st.dataset.step !== 'motiv') : all;
+    }
     function openBuilder() {
       const el = document.getElementById('builder'); if (!el) return;
       if (cfg.mode !== 'mit') setMode('mit');
@@ -1503,7 +1516,12 @@ ${setColorBlockHtml(true)}</section>` : ''}
       if (last && !hasText() && !motifOnly()) { ok = true; label = 'Text oder Motiv fehlt – zurück'; }
       // Sets: nach einem Textil geht es mit dem nächsten weiter
       const bEl = document.getElementById('builder');
-      if (bEl) { bEl.classList.toggle('bld--multi', isMulti()); bEl.classList.toggle('bld--curoff', isMulti() && !(cfg.cur in cfg.positions)); }
+      if (bEl) { bEl.classList.toggle('bld--multi', isMulti()); bEl.classList.toggle('bld--curoff', isMulti() && !(cfg.cur in cfg.positions)); bEl.classList.toggle('bld--fixed', !!cfg.fixed); }
+      if (cfg.fixed && !document.getElementById('bld-fixednote')) {
+        const pan = document.getElementById('bld-panel');
+        if (pan) pan.insertAdjacentHTML('afterbegin', `<div class="bld__fixednote" id="bld-fixednote"><b>Fertiges Design${cfg.fixed.titel ? ' „' + escH(cfg.fixed.titel) + '“' : ''}.</b> Motiv, Schrift, Farben und Anordnung sind schon festgelegt. Du trägst nur noch den Namen ein. <a href="/product.html?slug=${encodeURIComponent(currentProduct.slug)}">Lieber selbst gestalten</a></div>`);
+      }
+      if (cfg.recDesign && last && ok) label = 'Design übernehmen';
       if (isMulti()) {
         const curOn = cfg.cur in cfg.positions, pend = texPending();
         if (key === 'farbe') { /* Farben gelten fürs ganze Set – normal weiter zum Text */ }
@@ -1624,6 +1642,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       if (d > 0 && bIdx === steps.length - 1 && !hasText() && !motifOnly()) { bIdx = textIdx; builderShow(); return; }
       if (d > 0 && bIdx === steps.length - 1) {
         if (!personalizationReady()) return;
+        if (cfg.recDesign) { sendRecDesign(); return; }
         const editing = !!cfg.editUid;
         handleAddToCart(); if (editing) return;
         closeBuilder();
@@ -1948,7 +1967,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       Object.keys(cfg.layout.items).forEach(id => { if (!cfg.selectedMotifs[id]) delete cfg.layout.items[id]; });
       chosen.forEach(m => { if (!cfg.layout.items[m.id]) cfg.layout.items[m.id] = P.items[m.id]; });
     }
-    function resetLayout() { cfg.layout = null; dzSel = 'name'; renderDesign(); }
+    function resetLayout() { if (cfg.fixed) return; cfg.layout = null; dzSel = 'name'; renderDesign(); }
 
     function dzState(k) { return k === 'name' ? cfg.layout.name : cfg.layout.items[k]; }
     function dzStyle(st) { return `left:${st.x}%;top:${st.y}%;transform:translate(-50%,-50%) rotate(${st.r}deg)`; }
@@ -1970,6 +1989,12 @@ ${setColorBlockHtml(true)}</section>` : ''}
       if (!builderOpen) return;                       // Vorschau lebt im Gestaltungs-Fenster
       const chosen = chosenMotifList();
       ensureLayout(chosen);
+      // Feste Empfehlung mit eigener Anordnung: längere Namen als im Muster kleiner setzen, damit nichts in die Motive läuft
+      if (cfg.fixed && cfg.layout.custom) {
+        if (cfg.fixed.baseS == null) cfg.fixed.baseS = cfg.layout.name.s;
+        const len = Math.max(1, ...name.split('\n').map(l => l.length)), ref = Math.max(4, (cfg.fixed.sample || '').length || 6);
+        cfg.layout.name.s = +(cfg.fixed.baseS * Math.min(1, ref / len)).toFixed(2);
+      }
       if (dzSel !== 'name' && !cfg.layout.items[dzSel]) dzSel = 'name';
       // Nur Motiv: ein einzelnes Motiv in die Mitte setzen (solange nichts selbst verschoben wurde)
       if (!name && chosen.length === 1 && !cfg.layout.custom) { const it = cfg.layout.items[chosen[0].id]; it.x = 50; it.y = 50; }
@@ -2328,7 +2353,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       dzCheckBounds();
     }
     function dzNudge(what, v) {
-      const st = dzState(dzSel); if (!st) return;
+      const st = dzState(dzSel); if (!st || cfg.fixed) return;
       if (what === 'd') {            // Mülleimer: Motiv abwählen bzw. Text leeren
         if (dzSel === 'name') {
           POSITIONS.forEach(p => { const c = cfg.positions[p.id]; if (!c || !curIds().includes(p.id)) return;
@@ -2361,6 +2386,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       let drag = null;
       hoop.addEventListener('pointerdown', e => {
         const el = e.target.closest('.dz__el'); if (!el) return;
+        if (cfg.fixed) { if (el.dataset.k === 'name') dzTextTap(); return; }
         e.preventDefault();
         const k = el.dataset.k; dzSelect(k);
         const st = dzState(k), H = hoop.getBoundingClientRect();
@@ -2396,7 +2422,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
         if (moved) dzChanged(); else if (k === 'name' && mode === 'm') dzTextTap(); };
       hoop.addEventListener('pointerup', end); hoop.addEventListener('pointercancel', end);
       hoop.addEventListener('keydown', e => {
-        const el = e.target.closest('.dz__el'); if (!el) return;
+        const el = e.target.closest('.dz__el'); if (!el || cfg.fixed) return;
         const st = dzState(el.dataset.k); dzSelect(el.dataset.k);
         const step = e.shiftKey ? 5 : 1, map = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[e.key];
         if (!map) return; e.preventDefault();
@@ -2582,19 +2608,60 @@ ${setColorBlockHtml(true)}</section>` : ''}
     }
     // Empfohlenes Design von der Startseite (?motiv=T2,T13&schrift=1&garn=Schwarz):
     // Motiv, Schrift und Garn sind schon gewählt – es fehlt nur noch der Name.
-    function applyPresetFromLink() {
+    // Mit &fix=1 (bzw. &rec=<id> aus dem Admin-Reiter „Empfehlungen“) ist das Design fest: nur der Name ist offen.
+    // &recdesign=1 öffnet der Admin, um eine Empfehlung im echten Designer zu gestalten (Daten kommen aus localStorage).
+    async function applyPresetFromLink() {
       const q = new URLSearchParams(location.search);
       if (q.get('edit') || !POSITIONS.length || isMulti()) return;
-      const codes = (q.get('motiv') || '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
-      const fontNr = parseInt(q.get('schrift')), garn = q.get('garn');
-      if (!codes.length && !fontNr && !garn) return;
+      const design = q.get('recdesign') === '1';
+      let rec = null;
+      if (design) { try { rec = JSON.parse(localStorage.getItem('m2m_recdesign') || 'null'); } catch (_) {} }
+      else if (q.get('rec')) {
+        try {
+          const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
+          rec = ((data && data.value && data.value.recs) || []).find(r => r && r.id === q.get('rec') && r.product === currentProduct.slug) || null;
+        } catch (_) {}
+      }
+      const codes = (rec && Array.isArray(rec.motiv) ? rec.motiv : (q.get('motiv') || '').split(',')).map(c => String(c).trim().toUpperCase()).filter(Boolean);
+      const fontNr = parseInt(rec ? rec.schrift : q.get('schrift')), garn = rec ? rec.garn : q.get('garn');
+      if (!design && !codes.length && !fontNr && !garn) return;
+      if (rec && rec.farbe && capOption) { const hit = (capOption.values || []).find(v => String(v).toLowerCase() === String(rec.farbe).toLowerCase()); if (hit && hit !== cfg.capColor) selectCap(hit); }
       const fi = FONTS.findIndex(f => f.nr === fontNr); if (fi >= 0) selectFont(fi);
       if (garn && THREAD_COLORS.some(t => t.name === garn)) selectThread(garn);
       cfg.selectedMotifs = {};
       codes.forEach(c => { const m = MOTIFS.find(k => k.code === c); if (m) cfg.selectedMotifs[m.id] = true; });
       syncMotifInput(); renderMotifs(); updatePrice();
+      // Gespeicherte Anordnung (Motive nach Code) übernehmen
+      if (rec && rec.layout && rec.layout.name) {
+        const items = {};
+        Object.keys(rec.layout.items || {}).forEach(c => { const m = MOTIFS.find(k => k.code === c); if (m && cfg.selectedMotifs[m.id]) items[m.id] = { ...rec.layout.items[c] }; });
+        cfg.layout = { name: { ...rec.layout.name }, items, custom: true };
+      }
+      if (design) {
+        cfg.recDesign = true;
+        const id = POSITIONS[0].id, a = document.getElementById('posinput-' + id);
+        if (a) a.value = (rec && rec.sample) || 'Emma';
+        const cb = document.querySelector(`#poscard-${id} input[type=checkbox]`); if (cb) cb.checked = true;
+        togglePosition(id, true);
+        openBuilder(); bIdx = builderSteps().length - 1; builderShow();
+        if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+        return;
+      }
+      if (q.get('fix') === '1' || rec) cfg.fixed = { titel: (rec && rec.titel) || '', sample: (rec && rec.sample) || '', baseS: null };
       const st = builderSteps().find(x => x.dataset.step === 'text'); if (st) st.dataset.title = 'Nur noch der Name';
+      if (cfg.fixed) { const en = document.querySelector('#builder .bld__step[data-step="fertig"]'); if (en) { en.dataset.title = 'Prüfen'; en.dataset.dot = 'Prüfen'; } if (st) st.dataset.dot = 'Name eintragen'; }
       openBuilder(); builderToText();
+    }
+    // Admin: fertige Gestaltung an den Reiter „Empfehlungen“ zurückgeben (Fenster wurde von dort geöffnet)
+    function sendRecDesign() {
+      const chosen = chosenMotifList().filter(m => m.code);
+      ensureLayout(chosenMotifList());
+      const items = {};
+      chosen.forEach(m => { const it = cfg.layout.items[m.id]; if (it) items[m.code] = { ...it }; });
+      const design = { farbe: cfg.capColor || '', motiv: chosen.map(m => m.code), schrift: cfg.font ? cfg.font.nr : 1, garn: cfg.threadColor ? cfg.threadColor.name : '',
+        sample: designName().split('\n')[0], layout: cfg.layout.custom ? { name: { ...cfg.layout.name }, items } : null };
+      if (window.opener && !window.opener.closed) { window.opener.postMessage({ type: 'm2m-recdesign', design }, location.origin); window.close(); }
+      else alert('Das Admin-Fenster ist nicht mehr offen. Bitte die Gestaltung im Admin über „Design bearbeiten“ neu starten.');
     }
     function handleAddToCart() {
       const options = {};
@@ -2602,6 +2669,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const setContent = Array.isArray(currentProduct.bundle_items) ? currentProduct.bundle_items.filter(i => i && i.name) : [];
       if (setContent.length) options['Set-Inhalt'] = setContent.map(i => (i.qty > 1 ? i.qty + '× ' : '') + i.name).join(', ');
       if (capOption) options[capOption.name] = cfg.capColor;
+      if (cfg.fixed && cfg.fixed.titel && cfg.mode !== 'ohne') options['Vorlage'] = cfg.fixed.titel;   // feste Empfehlung von der Startseite
       // Set: gewählte Farbe je Teil (auch ohne Bestickung)
       SETP.forEach(x => { if (cfg.setColors[x.slug]) options[x.name + ' – ' + x.opt] = cfg.setColors[x.slug]; });
       if (POSITIONS.length > 0 && cfg.mode === 'ohne') {

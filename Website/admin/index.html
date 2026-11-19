@@ -916,13 +916,13 @@
             <p style="color:var(--color-muted); font-size:0.88rem; margin-bottom:18px;">
               Das sind die fertigen Designs im Bereich „Unsere Empfehlungen“ auf der Startseite, in dieser Reihenfolge.
               Ein Klick auf der Website öffnet das Produkt, und Farbe, Motiv, Schrift und Garn sind schon gewählt.
-              Der Preis rechnet sich von selbst (Produkt + Bestickung + Motive). Am schönsten sind 3 oder 6 Empfehlungen.
+              Der Preis rechnet sich von selbst (Produkt + Bestickung + Motive). Am schönsten sind 3 oder 6 Empfehlungen.<br>
+              <strong>Fest für Kunden:</strong> Kunden tragen bei einer Empfehlung nur noch den Namen ein, alles andere ist festgelegt. Mit „🎨 Design bearbeiten“ ordnest du Name und Motive im Designer so an, wie es gestickt werden soll.
             </p>
             <div id="hr-list"><p style="color:var(--color-muted);font-size:0.85rem;">Wird geladen …</p></div>
             <button type="button" class="btn-sm btn-sm--outline" style="margin-top:4px" onclick="addHomeRec()">+ Empfehlung hinzufügen</button>
             <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
               <button class="btn-sm btn-sm--primary" onclick="saveHomeRecs()">Empfehlungen speichern</button>
-              <button class="btn-sm btn-sm--outline" onclick="resetHomeRecs()">Unsere Standard-Auswahl laden</button>
               <span id="hr-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
@@ -3943,7 +3943,8 @@ const HR_DEFAULTS = [
   { slug: 'musselintuch',    farbe: 'Creme',        motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     img: '/assets/textil/musselintuch-beispiel-liam.webp',      titel: 'Piratenschiff' },
   { slug: 'laetzchen',       farbe: 'Creme',        motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', img: '/assets/textil/laetzchen-beispiel-tim.webp',          titel: 'Babydrache' },
 ];
-let homeRecs = [], hrProducts = [];
+let homeRecs = [], hrProducts = [], hrDesignIdx = -1;
+function hrId() { return 'r' + Math.random().toString(36).slice(2, 9); }
 
 // Motivpreis je Textil – gleich wie product.html (motifTier) und die Bezahl-Funktion
 function hrTier(slug) {
@@ -3968,7 +3969,7 @@ function hrColors(p) {
 function hrFromDefaults() {
   return HR_DEFAULTS.map(d => {
     const p = hrProducts.find(x => x.slug.includes(d.slug));
-    return { product: p ? p.slug : '', farbe: d.farbe, motiv: d.motiv.slice(), schrift: d.schrift, garn: d.garn, img: d.img, titel: d.titel };
+    return { id: hrId(), product: p ? p.slug : '', farbe: d.farbe, motiv: d.motiv.slice(), schrift: d.schrift, garn: d.garn, img: d.img, titel: d.titel, layout: null, sample: '' };
   }).filter(r => r.product);
 }
 async function loadHomeRecs() {
@@ -3980,7 +3981,7 @@ async function loadHomeRecs() {
   hrProducts = (pRes.data || []).filter(p => p.product_type !== 'set' && !(Array.isArray(p.bundle_items) && p.bundle_items.length));
   const saved = sRes.data && sRes.data.value && sRes.data.value.recs;
   homeRecs = Array.isArray(saved)
-    ? saved.map(r => ({ product: r.product || '', farbe: r.farbe || '', motiv: Array.isArray(r.motiv) ? r.motiv.slice() : [], schrift: parseInt(r.schrift) || 1, garn: r.garn || '', img: r.img || '', titel: r.titel || '' }))
+    ? saved.map(r => ({ id: r.id || hrId(), layout: (r.layout && r.layout.name) ? r.layout : null, sample: r.sample || '', product: r.product || '', farbe: r.farbe || '', motiv: Array.isArray(r.motiv) ? r.motiv.slice() : [], schrift: parseInt(r.schrift) || 1, garn: r.garn || '', img: r.img || '', titel: r.titel || '' }))
     : hrFromDefaults();
   renderHomeRecs();
 }
@@ -4009,6 +4010,10 @@ function renderHomeRecs() {
         <div>${lab('Schrift')}<select style="width:100%;" onchange="setHomeRec(${i}, 'schrift', parseInt(this.value))">${HR_FONTS.map(f => opt(f[0], f[0] + ' – ' + f[1], r.schrift)).join('')}</select></div>
         <div>${lab('Garnfarbe')}<select style="width:100%;" onchange="setHomeRec(${i}, 'garn', this.value)">${opt('', '– bitte wählen –', r.garn)}${HR_THREADS.map(t => opt(t, t, r.garn)).join('')}</select></div>
         <div style="grid-column:1/-1;">${lab('Motive')}<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">${chips} ${motifSelect}</div></div>
+        <div style="grid-column:1/-1;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <button type="button" class="btn-sm btn-sm--primary" onclick="openHomeRecDesign(${i})" ${p ? '' : 'disabled'}>🎨 Design bearbeiten</button>
+          <span style="font-size:0.8rem;color:var(--color-muted);">${r.layout ? 'Eigene Anordnung gespeichert' + (r.sample ? ' (Muster-Name „' + esc(r.sample) + '“)' : '') + '. <a href="#" onclick="clearHomeRecLayout(' + i + ');return false;">Zurück auf automatisch</a>' : 'Anordnung: automatisch'}</span>
+        </div>
         <div style="grid-column:1/-1;font-size:0.85rem;color:var(--color-muted);">${price != null ? 'Preis auf der Website: <strong style="color:var(--color-text)">€ ' + price.toFixed(2).replace('.', ',') + '</strong> (inkl. Name &amp; Motiv)' : 'Bitte ein Produkt wählen.'}${p && p.active === false ? ' – <span style="color:var(--color-danger)">Produkt ist nicht aktiv, die Empfehlung wird nicht angezeigt.</span>' : ''}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px;">
@@ -4021,15 +4026,37 @@ function renderHomeRecs() {
 function setHomeRec(i, k, v, rerender) {
   const r = homeRecs[i]; if (!r) return;
   r[k] = v;
-  if (k === 'product') { const cols = hrColors(hrProduct(v)); r.farbe = cols[0] || ''; }
+  if (k === 'product') { const cols = hrColors(hrProduct(v)); r.farbe = cols[0] || ''; r.layout = null; }
   if (rerender) renderHomeRecs();
 }
-function addHomeRec() { homeRecs.push({ product: '', farbe: '', motiv: [], schrift: 1, garn: '', img: '', titel: '' }); renderHomeRecs(); }
+function addHomeRec() { homeRecs.push({ id: hrId(), layout: null, sample: '', product: '', farbe: '', motiv: [], schrift: 1, garn: '', img: '', titel: '' }); renderHomeRecs(); }
 function removeHomeRec(i) { homeRecs.splice(i, 1); renderHomeRecs(); }
 function moveHomeRec(i, d) { const j = i + d; if (j < 0 || j >= homeRecs.length) return; [homeRecs[i], homeRecs[j]] = [homeRecs[j], homeRecs[i]]; renderHomeRecs(); }
 function addHomeRecMotif(i, code) { const r = homeRecs[i]; if (!r || !code) return; if (!r.motiv.includes(code)) r.motiv.push(code); renderHomeRecs(); }
 function removeHomeRecMotif(i, k) { if (homeRecs[i]) { homeRecs[i].motiv.splice(k, 1); renderHomeRecs(); } }
 async function uploadHomeRec(i, file) { if (!file) return; const url = await uploadToStorage(file); if (url && homeRecs[i]) { homeRecs[i].img = url; renderHomeRecs(); } }
+// Design im echten Designer der Produktseite bearbeiten (eigenes Fenster); das Ergebnis kommt per Nachricht zurück
+function openHomeRecDesign(i) {
+  const r = homeRecs[i]; if (!r || !r.product) return;
+  hrDesignIdx = i;
+  try { localStorage.setItem('m2m_recdesign', JSON.stringify({ motiv: r.motiv, schrift: r.schrift, garn: r.garn, farbe: r.farbe, layout: r.layout, sample: r.sample, titel: r.titel })); } catch (_) {}
+  const w = window.open('/product.html?slug=' + encodeURIComponent(r.product) + (r.farbe ? '&farbe=' + encodeURIComponent(r.farbe) : '') + '&recdesign=1', 'm2mRecDesign', 'width=1180,height=860');
+  if (!w) alert('Das Fenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben.');
+}
+function clearHomeRecLayout(i) { if (homeRecs[i]) { homeRecs[i].layout = null; renderHomeRecs(); } }
+window.addEventListener('message', e => {
+  if (e.origin !== location.origin || !e.data || e.data.type !== 'm2m-recdesign') return;
+  const r = homeRecs[hrDesignIdx], d = e.data.design || {}; if (!r) return;
+  if (Array.isArray(d.motiv)) r.motiv = d.motiv.map(String);
+  if (d.schrift) r.schrift = parseInt(d.schrift) || 1;
+  if (d.garn) r.garn = String(d.garn);
+  if (d.farbe) r.farbe = String(d.farbe);
+  r.sample = String(d.sample || '');
+  r.layout = (d.layout && d.layout.name) ? d.layout : null;
+  renderHomeRecs();
+  const msg = document.getElementById('hr-msg');
+  if (msg) { msg.style.color = 'var(--color-text)'; msg.textContent = 'Design übernommen – bitte noch „Empfehlungen speichern“ klicken.'; }
+});
 function resetHomeRecs() {
   if (!confirm('Die Liste durch unsere Standard-Auswahl ersetzen? Das gilt erst, wenn du danach speicherst.')) return;
   homeRecs = hrFromDefaults(); renderHomeRecs();
@@ -4045,7 +4072,7 @@ async function saveHomeRecs() {
     if (!r.motiv.length) return say('Empfehlung ' + n + ': Bitte mindestens ein Motiv wählen.');
     if (!r.garn) return say('Empfehlung ' + n + ': Bitte eine Garnfarbe wählen.');
   }
-  const recs = homeRecs.map(r => ({ product: r.product, farbe: r.farbe || '', motiv: r.motiv.slice(), schrift: r.schrift || 1, garn: r.garn, img: r.img, titel: r.titel.trim(), add: hrAdd(r) }));
+  const recs = homeRecs.map(r => ({ id: r.id || hrId(), layout: r.layout || null, sample: r.sample || '', product: r.product, farbe: r.farbe || '', motiv: r.motiv.slice(), schrift: r.schrift || 1, garn: r.garn, img: r.img, titel: r.titel.trim(), add: hrAdd(r) }));
   // Im selben Eintrag liegen auch die Website-Bilder – alles andere unverändert lassen
   const { data: cur, error: readErr } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
   if (readErr) return say('Fehler: ' + readErr.message);
