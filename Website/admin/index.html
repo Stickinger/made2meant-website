@@ -3475,7 +3475,7 @@ async function saveSettings() {
 }
 
 // ── WEBSITE-BILDER (Hero / Über uns / Qualität) ──────────────
-let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '', qualityPage: {}, qualitySlides: [] };
+let siteImages = { hero: [], aboutVeronika: '', aboutLeo: '', quality: '', qualityPage: {}, qualitySlides: [], galleryHidden: [] };
 // Galerie der Startseite: Fotos, die schon auf der Website liegen (anklicken = aufnehmen)
 const GALLERY_LIB = [
   ['/assets/qualitaet/decke-emma.webp', 'Strickdecke „Emma“ mit Rehkitz'],
@@ -3515,6 +3515,14 @@ function toggleGalleryLib(k) {
   if (at >= 0) L.splice(at, 1); else L.push({ img, cap });
   renderSiteImages();
 }
+// Foto aus der Liste „Vorhandene Fotos“ löschen (wird auch aus der Galerie genommen); gilt nach dem Speichern.
+function hideGalleryLib(k) {
+  const [img] = GALLERY_LIB[k];
+  if (!siteImages.galleryHidden.includes(img)) siteImages.galleryHidden.push(img);
+  siteImages.qualitySlides = siteImages.qualitySlides.filter(x => x.img !== img);
+  renderSiteImages();
+}
+function restoreGalleryLib() { siteImages.galleryHidden = []; renderSiteImages(); }
 async function uploadGallery(i, file) { if (!file) return; const url = await uploadSiteMedia(file); if (url && siteImages.qualitySlides[i]) { siteImages.qualitySlides[i].img = url; renderSiteImages(); } }
 // Fotos der Qualitätsseite: Schlüssel = data-si auf qualitaet.html
 const QUALITY_PAGE_SLOTS = [
@@ -3541,6 +3549,8 @@ async function loadSiteImages() {
     qualitySlides: Array.isArray(v.qualitySlides) && v.qualitySlides.length
       ? v.qualitySlides.map(s => ({ img: s.img || '', cap: s.cap || '' }))
       : GALLERY_LIB.slice(0, 9).map(([img, cap]) => ({ img, cap })),
+    // Fotos, die aus der Liste „Vorhandene Fotos“ gelöscht wurden
+    galleryHidden: Array.isArray(v.galleryHidden) ? v.galleryHidden.filter(Boolean) : [],
   };
   renderSiteImages();
 }
@@ -3815,12 +3825,20 @@ function renderSiteImages() {
       <button type="button" class="btn-sm btn-sm--outline" title="Entfernen" onclick="removeGallerySlide(${i})">✕</button>
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Fotos ausgewählt – dann zeigt die Startseite die bisherige Auswahl.</p>';
   const lib = document.getElementById('si-gallery-lib');
-  if (lib) lib.innerHTML = GALLERY_LIB.map(([img, cap], k) => {
-    const on = siteImages.qualitySlides.some(x => x.img === img);
-    return `<button type="button" title="${cap.replace(/"/g, '&quot;')}" onclick="toggleGalleryLib(${k})" style="position:relative;padding:0;border:3px solid ${on ? '#D9502F' : 'transparent'};border-radius:10px;background:#fff;cursor:pointer;line-height:0;">
-      <img src="${img}" alt="" loading="lazy" style="width:84px;height:84px;object-fit:cover;border-radius:7px;opacity:${on ? 1 : 0.75};">
-      ${on ? '<span style="position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#D9502F;color:#fff;font-size:13px;line-height:20px;font-weight:700;">✓</span>' : ''}
-    </button>`; }).join('');
+  if (lib) {
+    const hidden = siteImages.galleryHidden || [];
+    lib.innerHTML = GALLERY_LIB.map(([img, cap], k) => {
+      if (hidden.includes(img)) return '';
+      const on = siteImages.qualitySlides.some(x => x.img === img);
+      return `<span style="position:relative;display:inline-block;line-height:0;">
+        <button type="button" title="${cap.replace(/"/g, '&quot;')}" onclick="toggleGalleryLib(${k})" style="position:relative;padding:0;border:3px solid ${on ? '#D9502F' : 'transparent'};border-radius:10px;background:#fff;cursor:pointer;line-height:0;">
+          <img src="${img}" alt="" loading="lazy" style="width:84px;height:84px;object-fit:cover;border-radius:7px;opacity:${on ? 1 : 0.75};">
+          ${on ? '<span style="position:absolute;bottom:4px;right:4px;width:20px;height:20px;border-radius:50%;background:#D9502F;color:#fff;font-size:13px;line-height:20px;font-weight:700;">✓</span>' : ''}
+        </button>
+        <button type="button" title="Foto aus der Liste löschen" aria-label="Foto aus der Liste löschen" onclick="hideGalleryLib(${k})" style="position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;border:1px solid var(--color-border);background:#fff;color:#444;font-size:13px;line-height:20px;padding:0;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.18);">✕</button>
+      </span>`; }).join('')
+      + (hidden.length ? `<div style="flex-basis:100%;font-size:0.8rem;color:var(--color-muted);line-height:1.4;margin-top:6px;">${hidden.length} Foto${hidden.length > 1 ? 's' : ''} gelöscht. <a href="#" onclick="restoreGalleryLib();return false;">Alle wieder anzeigen</a></div>` : '');
+  }
 
   const qp = document.getElementById('si-qualitypage');
   if (qp) qp.innerHTML = QUALITY_PAGE_SLOTS.map(([key, label]) =>
@@ -3858,6 +3876,7 @@ async function saveSiteImages() {
     quality: siteImages.quality || '',
     qualityPage: Object.fromEntries(Object.entries(siteImages.qualityPage || {}).filter(([, u]) => u)),
     qualitySlides: (siteImages.qualitySlides || []).map(s => ({ img: (s.img || '').trim(), cap: (s.cap || '').trim() })).filter(s => s.img),
+    galleryHidden: [...new Set(siteImages.galleryHidden || [])],
   };
   // Motiv-Empfehlungen liegen im selben Eintrag (öffentlich lesbar) – nicht überschreiben
   try {
