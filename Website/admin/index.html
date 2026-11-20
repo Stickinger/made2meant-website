@@ -492,7 +492,14 @@
       min-width: 150px;
       text-align: center;
     }
-  </style>
+  
+/* Speichern: Ladesymbol + Bestätigung */
+.btn-spin { display:inline-block; width:0.85em; height:0.85em; margin-right:0.5em; vertical-align:-0.1em; border:2px solid currentColor; border-top-color:transparent; border-radius:50%; animation:btnSpin 0.7s linear infinite; }
+@keyframes btnSpin { to { transform:rotate(360deg); } }
+.btn-sm.is-saved, .btn-sm.is-saved:disabled { background:#2e7d4f !important; border-color:#2e7d4f !important; color:#fff !important; opacity:1 !important; }
+.m2m-toast { position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px); background:#2e7d4f; color:#fff; padding:0.75rem 1.4rem; border-radius:999px; font-size:0.95rem; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:99999; }
+.m2m-toast.is-on { opacity:1; transform:translate(-50%,0); }
+</style>
 </head>
 <body>
 
@@ -543,7 +550,7 @@
         <span class="icon">🖼️</span> Bilder
       </a>
       <a href="#" onclick="showTab('recs',this)">
-        <span class="icon">⭐</span> Empfehlungen
+        <span class="icon">⭐</span> Design-Empfehlungen
       </a>
 
       <div class="admin-nav-section">Analyse</div>
@@ -785,8 +792,8 @@
                   <textarea id="nl-content" rows="10" placeholder="Hallo {{name}},&#10;&#10;hier kommt dein Newsletter..."></textarea>
                 </div>
                 <div style="display:flex;gap:10px;">
-                  <button class="btn-sm btn-sm--outline" onclick="saveNewsletter('draft')">Als Entwurf speichern</button>
-                  <button class="btn-sm btn-sm--primary" onclick="saveNewsletter('send')">Jetzt senden →</button>
+                  <button class="btn-sm btn-sm--outline" onclick="saveFx(this, () => saveNewsletter('draft'), 'Entwurf gespeichert')">Als Entwurf speichern</button>
+                  <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveNewsletter('send'), 'Newsletter gesendet', 'Sendet …', '✓ Gesendet')">Jetzt senden →</button>
                 </div>
               </div>
             </div>
@@ -875,7 +882,7 @@
               <textarea id="settings-emails" rows="4" placeholder="bestellungen@made2meant.at&#10;chef@made2meant.at"></textarea>
             </div>
             <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
-              <button class="btn-sm btn-sm--primary" onclick="saveSettings()">Speichern</button>
+              <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveSettings(), 'Gespeichert')">Speichern</button>
               <span id="settings-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
@@ -896,7 +903,7 @@
               <div class="field"><label for="bank-bank">Bank</label><input type="text" id="bank-bank" placeholder="optional"></div>
             </div>
             <div style="display:flex; align-items:center; gap:14px; margin-top:8px;">
-              <button class="btn-sm btn-sm--primary" onclick="saveBankDetails()">Speichern</button>
+              <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveBankDetails(), 'Bankdaten gespeichert')">Speichern</button>
               <span id="bank-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
@@ -906,7 +913,7 @@
 
       <!-- ══════════ EMPFEHLUNGEN (Startseite) ══════════ -->
       <div id="tab-recs" class="tab-panel">
-        <div class="page-header"><h2>Empfehlungen</h2></div>
+        <div class="page-header"><h2>Design-Empfehlungen</h2></div>
         <div class="admin-card" style="max-width:860px;">
           <div class="admin-card__header">
             <h3>Unsere Empfehlungen</h3>
@@ -917,12 +924,12 @@
               Das sind die fertigen Designs im Bereich „Unsere Empfehlungen“ auf der Startseite, in dieser Reihenfolge.
               Ein Klick auf der Website öffnet das Produkt, und Farbe, Motiv, Schrift und Garn sind schon gewählt.
               Der Preis rechnet sich von selbst (Produkt + Bestickung + Motive). Am schönsten sind 3 oder 6 Empfehlungen.<br>
-              <strong>Fest für Kunden:</strong> Kunden tragen bei einer Empfehlung nur noch den Namen ein, alles andere ist festgelegt. Mit „🎨 Design bearbeiten“ ordnest du Name und Motive im Designer so an, wie es gestickt werden soll.
+              <strong>Fest für Kunden:</strong> Motiv, Schrift, Garn und Anordnung sind festgelegt. Kunden wählen nur Textil und Farbe und tragen den Namen ein. Produkt und Farbe hier sind der Vorschlag, mit dem es startet. Mit „🎨 Design bearbeiten“ ordnest du Name und Motive im Designer so an, wie es gestickt werden soll.
             </p>
             <div id="hr-list"><p style="color:var(--color-muted);font-size:0.85rem;">Wird geladen …</p></div>
             <button type="button" class="btn-sm btn-sm--outline" style="margin-top:4px" onclick="addHomeRec()">+ Empfehlung hinzufügen</button>
             <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
-              <button class="btn-sm btn-sm--primary" onclick="saveHomeRecs()">Empfehlungen speichern</button>
+              <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveHomeRecs(), 'Empfehlungen gespeichert')">Empfehlungen speichern</button>
               <span id="hr-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
@@ -969,7 +976,7 @@
             <div id="si-qualitypage" style="display:flex;gap:18px;flex-wrap:wrap;"></div>
 
             <div style="display:flex; align-items:center; gap:14px; margin-top:22px; border-top:1px solid var(--color-border); padding-top:16px;">
-              <button class="btn-sm btn-sm--primary" onclick="saveSiteImages()">Website-Bilder speichern</button>
+              <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveSiteImages(), 'Website-Bilder gespeichert')">Website-Bilder speichern</button>
               <span id="si-msg" style="font-size:0.85rem;"></span>
             </div>
           </div>
@@ -1146,7 +1153,7 @@
     </div>
     <div class="modal__footer">
       <button class="btn-sm btn-sm--outline" onclick="closeModal('product-modal')">Abbrechen</button>
-      <button class="btn-sm btn-sm--primary" onclick="saveProduct()">Speichern</button>
+      <button class="btn-sm btn-sm--primary" id="p-save-btn" onclick="saveProduct(this)">Speichern</button>
     </div>
   </div>
 </div>
@@ -1225,7 +1232,7 @@
     <div class="modal__footer">
       <span id="set-edit-more" style="margin-right:auto"></span>
       <button class="btn-sm btn-sm--outline" onclick="closeModal('set-modal')">Abbrechen</button>
-      <button class="btn-sm btn-sm--primary" id="set-save-btn" onclick="saveSet()">Set speichern</button>
+      <button class="btn-sm btn-sm--primary" id="set-save-btn" onclick="saveFx(this, () => saveSet(), 'Set gespeichert')">Set speichern</button>
     </div>
   </div>
 </div>
@@ -1288,7 +1295,7 @@
     </div>
     <div class="modal__footer">
       <button class="btn-sm btn-sm--outline" onclick="closeModal('category-modal')">Abbrechen</button>
-      <button class="btn-sm btn-sm--primary" onclick="saveCategory()">Speichern</button>
+      <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveCategory(), 'Kategorie gespeichert')">Speichern</button>
     </div>
   </div>
 </div>
@@ -1338,7 +1345,7 @@
     </div>
     <div class="modal__footer">
       <button class="btn-sm btn-sm--outline" onclick="closeModal('discount-modal')">Abbrechen</button>
-      <button class="btn-sm btn-sm--primary" onclick="saveDiscount()">Speichern</button>
+      <button class="btn-sm btn-sm--primary" onclick="saveFx(this, () => saveDiscount(), 'Rabattcode gespeichert')">Speichern</button>
     </div>
   </div>
 </div>
@@ -1394,7 +1401,7 @@ function showTab(name, link) {
   const titles = {
     dashboard:'Dashboard', products:'Produkte', sets:'Geschenk-Sets', categories:'Kategorien',
     orders:'Bestellungen', customers:'Kunden', revenue:'Umsatz', discounts:'Rabattcodes',
-    newsletter:'Newsletter', analytics:'Analytics', images:'Bilder', recs:'Empfehlungen', settings:'Einstellungen'
+    newsletter:'Newsletter', analytics:'Analytics', images:'Bilder', recs:'Design-Empfehlungen', settings:'Einstellungen'
   };
   document.getElementById('topbar-title').textContent = titles[name] || name;
   if (link) link.classList.add('active');
@@ -1856,6 +1863,7 @@ async function saveSet() {
 
     closeModal('set-modal');
     await loadSets();
+    return true;
   } catch (e) {
     alert(e.message || e);
   } finally {
@@ -2636,7 +2644,57 @@ async function openProductModal(product = null) {
   openModal('product-modal');
 }
 
-async function saveProduct() {
+// Kleine Meldung unten am Bildschirm (z. B. „✓ Gespeichert“)
+function showToast(text) {
+  let t = document.getElementById('m2m-toast');
+  if (!t) { t = document.createElement('div'); t.id = 'm2m-toast'; t.className = 'm2m-toast'; document.body.appendChild(t); }
+  t.textContent = text;
+  t.classList.add('is-on');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(() => t.classList.remove('is-on'), 3500);
+}
+
+// Allgemein: Knopf zeigt Ladesymbol, danach „✓ Gespeichert“ + Meldung unten.
+// fn muss bei Erfolg true zurückgeben.
+async function saveFx(btn, fn, toast, busyText, doneText) {
+  if (!btn || btn.dataset.busy) return;
+  const orig = btn.innerHTML;
+  btn.dataset.busy = '1'; btn.disabled = true;
+  btn.innerHTML = '<span class="btn-spin"></span>' + (busyText || 'Speichert …');
+  let ok = false;
+  try { ok = await fn(); }
+  catch (e) { alert('Fehler beim Speichern: ' + (e && e.message ? e.message : e)); }
+  if (ok === true) {
+    btn.classList.add('is-saved'); btn.innerHTML = doneText || '✓ Gespeichert';
+    showToast('✓ ' + (toast || 'Gespeichert'));
+    await new Promise(r => setTimeout(r, 1800));
+    btn.classList.remove('is-saved');
+  }
+  delete btn.dataset.busy; btn.disabled = false; btn.innerHTML = orig;
+}
+
+// Speichern mit Ladesymbol und „Gespeichert“-Bestätigung
+async function saveProduct(btn) {
+  btn = btn || document.getElementById('p-save-btn');
+  if (btn && btn.dataset.busy) return;            // Doppelklick abfangen
+  const orig = btn ? btn.innerHTML : '';
+  if (btn) { btn.dataset.busy = '1'; btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span>Speichert …'; }
+  let ok = false;
+  try { ok = await saveProductInner(); }
+  catch (e) { alert('Fehler beim Speichern: ' + (e && e.message ? e.message : e)); }
+  if (!ok) {
+    if (btn) { delete btn.dataset.busy; btn.disabled = false; btn.innerHTML = orig; }
+    return;
+  }
+  if (btn) { btn.classList.add('is-saved'); btn.innerHTML = '✓ Gespeichert'; }
+  await new Promise(r => setTimeout(r, 900));
+  closeModal('product-modal');
+  if (btn) { delete btn.dataset.busy; btn.disabled = false; btn.classList.remove('is-saved'); btn.innerHTML = orig; }
+  showToast('✓ Produkt gespeichert');
+  loadProductsTable();
+}
+
+async function saveProductInner() {
   const id = document.getElementById('p-id').value;
   const tags = document.getElementById('p-tags').value.split(',').map(t=>t.trim()).filter(Boolean);
 
@@ -2754,8 +2812,7 @@ async function saveProduct() {
 
   if (!(await saveRecsFor(saved[0].slug, recSlugAtOpen))) return;
 
-  closeModal('product-modal');
-  loadProductsTable();
+  return true;
 }
 
 async function deleteProduct(id) {
@@ -2880,6 +2937,7 @@ async function saveCategory() {
   if (error) { alert('Fehler: ' + error.message); return; }
   closeModal('category-modal');
   loadCategoriesTable();
+  return true;
 }
 
 async function deleteCategory(id) {
@@ -3244,6 +3302,7 @@ async function saveDiscount() {
   if (error) { alert('Fehler: ' + error.message); return; }
   closeModal('discount-modal');
   loadDiscountsTable();
+  return true;
 }
 
 async function deleteDiscount(id) {
@@ -3350,11 +3409,10 @@ async function saveNewsletter(action) {
   if (action !== 'send') {
     const { error } = await db.from('newsletters').insert({ subject, content, status: 'draft', recipient_count: 0 });
     if (error) { alert('Fehler: ' + error.message); return; }
-    alert('Entwurf gespeichert!');
     document.getElementById('nl-subject').value = '';
     document.getElementById('nl-content').value = '';
     loadNewsletter();
-    return;
+    return true;
   }
 
   // Senden: echter Versand via Edge Function an bestätigte Abonnenten
@@ -3381,6 +3439,7 @@ async function saveNewsletter(action) {
   document.getElementById('nl-subject').value = '';
   document.getElementById('nl-content').value = '';
   loadNewsletter();
+  return true;
 }
 
 // ══════════════════════════════════════════
@@ -3480,6 +3539,7 @@ async function saveBankDetails() {
   document.getElementById('bank-iban').value = value.iban;
   msg.style.color = 'var(--color-success)';
   msg.textContent = '✓ Gespeichert';
+  return true;
 }
 
 async function saveSettings() {
@@ -3504,6 +3564,7 @@ async function saveSettings() {
   }
   msg.style.color = 'var(--color-success)';
   msg.textContent = emails.length ? '✓ Gespeichert (' + emails.length + ' Adresse' + (emails.length > 1 ? 'n' : '') + ')' : '✓ Gespeichert – keine Benachrichtigungen aktiv';
+  return true;
 }
 
 // ── WEBSITE-BILDER (Hero / Über uns / Qualität) ──────────────
@@ -3926,6 +3987,7 @@ async function saveSiteImages() {
   }
   msg.style.color = 'var(--color-success)';
   msg.textContent = '✓ Gespeichert – die Bilder sind jetzt live.';
+  return true;
 }
 
 // ══════════════════════════════════════════
@@ -4080,6 +4142,7 @@ async function saveHomeRecs() {
   const { error } = await db.from('settings').upsert({ key: 'site_images', value, updated_at: new Date().toISOString() }, { onConflict: 'key' });
   if (error) return say('Fehler: ' + error.message);
   say('✓ Gespeichert – die Empfehlungen sind jetzt live.', true);
+  return true;
 }
 
 // ══════════════════════════════════════════

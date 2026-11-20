@@ -433,7 +433,13 @@
     .bld__panel { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px 16px 18px; }
     .bld__step[hidden] { display: none; }
     /* Feste Empfehlung: nur der Name ist offen */
-    .bld--fixed .bld__step[data-step="farbe"], .bld--fixed .bld__step[data-step="motiv"] { display: none !important; }
+    .bld--fixed .bld__step[data-step="motiv"] { display: none !important; }
+    .fixtex { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 10px; margin: 0 0 22px; }
+    .fixtex a { display: block; border: 2px solid var(--color-border); border-radius: 14px; background: #fff; padding: 6px 6px 8px; text-align: center; color: var(--color-text); font-size: 0.76rem; font-weight: 700; line-height: 1.25; }
+    .fixtex a img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 9px; display: block; margin-bottom: 6px; background: #f0efe9; }
+    .fixtex a.cur { border-color: var(--color-primary); box-shadow: 0 0 0 2px rgba(43,18,14,.10); }
+    .fixtex a small { display: block; font-weight: 400; color: var(--color-muted); margin-top: 2px; }
+    .bld__fixchange { display: inline-block; margin-top: 12px; font-size: 0.82rem; color: var(--color-muted); text-decoration: underline; background: none; border: 0; padding: 0; cursor: pointer; font-family: var(--font-main); }
     .bld--fixed .bld__step[data-step="text"] > .fld ~ .fld { display: none; }
     .bld--fixed .dz__tools, .bld--fixed .dz__h, .bld--fixed .dz__reset, .bld--fixed .dz__warn, .bld--fixed .bld__step[data-step="fertig"] > .bld__lead:first-child { display: none !important; }
     .bld--fixed .bld__step[data-step="text"] > .fld:first-child > .fld__hint { display: none !important; }
@@ -1450,7 +1456,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
     let bIdx = 0, builderOpen = false;
     function builderSteps() {
       const all = [...document.querySelectorAll('#builder .bld__step')];
-      return cfg.fixed ? all.filter(st => st.dataset.step !== 'farbe' && st.dataset.step !== 'motiv') : all;
+      return cfg.fixed ? all.filter(st => st.dataset.step !== 'motiv') : all;
     }
     function openBuilder() {
       const el = document.getElementById('builder'); if (!el) return;
@@ -1519,7 +1525,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       if (bEl) { bEl.classList.toggle('bld--multi', isMulti()); bEl.classList.toggle('bld--curoff', isMulti() && !(cfg.cur in cfg.positions)); bEl.classList.toggle('bld--fixed', !!cfg.fixed); }
       if (cfg.fixed && !document.getElementById('bld-fixednote')) {
         const pan = document.getElementById('bld-panel');
-        if (pan) pan.insertAdjacentHTML('afterbegin', `<div class="bld__fixednote" id="bld-fixednote"><b>Fertiges Design${cfg.fixed.titel ? ' „' + escH(cfg.fixed.titel) + '“' : ''}.</b> Motiv, Schrift, Farben und Anordnung sind schon festgelegt. Du trägst nur noch den Namen ein. <a href="/product.html?slug=${encodeURIComponent(currentProduct.slug)}">Lieber selbst gestalten</a></div>`);
+        if (pan) pan.insertAdjacentHTML('afterbegin', `<div class="bld__fixednote" id="bld-fixednote"><b>Design-Empfehlung${cfg.fixed.titel ? ' „' + escH(cfg.fixed.titel) + '“' : ''}.</b> Motiv, Schrift und Anordnung sind schon festgelegt. Du wählst Textil und Farbe und trägst den Namen ein. <a href="/product.html?slug=${encodeURIComponent(currentProduct.slug)}">Lieber selbst gestalten</a></div>`);
       }
       if (cfg.recDesign && last && ok) label = 'Design übernehmen';
       if (isMulti()) {
@@ -1840,7 +1846,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
           <img src="${escH(m.url)}" alt="${escH(m.name || m.label)}" loading="lazy">
           ${m.code && recCodes.has(m.code) ? '<span class="motifcard__star">★ Tipp</span>' : ''}
           ${m.code ? `<span class="motifcard__code">${escH(m.code)}</span><span class="motifcard__name">${escH(m.name)}</span>` : `<span class="motifcard__name">${escH(m.label)}</span>`}
-          <span class="motifcard__price">+ ${euro(pm(m).price)}${!tierOf(POSITIONS.find(p => p.id === cfg.cur)) && m.size === 'gross' ? ' · groß' : ''}</span>
+          <span class="motifcard__price">+ ${euro(pm(m).price)}</span>
         </button>`;
       // Je Gruppe das Foto unserer echten Stick-Palette – jedes Motiv darauf ist anklickbar
       const palette = (g, withTitle) => {
@@ -1848,7 +1854,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
         const hot = P ? ms.filter(m => P.boxes[m.code]) : [], rest = ms.filter(m => !hot.includes(m));
         return (withTitle ? `<h4 class="mpal__title">${escH(g.name)}</h4>` : '')
           + (hot.length ? `<div class="mpal" style="aspect-ratio:${P.ratio}"><img src="${P.img}" alt="Unsere gestickte Motiv-Palette: ${escH(g.name)}" loading="lazy">
-              ${hot.map(m => { const b = P.boxes[m.code]; return `<button type="button" class="mpal__hot ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" onclick="toggleMotif('${m.id}')" aria-pressed="${cfg.selectedMotifs[m.id] ? 'true' : 'false'}" aria-label="${escH(m.label)}, plus ${euro(m.price)}" title="${escH(m.label)} · + ${euro(m.price)}"><i class="mpal__tick">✓</i>${m.size === 'gross' ? '<i class="mpal__size">groß</i>' : ''}</button>`; }).join('')}
+              ${hot.map(m => { const b = P.boxes[m.code]; return `<button type="button" class="mpal__hot ${cfg.selectedMotifs[m.id] ? 'selected' : ''}" style="left:${b[0]}%;top:${b[1]}%;width:${b[2]}%;height:${b[3]}%" onclick="toggleMotif('${m.id}')" aria-pressed="${cfg.selectedMotifs[m.id] ? 'true' : 'false'}" aria-label="${escH(m.label)}, plus ${euro(m.price)}" title="${escH(m.label)} · + ${euro(m.price)}"><i class="mpal__tick">✓</i></button>`; }).join('')}
             </div>` : '')
           + (rest.length ? `<div class="motifgrid">${rest.map(card).join('')}</div>` : '');
       };
@@ -2619,7 +2625,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       else if (q.get('rec')) {
         try {
           const { data } = await db.from('settings').select('value').eq('key', 'site_images').maybeSingle();
-          rec = ((data && data.value && data.value.recs) || []).find(r => r && r.id === q.get('rec') && r.product === currentProduct.slug) || null;
+          rec = ((data && data.value && data.value.recs) || []).find(r => r && r.id === q.get('rec')) || null;   // das Design gilt für jedes Textil
         } catch (_) {}
       }
       const codes = (rec && Array.isArray(rec.motiv) ? rec.motiv : (q.get('motiv') || '').split(',')).map(c => String(c).trim().toUpperCase()).filter(Boolean);
@@ -2649,8 +2655,27 @@ ${setColorBlockHtml(true)}</section>` : ''}
       }
       if (q.get('fix') === '1' || rec) cfg.fixed = { titel: (rec && rec.titel) || '', sample: (rec && rec.sample) || '', baseS: null };
       const st = builderSteps().find(x => x.dataset.step === 'text'); if (st) st.dataset.title = 'Nur noch der Name';
-      if (cfg.fixed) { const en = document.querySelector('#builder .bld__step[data-step="fertig"]'); if (en) { en.dataset.title = 'Prüfen'; en.dataset.dot = 'Prüfen'; } if (st) st.dataset.dot = 'Name eintragen'; }
+      if (cfg.fixed) {
+        const en = document.querySelector('#builder .bld__step[data-step="fertig"]'); if (en) { en.dataset.title = 'Prüfen'; en.dataset.dot = 'Prüfen'; }
+        if (st) { st.dataset.dot = 'Name eintragen';
+          st.insertAdjacentHTML('beforeend', '<button type="button" class="bld__fixchange" onclick="builderJump(0)">Anderes Textil oder andere Farbe wählen</button>'); }
+        // Schritt „Textil & Farbe": Farb-Auswahl des Produkts + Auswahl der anderen Textilien (gleiches Design)
+        let fs = document.querySelector('#builder .bld__step[data-step="farbe"]');
+        if (!fs && st) { st.insertAdjacentHTML('beforebegin', '<section class="bld__step" data-step="farbe" hidden></section>'); fs = st.previousElementSibling; }
+        if (fs) { fs.dataset.title = 'Textil & Farbe'; fs.dataset.dot = 'Textil & Farbe';
+          fs.insertAdjacentHTML('afterbegin', '<div class="fld"><span class="fld__label">Textil</span><div class="fixtex" id="fixtex"></div></div>'); loadFixTextiles(); }
+      }
       openBuilder(); builderToText();
+    }
+    // Design-Empfehlung: andere Textilien anbieten – der Link öffnet das andere Produkt mit demselben Design
+    async function loadFixTextiles() {
+      const box = document.getElementById('fixtex'); if (!box) return;
+      let list = [];
+      try { list = (await loadProducts()).filter(p => p.product_type !== 'set' && Array.isArray(p.positions) && p.positions.length === 1); } catch (_) {}
+      if (!list.some(p => p.slug === currentProduct.slug)) list.unshift(currentProduct);
+      const q = new URLSearchParams(location.search); q.delete('farbe');
+      box.innerHTML = list.map(p => { q.set('slug', p.slug); const cur = p.slug === currentProduct.slug;
+        return `<a href="/product.html?${escH(q.toString())}" class="${cur ? 'cur' : ''}" ${cur ? 'aria-current="true" onclick="return false"' : ''}><img src="${escH(p.image_url || '')}" alt="" loading="lazy">${escH(p.name)}<small>${euro(p.price)}</small></a>`; }).join('');
     }
     // Admin: fertige Gestaltung an den Reiter „Empfehlungen“ zurückgeben (Fenster wurde von dort geöffnet)
     function sendRecDesign() {
@@ -2669,7 +2694,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       const setContent = Array.isArray(currentProduct.bundle_items) ? currentProduct.bundle_items.filter(i => i && i.name) : [];
       if (setContent.length) options['Set-Inhalt'] = setContent.map(i => (i.qty > 1 ? i.qty + '× ' : '') + i.name).join(', ');
       if (capOption) options[capOption.name] = cfg.capColor;
-      if (cfg.fixed && cfg.fixed.titel && cfg.mode !== 'ohne') options['Vorlage'] = cfg.fixed.titel;   // feste Empfehlung von der Startseite
+      if (cfg.fixed && cfg.fixed.titel && cfg.mode !== 'ohne') options['Design-Empfehlung'] = cfg.fixed.titel;   // feste Empfehlung von der Startseite
       // Set: gewählte Farbe je Teil (auch ohne Bestickung)
       SETP.forEach(x => { if (cfg.setColors[x.slug]) options[x.name + ' – ' + x.opt] = cfg.setColors[x.slug]; });
       if (POSITIONS.length > 0 && cfg.mode === 'ohne') {

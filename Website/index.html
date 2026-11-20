@@ -360,6 +360,16 @@
     .rec__price small { display: block; font-weight: 400; font-size: 0.74rem; color: var(--color-muted); }
     .rec__cta { display: inline-block; background: #D9502F; color: #fff; font-weight: 600; font-size: 0.9rem; padding: 10px 16px; border-radius: 999px; white-space: nowrap; }
     .recs-sub { color: var(--color-muted); margin: 10px 0 0; }
+    /* So bestellst du (4 Schritte) */
+    .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; list-style: none; margin: 0; padding: 0; counter-reset: how; }
+    .how li { counter-increment: how; background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 22px 20px 24px; }
+    .how li::before { content: counter(how); display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #D9502F; color: #fff; font-weight: 800; font-size: 1.25rem; margin-bottom: 14px; }
+    .how h3 { font-size: 1.12rem; margin: 0 0 6px; color: var(--color-text); }
+    .how p { margin: 0; color: var(--color-muted); font-size: 0.95rem; line-height: 1.5; }
+    .how-cta { margin-top: 24px; display: flex; gap: 14px 22px; align-items: center; flex-wrap: wrap; }
+    .how-cta span { color: var(--color-muted); font-size: 0.9rem; }
+    @media (max-width: 900px) { .how { grid-template-columns: 1fr 1fr; gap: 12px; } }
+    @media (max-width: 560px) { .how { grid-template-columns: 1fr; } .how li { display: grid; grid-template-columns: 44px 1fr; column-gap: 14px; padding: 16px; } .how li::before { grid-row: 1 / span 2; margin: 0; } .how h3 { font-size: 1.05rem; } }
     @media (max-width: 900px) { .recs { grid-template-columns: 1fr 1fr; gap: 12px; } }
     @media (max-width: 560px) { .rec__name { font-size: 0.95rem; } .rec__meta { font-size: 0.8rem; } .rec__cta { width: 100%; text-align: center; padding: 10px 8px; } .rec__body { padding: 12px 6px 0; } }
   </style>
@@ -451,8 +461,8 @@
     <section class="section reveal" style="padding-top:36px" id="empfehlungen">
       <div class="container">
         <div class="sec-head">
-          <h2>Unsere Empfehlungen.</h2>
-          <p class="recs-sub">Fertige Designs, die wir besonders mögen. Du trägst nur noch den Namen ein.</p>
+          <h2>Unsere Design-Empfehlungen.</h2>
+          <p class="recs-sub">Fertige Designs, die wir besonders mögen. Du wählst Textil und Farbe und trägst nur noch den Namen ein.</p>
         </div>
         <div class="recs" id="recs-grid"></div>
       </div>
@@ -481,6 +491,26 @@
       </div>
     </section>
 
+
+    <!-- ===== SO BESTELLST DU ===== -->
+    <section class="section reveal" id="so-bestellst-du" style="padding-bottom:0">
+      <div class="container">
+        <div class="sec-head">
+          <h2>So bestellst du.</h2>
+          <p class="recs-sub">In 4 einfachen Schritten zu deinem Stück mit Namen.</p>
+        </div>
+        <ol class="how">
+          <li><h3>Produkt aussuchen</h3><p>Such dir unten ein Produkt aus und tippe darauf.</p></li>
+          <li><h3>Namen eintragen</h3><p>Schreib den Namen hinein. Farbe, Schrift und Motiv wählst du mit einem Klick.</p></li>
+          <li><h3>Bestellen &amp; bezahlen</h3><p>Leg es in den Warenkorb und bezahle mit Karte, Klarna oder Apple Pay.</p></li>
+          <li><h3>Wir sticken, du bekommst Post</h3><p>Wir sticken dein Stück in Österreich. Nach 5–7 Werktagen ist es bei dir.</p></li>
+        </ol>
+        <div class="how-cta">
+          <a href="#alle-produkte" class="btn btn--primary">Jetzt Produkt aussuchen ↓</a>
+          <span>Keine Lust zu wählen? Nimm oben eine <a href="#empfehlungen">Design-Empfehlung</a>, dann fehlt nur noch der Name.</span>
+        </div>
+      </div>
+    </section>
 
     <!-- ===== ALLE PRODUKTE ===== -->
     <section class="section reveal" id="alle-produkte">
