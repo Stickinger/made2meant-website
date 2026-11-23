@@ -4,6 +4,9 @@
 # unter made2meant.com ausgeliefert (Proxy), die Adresse bleibt gleich.
 /sitemap-produkte.txt  https://xqeedhnajvftvcsjzfly.supabase.co/functions/v1/sitemap-products  200
 
+# Danke-Seite nach der Bestellung: feste Adresse, Inhalt kommt von order-success.html
+/thanks_for_your_order  /order-success.html  200
+
 # Alte Set-Links (Standard/Premium Set → Badeset/Kuschelset, Preisliste 11/2026)
 /product.html  slug=standard-set  /product.html?slug=badeset     301!
 /product.html  slug=premium-set   /product.html?slug=kuschelset  301!

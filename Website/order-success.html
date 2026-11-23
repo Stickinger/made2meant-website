@@ -2,6 +2,24 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8">
+  <script>
+    // Danke-Seite: Adresse ist immer /thanks_for_your_order (ohne Bestellnummer).
+    // Die Nummer kommt aus dem Link (?id=…, z. B. nach der Bezahlung oder aus der E-Mail)
+    // oder aus dem Browser-Speicher und wird sofort aus der Adresszeile entfernt.
+    (function () {
+      var id = null;
+      try { id = new URLSearchParams(location.search).get('id'); } catch (_) {}
+      var thanks = /^\/thanks_for_your_order\/?$/.test(location.pathname);
+      try {
+        if (id && thanks) localStorage.setItem('m2m_last_order', id);
+        if (!id && thanks) id = localStorage.getItem('m2m_last_order');
+      } catch (_) {}
+      window.M2M_ORDER_ID = id || null;
+      if (thanks && location.search) {
+        try { history.replaceState(null, '', '/thanks_for_your_order'); } catch (_) {}
+      }
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/icon-192.png">
@@ -67,7 +85,7 @@
 
     async function init() {
       updateCartBadge();
-      const id = new URLSearchParams(location.search).get('id');
+      const id = window.M2M_ORDER_ID;
       const wrap = document.getElementById('success-wrap');
       if (!id) { wrap.innerHTML = '<p class="empty">Keine Bestellung gefunden.</p>'; return; }
 

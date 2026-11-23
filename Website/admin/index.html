@@ -4172,7 +4172,7 @@ async function loadAnalytics() {
     return { path, q: new URLSearchParams(q || '') };
   };
   const PAGE_NAMES = { '/': 'Startseite', '/shop': 'Shop', '/ueber-uns': 'Über uns', '/qualitaet': 'Qualität',
-    '/cart': 'Warenkorb', '/checkout': 'Kasse', '/order-success': 'Bestellung abgeschlossen', '/faq': 'FAQ',
+    '/cart': 'Warenkorb', '/checkout': 'Kasse', '/order-success': 'Bestellung abgeschlossen', '/thanks_for_your_order': 'Bestellung abgeschlossen', '/faq': 'FAQ',
     '/login': 'Login', '/register': 'Registrieren', '/account': 'Mein Konto', '/newsletter': 'Newsletter',
     '/geschenke-zur-geburt': 'Geschenke zur Geburt', '/taufgeschenke': 'Taufgeschenke', '/babyparty-geschenke': 'Babyparty-Geschenke',
     '/babygeschenke-mit-namen': 'Babygeschenke mit Namen', '/geschenke-fuer-junge-eltern': 'Geschenke für junge Eltern',
@@ -4195,7 +4195,7 @@ async function loadAnalytics() {
       if (slug) count(prodViews, slug);
       count(pages, 'Produktseiten (alle)');
     } else count(pages, PAGE_NAMES[path] || path);
-    if (path === '/order-success') orders++;
+    if (path === '/order-success' || path === '/thanks_for_your_order') orders++;
     const src = q.get('utm_source');
     if (src) count(camps, [src, q.get('utm_medium'), q.get('utm_campaign')].filter(Boolean).join(' · '));
     // Herkunft

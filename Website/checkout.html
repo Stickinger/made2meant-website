@@ -277,11 +277,14 @@
         const order = await placeOrder(f);
         if (window.m2mTrack) m2mTrack('checkout', payMethod);
 
+        // Danke-Seite hat immer dieselbe Adresse; die Bestellnummer merkt sich der Browser
+        try { localStorage.setItem('m2m_last_order', order.id); } catch (_) {}
+
         if (payMethod === 'stripe') {
           const { data, error } = await db.functions.invoke('create-checkout-session', {
             body: {
               order_id: order.id,
-              success_url: location.origin + '/order-success.html?id=' + order.id,
+              success_url: location.origin + '/thanks_for_your_order?id=' + order.id,
               cancel_url: location.origin + '/checkout.html',
             },
           });
@@ -302,7 +305,7 @@
           try {
             await db.functions.invoke('notify-order', { body: { order_id: order.id } });
           } catch (_) {}
-          window.location.href = '/order-success.html?id=' + order.id;
+          window.location.href = '/thanks_for_your_order';
         }
       } catch (ex) {
         console.error(ex);

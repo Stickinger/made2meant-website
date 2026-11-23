@@ -11,7 +11,7 @@
   const START_KEY    = 'nl_popup_start';  // sessionStorage: Zeitpunkt des Besuchsbeginns
 
   // Nicht im Kauf-/Konto-Bereich stören
-  const BLOCKED = ['/checkout', '/cart', '/account', '/login', '/register', '/order-success', '/admin', '/newsletter'];
+  const BLOCKED = ['/checkout', '/cart', '/account', '/login', '/register', '/order-success', '/thanks_for_your_order', '/admin', '/newsletter'];
   const path = location.pathname.toLowerCase();
   if (BLOCKED.some(p => path.includes(p))) return;
 
