@@ -56,8 +56,8 @@
     @media (min-width: 881px) { .gallery { position: sticky; top: 92px; } }
     .gallery__main { position: relative; border-radius: var(--radius-lg); overflow: hidden; background: var(--color-surface); border: 1px solid var(--color-border); box-shadow: var(--shadow); }
     .gallery__main canvas { width: 100%; height: auto; display: block; }
-    .gallery__badge { position: absolute; top: 14px; left: 14px; background: var(--color-surface); color: var(--color-text); font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; box-shadow: var(--shadow); z-index: 2; }
-    .gallery__wish { position: absolute; top: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--color-surface); border: none; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-muted); z-index: 2; transition: color var(--transition); }
+    .gallery__badge { position: absolute; bottom: 19px; right: 62px; background: var(--color-surface); color: var(--color-text); font-size: 0.72rem; font-weight: 700; padding: 5px 12px; border-radius: 99px; box-shadow: var(--shadow); z-index: 2; }
+    .gallery__wish { position: absolute; bottom: 12px; right: 12px; width: 40px; height: 40px; border-radius: 50%; background: var(--color-surface); border: none; box-shadow: var(--shadow); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--color-muted); z-index: 2; transition: color var(--transition); }
     .gallery__wish:hover { color: var(--color-primary); }
     .gallery__wish.on { color: var(--color-primary); }
     .gallery__wish.on svg { fill: var(--color-primary); }
@@ -1119,7 +1119,6 @@ ${hasMotifs || POSITIONS.length > 1 ? `<div class="fld__hint">${POSITIONS.length
       document.getElementById('product-detail').innerHTML = `
         <div class="gallery">
           <div class="gallery__main">
-            ${isNew() ? '<span class="gallery__badge">Neu</span>' : ''}
             <button class="gallery__wish ${wished ? 'on' : ''}" id="wish-btn" aria-label="Merken" onclick="toggleWish(this)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 21s-7-4.5-7-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 5.5-7 10-7 10z"/></svg>
             </button>
@@ -1304,7 +1303,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
     const PRODUCT_DIMS = [
       { match: /kapuzenhandtuch/, w: 75, h: 75, mode: 'flat', hood: true },
       { match: /musselindecke/, w: 120, h: 120, mode: 'flat' },
-      { match: /musselintuch/, w: 70, h: 70, mode: 'flat' },
+      { match: /musselintuch/, w: 75, h: 75, mode: 'flat' },
       { match: /laetzchen|lätzchen/, w: 19, h: 25, mode: 'photo' },
       { match: /kuscheltuch|schmusetuch/, w: 44, h: 46, mode: 'photo' },
     ];
@@ -1384,7 +1383,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
     const PRODUCT_FEATURES = [
       { match: /kapuzenhandtuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '75 × 75 cm'], ['hood', 'Kapuze mit Hasenohren'], ['loop', 'Schlaufe zum Aufhängen'], ['wash', 'Waschbar bei 40 / 60 °C']] },
       { match: /musselindecke/, items: [['leaf', '100 % Bio-Musselin'], ['ruler', '120 × 120 cm'], ['soft', 'Mehrlagig & weich'], ['noiron', 'Muss nicht gebügelt werden'], ['wash', 'Waschbar bei 40 °C']] },
-      { match: /musselintuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '70 × 70 cm'], ['sun', 'Leicht & luftig'], ['loop', 'Schlaufe an der Ecke'], ['wash', 'Waschbar bei 40 / 60 °C']] },
+      { match: /musselintuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '75 × 75 cm'], ['sun', 'Leicht & luftig'], ['loop', 'Schlaufe an der Ecke'], ['wash', 'Waschbar bei 40 / 60 °C']] },
       { match: /laetzchen|lätzchen/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '19 × 25 cm'], ['soft', 'Weich gestrickt'], ['snap', 'Druckknopf – wächst mit'], ['wash', 'Waschbar bei 40 °C']] },
       { match: /kuscheltuch|schmusetuch/, items: [['leaf', '100 % Bio-Baumwolle'], ['ruler', '44 × 46 cm'], ['soft', 'Sehr weich'], ['pacifier', 'Riemen für den Schnuller'], ['wash', 'Waschbar bei 30 °C']] },
     ];
@@ -1755,13 +1754,13 @@ ${setColorBlockHtml(true)}</section>` : ''}
     const EMB_CARE = 'Stickerei: am besten auf links waschen, nicht direkt über die Stickerei bügeln.';
     const PRODUCT_INFO_DEFAULTS = [
       { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen. ' + EMB_CARE },
-      { match: /musselintuch/, material: '100 % Bio-Baumwolle (Musselin) – luftig, weich und besonders angenehm auf empfindlicher Babyhaut. An einer Ecke ist eine Schlaufe zum Aufhängen; daran lässt sich auch ein Schnuller befestigen. Das unbestickte Tuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '70 × 70 cm – groß genug als leichte Sommerdecke oder als Stoffwindel.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
+      { match: /musselintuch/, material: '100 % Bio-Baumwolle (Musselin) – luftig, weich und besonders angenehm auf empfindlicher Babyhaut. An einer Ecke ist eine Schlaufe zum Aufhängen; daran lässt sich auch ein Schnuller befestigen. Das unbestickte Tuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '75 × 75 cm – groß genug als leichte Sommerdecke oder als Stoffwindel.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
       { match: /musselindecke/, material: '100 % gekreppter Bio-Baumwoll-Musselin von Summerville Organic, mehrlagig – angenehm weich, atmungsaktiv und mit schöner Struktur. Die unbestickte Decke beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '120 × 120 cm – passt in Kinderwagen, Wiege und Babybett.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben. Pflegeleicht – muss nicht gebügelt werden; die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },
       { match: /strickdecke/, material: 'Weicher Baumwoll-Strick – warm, atmungsaktiv und angenehm auf der Haut.', care: 'Schonend bei 30 °C (Woll-/Feinwaschgang) waschen, liegend trocknen, nicht in den Trockner. ' + EMB_CARE },
       { match: /kapuzenhandtuch|handtuch/, material: '100 % Bio-Baumwolle – flauschig und saugfähig, mit Kapuze und Hasenohren. Auf der Rückseite ist eine praktische Schlaufe zum Aufhängen. Das unbestickte Handtuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '75 × 75 cm – für Babys und auch für Kleinkinder geeignet.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Ohne Weichspüler bleibt es besonders saugfähig. ' + EMB_CARE },
       { match: /waschlappen/, material: 'Bio-Baumwolle – weich und saugfähig, mit liebevollem Tiermotiv.', care: 'Waschbar bei 40 °C, mit ähnlichen Farben.' },
       { match: /laetzchen|lätzchen/, material: '100 % Bio-Baumwolle, sehr weich gestrickt – angenehm am Hals und besonders saugfähig, ideal beim Zahnen. Mit kleinem Druckknopf im Nacken verstellbar, damit das Lätzchen mitwächst.', size: '19 × 25 cm', care: 'Waschbar bei 40 °C in der Waschmaschine, mit ähnlichen Farben. ' + EMB_CARE },
-      { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord mit Plüschohren und verstellbaren Trägern – genau richtig für kleine Rücken.', care: 'Schonend von Hand waschen (max. 30 °C) oder feucht abwischen, nicht in den Trockner.' },
+      { match: /rucksack/, material: 'Tierrucksack von Lapidou aus weichem Cord mit Plüschohren und verstellbaren Trägern – genau richtig für kleine Rücken.', size: '23 × 28 × 14 cm (Breite × Höhe × Tiefe)', care: 'Schonend von Hand waschen (max. 30 °C) oder feucht abwischen, nicht in den Trockner.' },
       { match: /kuscheltuch|gans/, material: '100 % Bio-Baumwolle, sehr weich – zum Kuscheln und Spielen. Füllung im Kopf: 100 % recyceltes Polyester. Mit Riemen, an dem sich der Schnuller befestigen lässt.', size: '44 × 46 cm', care: 'Maschinenwäsche bei 30 °C, an der Luft trocknen. ' + EMB_CARE },
     ];
     async function loadProductInfo(p) {
@@ -1782,7 +1781,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       ].filter(r => r.v);
       const sec = document.getElementById('pdetails');
       document.getElementById('pdetails-list').innerHTML = rows.map((r, i) =>
-        `<details class="pdetails__item" ${i === 0 ? 'open' : ''}><summary>${escH(r.t)}</summary><p>${escH(r.v).replace(/\n/g, '<br>')}</p></details>`).join('');
+        `<details class="pdetails__item" ${i === 0 ? 'open' : ''}><summary>${escH(r.t)}</summary><p>${escH(r.v).replace(/\n/g, '<br>')}${/GOTS/.test(r.v) ? ' <a href="/qualitaet.html#gots">Was bedeutet GOTS?</a>' : ''}</p></details>`).join('');
       sec.hidden = !rows.length;
     }
 
