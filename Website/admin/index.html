@@ -499,6 +499,13 @@
 .btn-sm.is-saved, .btn-sm.is-saved:disabled { background:#2e7d4f !important; border-color:#2e7d4f !important; color:#fff !important; opacity:1 !important; }
 .m2m-toast { position:fixed; left:50%; bottom:28px; transform:translate(-50%,20px); background:#2e7d4f; color:#fff; padding:0.75rem 1.4rem; border-radius:999px; font-size:0.95rem; font-weight:600; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; z-index:99999; }
 .m2m-toast.is-on { opacity:1; transform:translate(-50%,0); }
+    .area-ov { position: fixed; inset: 0; background: rgba(30,25,20,.72); z-index: 5000; display: flex; align-items: center; justify-content: center; padding: 14px; }
+    .area-box { background: #fff; border-radius: 12px; padding: 16px; max-width: min(94vw, 760px); max-height: 96vh; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+    .area-img { position: relative; align-self: center; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; line-height: 0; border-radius: 6px; }
+    .area-img img { max-width: 100%; max-height: 60vh; display: block; pointer-events: none; }
+    .area-rect { position: absolute; border: 2px dashed #fff; border-radius: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.65), 0 0 0 9999px rgba(0,0,0,.30); cursor: move; }
+    .area-rect span { position: absolute; left: 6px; top: 12px; font: 700 0.62rem var(--font-main, sans-serif); letter-spacing: .08em; text-transform: uppercase; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.7); pointer-events: none; }
+    .area-h { position: absolute; right: -11px; bottom: -11px; width: 22px; height: 22px; background: #fff; border: 2px solid #b5654a; border-radius: 50%; cursor: nwse-resize; }
 </style>
 </head>
 <body>
@@ -1951,7 +1958,7 @@ function renderStitchPos() {
 }
 
 // ── FARBEN & FOTOS (je Farbe: Produktfotos + ein leeres Foto pro Stickstelle) ───────
-function addColorVariant() { colorVariants.push({ name: '', photos: {}, gallery: [] }); renderColorVariants(); }
+function addColorVariant() { colorVariants.push({ name: '', photos: {}, gallery: [], areas: {} }); renderColorVariants(); }
 function removeColorVariant(i) { colorVariants.splice(i, 1); renderColorVariants(); }
 function setColorName(i, v) { colorVariants[i].name = v; }
 
@@ -1992,7 +1999,7 @@ async function rotateVariantGallery(i, j, btn) {
 async function handleVariantPhoto(i, label, file) {
   if (!file) return;
   const url = await uploadToStorage(file);
-  if (url) { colorVariants[i].photos[label] = url; renderColorVariants(); }
+  if (url) { colorVariants[i].photos[label] = url; if (colorVariants[i].areas) delete colorVariants[i].areas[label]; renderColorVariants(); }
 }
 
 function renderColorVariants() {
@@ -2034,7 +2041,9 @@ function renderColorVariants() {
         ${labels.map(lbl => `
           <div style="flex:1;min-width:120px;text-align:center;">
             <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--color-muted);margin-bottom:6px;">${lbl}</div>
-            ${c.photos[lbl] ? `<img src="${c.photos[lbl]}" alt="" style="width:100%;max-width:120px;aspect-ratio:1;object-fit:cover;border-radius:6px;margin:0 auto 6px;display:block;"><button type="button" class="btn-sm btn-sm--outline" style="font-size:0.72rem;padding:3px 10px;margin:0 auto 6px;display:block" onclick="rotateVariantPhoto(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')}, this)">↻ Drehen</button>` : ''}
+            ${c.photos[lbl] ? `<div style="position:relative;max-width:170px;margin:0 auto 6px;line-height:0;cursor:pointer;overflow:hidden;border-radius:6px" title="Stickstelle einstellen" onclick="openAreaEditor(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')})"><img src="${c.photos[lbl]}" alt="" style="width:100%;display:block;">${areaOf(c, lbl) ? `<span style="position:absolute;left:${areaOf(c, lbl).x * 100}%;top:${areaOf(c, lbl).y * 100}%;width:${areaOf(c, lbl).w * 100}%;height:${areaOf(c, lbl).h * 100}%;border:2px dashed #fff;border-radius:3px;box-shadow:0 0 0 1px rgba(0,0,0,.65)"></span>` : ''}</div>
+            <div style="font-size:0.72rem;color:${areaOf(c, lbl) ? '#2e7d4f' : 'var(--color-muted)'};margin-bottom:6px">${areaOf(c, lbl) ? '✓ Stickstelle eingestellt' : 'Stickstelle noch nicht eingestellt'}</div>
+            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:6px"><button type="button" class="btn-sm" style="font-size:0.72rem;padding:3px 10px" onclick="openAreaEditor(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')})">Stickstelle ${areaOf(c, lbl) ? 'ändern' : 'einstellen'}</button><button type="button" class="btn-sm btn-sm--outline" style="font-size:0.72rem;padding:3px 10px" onclick="rotateVariantPhoto(${i}, ${JSON.stringify(lbl).replace(/"/g,'&quot;')}, this)">↻ Drehen</button></div>` : ''}
             <div class="dropzone dropzone--row" tabindex="0" role="button"
                  aria-label="Foto für ${lbl} hochladen"
                  onclick="this.querySelector('input[type=file]').click()"
@@ -2050,6 +2059,81 @@ function renderColorVariants() {
         `).join('')}
       </div>` : '<p style="color:var(--color-muted);font-size:0.8rem;">Lege zuerst oben Stickstellen an — dann kannst du hier je Stelle ein Foto hochladen.</p>'}
     </div>`).join('') || '<p style="color:var(--color-muted);font-size:0.85rem;">Noch keine Farben. Klick „+ Farbe hinzufügen".</p>';
+}
+
+// ── STICKSTELLE AUF DEM FOTO EINSTELLEN (Rahmen ziehen; x/y/w/h als Anteil des Fotos) ───────
+function areaOf(c, lbl) { const a = c && c.areas && c.areas[lbl]; return (a && a.w > 0 && a.h > 0) ? a : null; }
+let areaEdit = null;
+function openAreaEditor(i, lbl) {
+  const c = colorVariants[i]; const url = c && c.photos[lbl]; if (!url) return;
+  const a = areaOf(c, lbl) || { x: 0.3, y: 0.4, w: 0.4, h: 0.18 };
+  areaEdit = { i, lbl, url, r: { x: a.x, y: a.y, w: a.w, h: a.h } };
+  closeAreaEditor(true);
+  const o = document.createElement('div'); o.className = 'area-ov'; o.id = 'area-ov';
+  o.innerHTML = `<div class="area-box">
+    <div style="font-weight:700;font-size:1.05rem">Stickstelle einstellen</div>
+    <div style="font-size:0.85rem;color:var(--color-muted)">Schieb den Rahmen dorthin, wo gestickt wird. Am runden Punkt unten rechts ziehst du ihn größer oder kleiner. Im Shop sieht der Kunde seinen Namen genau in diesem Rahmen.</div>
+    <div class="area-img" id="area-img"><img src="${url}" alt=""><div class="area-rect" id="area-rect"><span>Stickbereich</span><div class="area-h" id="area-h"></div></div></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
+      ${areaOf(c, lbl) ? '<button type="button" class="btn-sm btn-sm--outline" style="margin-right:auto" onclick="clearArea()">Einstellung löschen</button>' : ''}
+      <button type="button" class="btn-sm btn-sm--outline" onclick="closeAreaEditor()">Abbrechen</button>
+      <button type="button" class="btn-sm" onclick="applyArea(this)">Übernehmen</button>
+    </div></div>`;
+  document.body.appendChild(o);
+  const rect = o.querySelector('#area-rect'), box = o.querySelector('#area-img');
+  const draw = () => { const r = areaEdit.r; rect.style.left = r.x * 100 + '%'; rect.style.top = r.y * 100 + '%'; rect.style.width = r.w * 100 + '%'; rect.style.height = r.h * 100 + '%'; };
+  draw();
+  let drag = null;
+  rect.addEventListener('pointerdown', e => {
+    e.preventDefault(); rect.setPointerCapture(e.pointerId);
+    drag = { resize: e.target.id === 'area-h', sx: e.clientX, sy: e.clientY, r0: { ...areaEdit.r } };
+  });
+  rect.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const B = box.getBoundingClientRect(); if (!B.width || !B.height) return;
+    const dx = (e.clientX - drag.sx) / B.width, dy = (e.clientY - drag.sy) / B.height, r = areaEdit.r, r0 = drag.r0;
+    const cl = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+    if (drag.resize) { r.w = cl(r0.w + dx, 0.06, 1 - r0.x); r.h = cl(r0.h + dy, 0.04, 1 - r0.y); }
+    else { r.x = cl(r0.x + dx, 0, 1 - r0.w); r.y = cl(r0.y + dy, 0, 1 - r0.h); }
+    draw();
+  });
+  const end = () => { drag = null; };
+  rect.addEventListener('pointerup', end); rect.addEventListener('pointercancel', end);
+}
+function closeAreaEditor(keep) { const o = document.getElementById('area-ov'); if (o) o.remove(); if (!keep) areaEdit = null; }
+function clearArea() {
+  if (!areaEdit) return;
+  const c = colorVariants[areaEdit.i]; if (c && c.areas) delete c.areas[areaEdit.lbl];
+  closeAreaEditor(); renderColorVariants();
+}
+// Ist der Stoff im Rahmen dunkel? Dann schlägt der Shop helles Garn vor.
+function areaIsDark(url, r) {
+  return new Promise(res => {
+    const im = new Image(); im.crossOrigin = 'anonymous';
+    im.onload = () => { try {
+      const cv = document.createElement('canvas'); cv.width = cv.height = 24;
+      const g = cv.getContext('2d');
+      g.drawImage(im, r.x * im.naturalWidth, r.y * im.naturalHeight, r.w * im.naturalWidth, r.h * im.naturalHeight, 0, 0, 24, 24);
+      const d = g.getImageData(0, 0, 24, 24).data; let sum = 0;
+      for (let k = 0; k < d.length; k += 4) sum += 0.299 * d[k] + 0.587 * d[k + 1] + 0.114 * d[k + 2];
+      res(sum / (d.length / 4) < 120);
+    } catch (e) { res(false); } };
+    im.onerror = () => res(false);
+    im.src = url + (url.includes('?') ? '&' : '?') + 'area=1';
+  });
+}
+async function applyArea(btn) {
+  if (!areaEdit) return;
+  const img = document.querySelector('#area-img img');
+  if (!img || !img.naturalWidth) { alert('Das Foto ist noch nicht geladen. Bitte kurz warten.'); return; }
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+  const { i, lbl, url, r } = areaEdit, rd = v => Math.round(v * 10000) / 10000;
+  const dark = await areaIsDark(url, r);
+  const c = colorVariants[i]; if (!c) { closeAreaEditor(); return; }
+  if (!c.areas) c.areas = {};
+  c.areas[lbl] = { x: rd(r.x), y: rd(r.y), w: rd(r.w), h: rd(r.h), a: rd(img.naturalWidth / img.naturalHeight), dark };
+  closeAreaEditor(); renderColorVariants();
+  showToast('Stickstelle übernommen – jetzt noch das Produkt speichern');
 }
 
 // Textposition/Drag-Editor entfernt — die Position wird im Shop nicht mehr angezeigt.
@@ -2210,7 +2294,7 @@ async function rotateVariantPhoto(i, label, btn) {
   const url = colorVariants[i] && colorVariants[i].photos[label];
   if (!url) return;
   if (btn) { btn.disabled = true; btn.textContent = '…'; }
-  try { const neu = await rotateStoredImage(url); if (neu) { colorVariants[i].photos[label] = neu; renderColorVariants(); } }
+  try { const neu = await rotateStoredImage(url); if (neu) { colorVariants[i].photos[label] = neu; if (colorVariants[i].areas) delete colorVariants[i].areas[label]; renderColorVariants(); } }
   catch (e) { alert('Drehen fehlgeschlagen: ' + (e.message || e)); if (btn) { btn.disabled = false; btn.textContent = '↻ Drehen'; } }
 }
 
@@ -2608,7 +2692,10 @@ async function openProductModal(product = null) {
         .filter(im => isColorOnlyImage(im, name))
         .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
         .map(im => im.url);
-      return { name, photos, gallery };
+      // Im Admin eingestellte Stickstelle je Stickstellen-Foto (liegt in positions[].areas[Farbe])
+      const areas = {};
+      (product?.positions || []).forEach(p => { const a = p.areas && p.areas[name]; if (a && photos[p.label]) areas[p.label] = a; });
+      return { name, photos, gallery, areas };
     });
   }
   // Motive laden
@@ -2709,6 +2796,12 @@ async function saveProductInner() {
       size: Number.isFinite(+s.size) ? +s.size : 0.11,
     }))
     .filter(s => s.label);
+  // Eingestellte Stickstellen je Farbe mitspeichern (nur wo es auch ein Foto gibt)
+  positions.forEach(pos => {
+    const areas = {};
+    colorVariants.forEach(c => { const nm = (c.name || '').trim(); const a = c.areas && c.areas[pos.label]; if (nm && a && c.photos[pos.label]) areas[nm] = a; });
+    if (Object.keys(areas).length) pos.areas = areas;
+  });
   const labelSet = new Set(positions.map(p => p.label));
 
   // Motive (Name + Bild + Aufpreis) – nur vollständige Einträge

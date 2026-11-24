@@ -2114,7 +2114,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
       if (!conf && !isMulti()) return;
       try {
         const norm = t => String(t || '').toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss');
-        const { data: prods } = await db.from('products').select('id, slug, name, options, image_url').eq('active', true);
+        const { data: prods } = await db.from('products').select('id, slug, name, options, image_url, positions').eq('active', true);
         const others = (prods || []).filter(x => x.slug !== currentProduct.slug);
         const posFor = slug => POSITIONS.find(p => { const k = norm(texName(p)); return k && norm(slug).includes(k); });
         const list = conf ? conf.map(c => ({ c, prod: others.find(x => x.slug === c.slug) }))
@@ -2126,7 +2126,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
           const o = (prod.options || []).find(x => /kappe|farbe/i.test(x.name));
           const pos = posFor(prod.slug);
           return { slug: prod.slug, name: c.name || (pos ? texName(pos) : prod.name), opt: c.opt || 'Farbe', values: (o && o.values) || [],
-            images: (imgs || []).filter(i => i.product_id === prod.id), image_url: prod.image_url || '', posId: pos ? pos.id : null };
+            images: (imgs || []).filter(i => i.product_id === prod.id), image_url: prod.image_url || '', posId: pos ? pos.id : null, positions: prod.positions || [] };
         });
         SETP.forEach(p => { if (p.values.length && !cfg.setColors[p.slug]) cfg.setColors[p.slug] = p.values[0]; });
       } catch (e) { console.warn('Set-Teile konnten nicht geladen werden', e); SETP = []; }
@@ -2270,10 +2270,32 @@ ${setColorBlockHtml(true)}</section>` : ''}
     }
     let _texLayout = null;
     window.addEventListener('resize', () => { if (_texLayout) _texLayout(); });
-    function applyTextileProduct() {
-      const T = textileStageCfg(); _texLayout = null;
+    // Im Admin eingestellte Stickstelle: Rahmen auf dem leeren Foto der Stickstelle, je Farbe (positions[].areas[Farbe]).
+    // Hat Vorrang vor den festen Werten in TEXTILE_STAGES.
+    function customStage() {
       const part = curPart();
-      const c = T && T.colors[String((part ? cfg.setColors[part.slug] : cfg.capColor) || '').toLowerCase()];
+      const col = String((part ? cfg.setColors[part.slug] : cfg.capColor) || '').toLowerCase();
+      if (!col) return null;
+      const imgs = part ? (part.images || []) : productImages;
+      let poss = part ? (part.positions || []) : ((currentProduct && currentProduct.positions) || []);
+      if (!part) { const cur = POSITIONS.find(p => p.id === cfg.cur); if (cur) poss = poss.filter(p => p.label === cur.label); }
+      for (const p of poss) {
+        const areas = p.areas || {};
+        const key = Object.keys(areas).find(k => k.toLowerCase() === col);
+        const a = key && areas[key];
+        if (!a || !(a.w > 0) || !(a.h > 0) || !(a.a > 0)) continue;
+        const im = imgs.find(i => { const ov = i.option_values || {}; return ov.Stelle === p.label && Object.keys(ov).some(k => k !== 'Stelle' && String(ov[k]).toLowerCase() === col); });
+        if (im && im.url) return { img: im.url, a };
+      }
+      return null;
+    }
+    function applyTextileProduct() {
+      const T0 = textileStageCfg(); _texLayout = null;
+      const part = curPart();
+      const cu = customStage();
+      const T = cu ? { aspect: cu.a.a, rect: { dx: 0, dy: 0, w: cu.a.w, h: cu.a.h }, pad: T0 && T0.pad, padM: T0 && T0.padM } : T0;
+      const c = cu ? { img: cu.img, v: [cu.a.x, cu.a.y], dark: !!cu.a.dark }
+        : (T && T.colors[String((part ? cfg.setColors[part.slug] : cfg.capColor) || '').toLowerCase()]);
       const st = document.getElementById('dz-stage'), hoop = document.getElementById('dz-hoop');
       if (st) st.style.padding = '';
       if (!c || !st || !hoop) return false;
