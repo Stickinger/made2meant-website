@@ -941,9 +941,9 @@
       return sum;
     }
 
-    // Motivpreise je Textil: manche Textilien gibt es nur mit großen Motiven (alle 9,90 €), andere nur mit kleinen (alle 4,90 €).
+    // Motivpreise je Textil: manche Textilien gibt es nur mit großen Motiven (alle 9,90 €), andere nur mit kleinen (alle 5,90 €).
     // Alles andere (z. B. Strickdecke) rechnet nach Katalog (klein/groß). Identisch halten mit create-checkout-session (motifTier).
-    const MOTIF_TIER_PRICES = { klein: 4.90, gross: 9.90 };
+    const MOTIF_TIER_PRICES = { klein: 5.90, gross: 9.90 };
     function motifTier(key) {
       const k = String(key || '').toLowerCase();
       if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 'gross';
@@ -1751,7 +1751,7 @@ ${setColorBlockHtml(true)}</section>` : ''}
     // ── Produktdetails (unten auf der Seite) ──
     // Standardtexte je Produktart; im Admin pro Produkt überschreibbar
     // (gespeichert in settings.site_images.product_info[slug] = { material, size, care }).
-    const EMB_CARE = 'Stickerei: am besten auf links waschen, nicht direkt über die Stickerei bügeln.';
+    const EMB_CARE = 'Stickerei: hält die Waschmaschine problemlos aus. Nicht direkt über die Stickerei bügeln.';
     const PRODUCT_INFO_DEFAULTS = [
       { match: /badeset|kuschelset|set/, material: 'Alle Teile aus weicher (Bio-)Baumwolle – Details siehe die einzelnen Produkte im Set.', care: 'Schonend bei 30–40 °C mit ähnlichen Farben waschen. ' + EMB_CARE },
       { match: /musselintuch/, material: '100 % Bio-Baumwolle (Musselin) – luftig, weich und besonders angenehm auf empfindlicher Babyhaut. An einer Ecke ist eine Schlaufe zum Aufhängen; daran lässt sich auch ein Schnuller befestigen. Das unbestickte Tuch beziehen wir GOTS-zertifiziert vom Hersteller (GOTS-11793); unsere Stickerei ist nicht Teil dieser Zertifizierung.', size: '75 × 75 cm – groß genug als leichte Sommerdecke oder als Stoffwindel.', care: 'Waschbar bei 40 °C oder 60 °C, mit ähnlichen Farben. Die leichte Knitteroptik ist typisch für Musselin. ' + EMB_CARE },

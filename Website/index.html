@@ -544,7 +544,7 @@
           <div class="hfaq__list">
             <details>
               <summary>Wie setzt sich der Preis zusammen?</summary>
-              <div class="hfaq__a">Du zahlst den Artikel plus die Bestickung. Jede Stickstelle kostet 9,90 € (inkl. 20 % USt.) – eine Stelle ist z. B. der Name auf dem Handtuch.</div>
+              <div class="hfaq__a">Du zahlst den Artikel plus die Bestickung. Jede Stickstelle kostet <strong>9,90 €</strong> (inkl. 20 % USt.) – egal, ob du dort einen Namen oder ein Motiv sticken lässt. Eine Stickstelle ist eine Stelle auf dem Textil, zum Beispiel der Rücken des Kapuzenhandtuchs. Möchtest du an derselben Stelle beides, also Name und Motiv, kommt das Zweite günstiger dazu: als kleines Motiv <strong>5,90 €</strong>, als großes Motiv <strong>9,90 €</strong>. Ob klein oder groß gestickt wird, hängt vom Textil ab – auf einem Lätzchen ist weniger Platz als auf einer Decke. Den genauen Preis siehst du beim Gestalten sofort, noch bevor du bestellst.</div>
             </details>
             <details>
               <summary>Wie lange dauert es bis zur Lieferung?</summary>
@@ -556,7 +556,7 @@
             </details>
             <details>
               <summary>Hält die Stickerei die Waschmaschine aus?</summary>
-              <div class="hfaq__a">Ja. Wir sticken direkt in den Stoff – nichts wird aufgedruckt oder aufgebügelt. Wasch den Artikel nach Pflegeetikett, auf links gedreht und ohne Bleichmittel.</div>
+              <div class="hfaq__a">Ja, da musst du dir keine Sorgen machen. Wir sticken mit einer Tajima-Stickmaschine – das sind Profi-Maschinen, wie sie auch in der Industrie verwendet werden. Der Faden wird dabei fest in den Stoff eingearbeitet. Nichts ist aufgedruckt oder aufgebügelt, also kann auch nichts abblättern oder sich lösen. Wasch das Stück einfach so, wie es auf dem Pflegeetikett steht. Auf links drehen musst du es nicht. Die Stickerei bleibt auch nach vielen Wäschen schön.</div>
             </details>
           </div>
           <div class="hfaq__more">
@@ -867,21 +867,21 @@
 
     // ── Unsere Empfehlungen ─────────────────────────────────────────
     // Fertige Designs: Der Link öffnet das Produkt mit Farbe, Motiv, Schrift und Garn schon gewählt
-    // (product.html → applyPresetFromLink). Motiv-Codes aus js/motif-catalog.js; Preise je Textil wie in product.html (motifTier): nur groß = 9,90, nur klein = 4,90.
+    // (product.html → applyPresetFromLink). Motiv-Codes aus js/motif-catalog.js; Preise je Textil wie in product.html (motifTier): nur groß = 9,90, nur klein = 5,90.
     const RECS = [
       { slug: 'kapuzenhandtuch',     farbe: 'Altrosa',     motiv: ['T2', 'T13'], schrift: 1, garn: 'Braun',       add: 19.80, img: 'kapuzenhandtuch-beispiel-laura',   titel: 'Rehkitz & Hase',  alt: 'Kapuzenhandtuch in Altrosa mit Rehkitz, Hase und Namen' },
       { slug: 'kapuzenhandtuch',     farbe: 'Blaugrau',    motiv: ['T7'],        schrift: 1, garn: 'Creme',       add: 9.90,  img: 'kapuzenhandtuch-beispiel-fabian',  titel: 'Kleiner Wolf',    alt: 'Kapuzenhandtuch in Blaugrau mit Wolf und Namen' },
       { slug: 'musselindecke',       farbe: 'Blättermotiv', motiv: ['M6'],       schrift: 1, garn: 'Dunkelblau',  add: 9.90,  img: 'musselindecke-beispiel-florian',   titel: 'Ritterburg',      alt: 'Musselindecke mit Burg und Namen' },
       { slug: 'rucksack',            farbe: 'Bär (Grau)',  motiv: ['C7'],        schrift: 1, garn: 'Dunkelblau',  add: 9.90,  img: 'rucksack-beispiel-noel',           titel: 'Lokomotive',      alt: 'Bären-Rucksack mit Lokomotive und Namen' },
-      { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 4.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
-      { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 4.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
+      { slug: 'musselintuch',        farbe: 'Creme',       motiv: ['C11'],       schrift: 1, garn: 'Schwarz',     add: 5.90,  img: 'musselintuch-beispiel-liam',       titel: 'Piratenschiff',   alt: 'Musselintuch in Creme mit Piratenschiff und Namen' },
+      { slug: 'laetzchen',           farbe: 'Creme',       motiv: ['M4'],        schrift: 1, garn: 'Bordeauxrot', add: 5.90,  img: 'laetzchen-beispiel-tim',           titel: 'Babydrache',      alt: 'Lätzchen in Creme mit Babydrache und Namen' },
     ];
     // Im Admin gepflegte Empfehlungen (Reiter „Empfehlungen“ → settings.site_images.recs); ohne Eintrag gilt RECS oben.
     var SITE_RECS = null;
     function recTier(slug) {
       const k = String(slug || '').toLowerCase();
       if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 9.90;
-      if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 4.90;
+      if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 5.90;
       return null;
     }
     function renderRecs(products) {

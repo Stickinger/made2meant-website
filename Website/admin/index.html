@@ -4105,7 +4105,7 @@ function hrId() { return 'r' + Math.random().toString(36).slice(2, 9); }
 function hrTier(slug) {
   const k = String(slug || '').toLowerCase();
   if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 9.90;
-  if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 4.90;
+  if (/musselintuch|l(ä|ae|a)tzchen/.test(k)) return 5.90;
   return null;
 }
 function hrMotif(code) { return (typeof MOTIF_CATALOG !== 'undefined' ? MOTIF_CATALOG : []).find(m => m.code === code) || null; }

@@ -61,8 +61,8 @@ Deno.serve(async (req) => {
     for (const c of GROSS) MOTIF_CATALOG_SIZES[c] = 'gross'
     for (const c of KLEIN) MOTIF_CATALOG_SIZES[c] = 'klein'
     // Motivpreise je Textil – identisch halten mit product.html (motifTier / MOTIF_TIER_PRICES):
-    // nur große Motive (alle 9,90 €) bzw. nur kleine (alle 4,90 €); sonst Katalog (klein/groß).
-    const MOTIF_TIER_PRICES: Record<string, number> = { klein: 4.90, gross: 9.90 }
+    // nur große Motive (alle 9,90 €) bzw. nur kleine (alle 5,90 €); sonst Katalog (klein/groß).
+    const MOTIF_TIER_PRICES: Record<string, number> = { klein: 5.90, gross: 9.90 }
     function motifTier(key: unknown): string | null {
       const k = String(key || '').toLowerCase()
       if (/kapuzenhandtuch|musselindecke|rucksack|kuscheltuch|schmusetuch/.test(k)) return 'gross'
